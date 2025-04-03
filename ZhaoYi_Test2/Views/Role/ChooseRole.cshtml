@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "Chọn vai trò";
+}
+
+<div class="container">
+    <h2>@ViewData["Title"]</h2>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4>Chọn vai trò của bạn</h4>
+                </div>
+                <div class="card-body">
+                    <p>Chào mừng bạn đến với ứng dụng kết nối phiên dịch viên và nhà tuyển dụng. Vui lòng chọn vai trò của bạn để tiếp tục:</p>
+
+                    <form method="post">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="selectedRole" id="roleInterpreter" value="1">
+                            <label class="form-check-label" for="roleInterpreter">
+                                <strong>Phiên dịch viên</strong>
+                                <p class="text-muted">Tôi muốn đăng ký làm phiên dịch viên và nhận các công việc phiên dịch.</p>
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="radio" name="selectedRole" id="roleRecruiter" value="2">
+                            <label class="form-check-label" for="roleRecruiter">
+                                <strong>Nhà tuyển dụng</strong>
+                                <p class="text-muted">Tôi muốn đăng ký làm nhà tuyển dụng và tìm kiếm phiên dịch viên.</p>
+                            </label>
+                        </div>
+
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">Xác nhận</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,112 @@
+﻿@model ZhaoYi_Test2.Models.JobPosting
+@{
+    ViewData["Title"] = "Tạo bài đăng việc làm";
+}
+
+<h1>Tạo bài đăng việc làm mới</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <input type="hidden" asp-for="UserId" />
+
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Thông tin cơ bản</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label asp-for="Title" class="form-label">Tiêu đề</label>
+                        <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề bài đăng" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Field" class="form-label">Lĩnh vực</label>
+                        <input asp-for="Field" class="form-control" placeholder="Ví dụ: Giáo dục, Y tế, Công nghệ..." />
+                        <span asp-validation-for="Field" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Salary" class="form-label">Lương (VND)</label>
+                        <input asp-for="Salary" class="form-control" type="number" min="0" step="100000" placeholder="Nhập mức lương" />
+                        <span asp-validation-for="Salary" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="WorkLocation" class="form-label">Địa điểm làm việc</label>
+                        <input asp-for="WorkLocation" class="form-control" placeholder="Nhập địa điểm làm việc" />
+                        <span asp-validation-for="WorkLocation" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="ExpiryDate" class="form-label">Ngày hết hạn</label>
+                        <input asp-for="ExpiryDate" class="form-control" type="date" />
+                        <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Yêu cầu công việc</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label asp-for="RequiredExperience" class="form-label">Yêu cầu kinh nghiệm</label>
+                        <select asp-for="RequiredExperience" asp-items="Html.GetEnumSelectList<ZhaoYi_Test2.Models.ExperienceLevel>()" class="form-select">
+                            <option value="">-- Chọn mức kinh nghiệm --</option>
+                        </select>
+                        <span asp-validation-for="RequiredExperience" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="GenderRequirement" class="form-label">Giới tính yêu cầu</label>
+                        <select asp-for="GenderRequirement" asp-items="Html.GetEnumSelectList<ZhaoYi_Test2.Models.GenderRequirement>()" class="form-select">
+                            <option value="">-- Không yêu cầu --</option>
+                        </select>
+                        <span asp-validation-for="GenderRequirement" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="HiringCount" class="form-label">Số lượng tuyển</label>
+                        <input asp-for="HiringCount" class="form-control" type="number" min="1" placeholder="Nhập số lượng cần tuyển" />
+                        <span asp-validation-for="HiringCount" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="EducationLevel" class="form-label">Trình độ yêu cầu</label>
+                        <input asp-for="EducationLevel" class="form-control" placeholder="Ví dụ: Đại học, Cao đẳng, Không yêu cầu..." />
+                        <span asp-validation-for="EducationLevel" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Mô tả công việc</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label asp-for="JobDescription" class="form-label">Mô tả chi tiết</label>
+                        <textarea asp-for="JobDescription" class="form-control" rows="6" placeholder="Mô tả chi tiết về công việc, yêu cầu, quyền lợi..."></textarea>
+                        <span asp-validation-for="JobDescription" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <button type="submit" class="btn btn-primary">Đăng bài</button>
+                <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

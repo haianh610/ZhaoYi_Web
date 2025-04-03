@@ -1,0 +1,38 @@
+﻿@model ZhaoYi_Test2.Models.JobPosting
+@{
+    ViewData["Title"] = "Xóa bài đăng";
+}
+
+<h1>Xóa bài đăng việc làm</h1>
+
+<div class="alert alert-danger">
+    <h3>Bạn có chắc chắn muốn xóa bài đăng này?</h3>
+    <p>Hành động này không thể hoàn tác và sẽ xóa tất cả đơn ứng tuyển liên quan.</p>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">@Model.Title</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.PostedDate)</dt>
+            <dd class="col-sm-9">@Model.PostedDate.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Status)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Status)</dd>
+
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Salary)</dt>
+            <dd class="col-sm-9">@Model.Salary.ToString("N0") VND</dd>
+
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.WorkLocation)</dt>
+            <dd class="col-sm-9">@Model.WorkLocation</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="JobPostingId" />
+    <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
+    <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+</form>

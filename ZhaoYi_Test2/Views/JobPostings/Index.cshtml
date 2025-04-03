@@ -1,0 +1,89 @@
+﻿@model IEnumerable<ZhaoYi_Test2.Models.JobPosting>
+@{
+    ViewData["Title"] = "Quản lý bài đăng việc làm";
+}
+
+<h1>Quản lý bài đăng việc làm</h1>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Tạo bài đăng mới</a>
+</p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Bạn chưa có bài đăng việc làm nào. Hãy tạo bài đăng đầu tiên!
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.Title)</th>
+                    <th>@Html.DisplayNameFor(model => model.PostedDate)</th>
+                    <th>@Html.DisplayNameFor(model => model.ExpiryDate)</th>
+                    <th>@Html.DisplayNameFor(model => model.Status)</th>
+                    <th>@Html.DisplayNameFor(model => model.Salary)</th>
+                    <th>@Html.DisplayNameFor(model => model.ViewCount)</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                        <td>@item.PostedDate.ToString("dd/MM/yyyy")</td>
+                        <td>@item.ExpiryDate.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <span class="badge @GetStatusClass(item.Status)">
+                                @Html.DisplayFor(modelItem => item.Status)
+                            </span>
+                        </td>
+                        <td>@item.Salary.ToString("N0") VND</td>
+                        <td>@Html.DisplayFor(modelItem => item.ViewCount)</td>
+                        <td>
+                            <div class="btn-group">
+                                <a asp-action="Details" asp-route-id="@item.JobPostingId" class="btn btn-info btn-sm">Chi tiết</a>
+                                <a asp-action="Edit" asp-route-id="@item.JobPostingId" class="btn btn-primary btn-sm">Sửa</a>
+                                <a asp-action="Delete" asp-route-id="@item.JobPostingId" class="btn btn-danger btn-sm">Xóa</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@functions {
+    public string GetStatusClass(JobStatus status)
+    {
+        return status switch
+        {
+            JobStatus.Active => "bg-success",
+            JobStatus.Completed => "bg-info",
+            JobStatus.InProgress => "bg-primary",
+            JobStatus.Expired => "bg-secondary",
+            JobStatus.Cancelled => "bg-danger",
+            JobStatus.Pending => "bg-warning",
+            _ => "bg-secondary"
+        };
+    }
+}

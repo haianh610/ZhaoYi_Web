@@ -1,0 +1,206 @@
+﻿@model ZhaoYi_Test2.Models.JobPosting
+@{
+    ViewData["Title"] = Model.Title;
+    bool hasApplied = ViewBag.HasApplied ?? false;
+    int userRole = ViewBag.UserRole;
+    var interpreter = ViewBag.Interpreter as ZhaoYi_Test2.Models.Interpreter;
+}
+
+<div class="container">
+    <div class="row mb-3">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Chi tiết công việc</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">@Model.Title</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge bg-primary fs-6">@Model.Salary.ToString("N0") VND</span>
+                            @if (Model.HiringCount.HasValue)
+                            {
+                                <span class="badge bg-info fs-6 ms-2">Cần: @Model.HiringCount người</span>
+                            }
+                        </div>
+                        <div>
+                            <span class="badge bg-secondary">@Model.ViewCount lượt xem</span>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-5">Lĩnh vực:</dt>
+                                <dd class="col-sm-7">@(string.IsNullOrEmpty(Model.Field) ? "Không có" : Model.Field)</dd>
+
+                                <dt class="col-sm-5">Địa điểm:</dt>
+                                <dd class="col-sm-7">@Model.WorkLocation</dd>
+
+                                <dt class="col-sm-5">Yêu cầu kinh nghiệm:</dt>
+                                <dd class="col-sm-7">
+                                    @(Model.RequiredExperience.HasValue ?
+                                        Html.DisplayFor(model => model.RequiredExperience).ToString() :
+                                        "Không yêu cầu")
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-5">Ngày đăng:</dt>
+                                <dd class="col-sm-7">@Model.PostedDate.ToString("dd/MM/yyyy")</dd>
+
+                                <dt class="col-sm-5">Hết hạn:</dt>
+                                <dd class="col-sm-7">@Model.ExpiryDate.ToString("dd/MM/yyyy")</dd>
+
+                                <dt class="col-sm-5">Giới tính:</dt>
+                                <dd class="col-sm-7">
+                                    @(Model.GenderRequirement.HasValue ?
+                                        Html.DisplayFor(model => model.GenderRequirement).ToString() :
+                                        "Không yêu cầu")
+                                </dd>
+
+                                <dt class="col-sm-5">Trình độ:</dt>
+                                <dd class="col-sm-7">
+                                    @(string.IsNullOrEmpty(Model.EducationLevel) ?
+                                        "Không yêu cầu" : Model.EducationLevel)
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Mô tả công việc</h5>
+                        <div class="card">
+                            <div class="card-body bg-light">
+                                @Html.Raw(Model.JobDescription.Replace("\n", "<br />"))
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (User.Identity.IsAuthenticated && userRole == 1)
+                    {
+                        <div class="d-grid gap-2">
+                            @if (hasApplied)
+                            {
+                                <a class="btn btn-success disabled">
+                                    <i class="bi bi-check-circle"></i> Bạn đã ứng tuyển vào vị trí này
+                                </a>
+                                <a asp-controller="JobApply" asp-action="MyApplications" class="btn btn-outline-primary">
+                                    Xem đơn ứng tuyển của tôi
+                                </a>
+                            }
+                            else if (interpreter == null)
+                            {
+                                <a asp-controller="Interpreters" asp-action="Profile" class="btn btn-warning">
+                                    <i class="bi bi-exclamation-triangle"></i> Vui lòng tạo hồ sơ phiên dịch viên trước khi ứng tuyển
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="JobApply" asp-action="Apply" asp-route-id="@Model.JobPostingId" class="btn btn-primary">
+                                    <i class="bi bi-send"></i> Ứng tuyển ngay
+                                </a>
+                            }
+                        </div>
+                    }
+                    else if (!User.Identity.IsAuthenticated)
+                    {
+                        <div class="alert alert-info">
+                            <a asp-area="Identity" asp-page="/Account/Login">Đăng nhập</a> để ứng tuyển vào vị trí này.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Thông tin nhà tuyển dụng</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Recruiter != null)
+                    {
+                        <h6 class="card-title">@Model.Recruiter.RecruiterName</h6>
+                        <p class="card-text">
+                            <i class="bi bi-geo-alt"></i> @Model.Recruiter.WorkLocation
+                        </p>
+                        @if (!string.IsNullOrEmpty(Model.Recruiter.DetailedAddress))
+                        {
+                            <p class="card-text">
+                                <small class="text-muted">@Model.Recruiter.DetailedAddress</small>
+                            </p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="card-text">Không có thông tin chi tiết</p>
+                    }
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Chia sẻ công việc này</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary">
+                            <i class="bi bi-facebook"></i>
+                        </button>
+                        <button class="btn btn-outline-info">
+                            <i class="bi bi-twitter"></i>
+                        </button>
+                        <button class="btn btn-outline-success">
+                            <i class="bi bi-envelope"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="copyJobLink()">
+                            <i class="bi bi-link-45deg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyJobLink() {
+            var url = window.location.href;
+            navigator.clipboard.writeText(url).then(function() {
+                alert("Đã sao chép đường dẫn!");
+            }, function(err) {
+                console.error('Không thể sao chép đường dẫn: ', err);
+            });
+        }
+    </script>
+}
+

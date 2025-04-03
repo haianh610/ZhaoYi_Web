@@ -1,0 +1,83 @@
+﻿@model ZhaoYi_Test2.Models.Interpreter
+@{
+    ViewData["Title"] = "Hồ sơ phiên dịch viên";
+}
+
+<h1>Hồ sơ phiên dịch viên</h1>
+
+@if (TempData["StatusMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["StatusMessage"]
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-8">
+        @if (ViewBag.HasProfile == false)
+        {
+            <div class="alert alert-info">
+                Bạn chưa có hồ sơ phiên dịch viên. Vui lòng tạo hồ sơ của bạn.
+            </div>
+        }
+
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <input type="hidden" asp-for="InterpreterId" />
+            <input type="hidden" asp-for="UserId" />
+
+            <div class="form-group mb-3">
+                <label asp-for="InterpreterName" class="form-label">Họ và tên</label>
+                <input asp-for="InterpreterName" class="form-control" />
+                <span asp-validation-for="InterpreterName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="DateOfBirth" class="form-label">Ngày sinh</label>
+                <input asp-for="DateOfBirth" class="form-control" type="date" />
+                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Gender" class="form-label">Giới tính</label>
+                <select asp-for="Gender" class="form-select">
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                </select>
+                <span asp-validation-for="Gender" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="WorkLocation" class="form-label">Khu vực làm việc</label>
+                <input asp-for="WorkLocation" class="form-control" />
+                <span asp-validation-for="WorkLocation" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="DetailedAddress" class="form-label">Địa chỉ chi tiết</label>
+                <textarea asp-for="DetailedAddress" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="DetailedAddress" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="YearsOfExperience" class="form-label">Kinh nghiệm</label>
+                <select asp-for="YearsOfExperience" asp-items="Html.GetEnumSelectList<ZhaoYi_Test2.Models.ExperienceLevel>()" class="form-select"></select>
+                <span asp-validation-for="YearsOfExperience" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <button type="submit" class="btn btn-primary">
+                    @(ViewBag.HasProfile ? "Cập nhật hồ sơ" : "Tạo hồ sơ")
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
