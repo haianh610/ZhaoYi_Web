@@ -8,11 +8,20 @@ namespace ZhaoYi_Test2.Models
     {
         [Display(Name = "Chờ phản hồi")]
         Pending,
-        
-        [Display(Name = "Đã trúng tuyển")]
-        Accepted,
-        
-        [Display(Name = "Không trúng tuyển")]
+
+        [Display(Name = "Chờ bắt đầu công việc")]
+        WaitingToStart,
+
+        [Display(Name = "Đang thực hiện")]
+        InProgress,
+
+        [Display(Name = "Hoàn thành")]
+        Completed,
+
+        [Display(Name = "Đã hủy")]
+        Canceled,
+
+        [Display(Name = "Bị từ chối")]
         Rejected
     }
 
@@ -68,3 +77,4 @@ namespace ZhaoYi_Test2.Models
         public DateTime ApplicationDate { get; set; } = DateTime.Now;
     }
 }
+

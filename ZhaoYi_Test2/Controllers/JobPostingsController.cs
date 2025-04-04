@@ -88,7 +88,7 @@ namespace ZhaoYi_Test2.Controllers
                 return NotFound();
             }
 
-            // Lấy danh sách đơn ứng tuyển cho bài đăng này
+            // Lấy danh sách đơn ứng tuyển cho bài đăng này kèm thông tin interpreter
             var applications = await _context.JobApplications
                 .Where(a => a.JobPostingId == id)
                 .Include(a => a.Interpreter)
@@ -99,6 +99,7 @@ namespace ZhaoYi_Test2.Controllers
 
             return View(jobPosting);
         }
+
 
 
         // GET: JobPostings/Create
@@ -384,6 +385,145 @@ namespace ZhaoYi_Test2.Controllers
             return _context.JobPostings.Any(e => e.JobPostingId == id);
         }
 
+        // GET: JobPostings/UpdateJobStatus
+        public async Task<IActionResult> UpdateJobStatus(int id, int status)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || user.Role != 2)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var recruiter = await _context.Recruiters
+                .FirstOrDefaultAsync(r => r.UserId == user.Id);
+
+            if (recruiter == null)
+            {
+                return RedirectToAction("Profile", "Recruiters");
+            }
+
+            // Kiểm tra xem bài đăng có thuộc về nhà tuyển dụng này không
+            var jobPosting = await _context.JobPostings
+                .FirstOrDefaultAsync(jp => jp.JobPostingId == id && jp.RecruiterId == recruiter.RecruiterId);
+
+            if (jobPosting == null)
+            {
+                return NotFound();
+            }
+
+            // Chuyển đổi giá trị status thành enum JobStatus
+            JobStatus newStatus;
+            if (!Enum.IsDefined(typeof(JobStatus), status))
+            {
+                TempData["ErrorMessage"] = "Trạng thái không hợp lệ.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            newStatus = (JobStatus)status;
+
+            try
+            {
+                // Xử lý chuyển trạng thái tùy thuộc vào trạng thái hiện tại
+                switch (newStatus)
+                {
+                    case JobStatus.InProgress:
+                        // Kiểm tra xem còn ứng viên chưa phản hồi không
+                        var pendingApplications = await _context.JobApplications
+                            .AnyAsync(a => a.JobPostingId == id && a.Status == ApplicationStatus.Pending);
+
+                        if (pendingApplications)
+                        {
+                            TempData["ErrorMessage"] = "Vẫn còn ứng viên đang chờ phản hồi. Vui lòng phản hồi tất cả ứng viên trước khi bắt đầu công việc.";
+                            return RedirectToAction(nameof(Details), new { id });
+                        }
+
+                        // Kiểm tra xem có ít nhất một ứng viên được tuyển không
+                        var hasAcceptedApplications = await _context.JobApplications
+                            .AnyAsync(a => a.JobPostingId == id && a.Status == ApplicationStatus.WaitingToStart);
+
+                        if (!hasAcceptedApplications)
+                        {
+                            TempData["ErrorMessage"] = "Chưa có ứng viên nào được tuyển. Vui lòng chấp nhận ít nhất một ứng viên trước khi bắt đầu công việc.";
+                            return RedirectToAction(nameof(Details), new { id });
+                        }
+
+                        // Cập nhật trạng thái bài đăng
+                        jobPosting.Status = JobStatus.InProgress;
+                        jobPosting.UpdatedDate = DateTime.Now;
+                        _context.Update(jobPosting);
+
+                        // Cập nhật trạng thái của ứng viên đã chấp nhận thành "Đang thực hiện"
+                        var acceptedApplications = await _context.JobApplications
+                            .Where(a => a.JobPostingId == id && a.Status == ApplicationStatus.WaitingToStart)
+                            .ToListAsync();
+
+                        foreach (var app in acceptedApplications)
+                        {
+                            app.Status = ApplicationStatus.InProgress;
+                            _context.Update(app);
+                        }
+
+                        await _context.SaveChangesAsync();
+                        TempData["SuccessMessage"] = "Đã chuyển trạng thái sang Đang thực hiện.";
+                        break;
+
+                    case JobStatus.Completed:
+                        // Cập nhật trạng thái bài đăng thành "Đã hoàn thành"
+                        jobPosting.Status = JobStatus.Completed;
+                        jobPosting.UpdatedDate = DateTime.Now;
+                        _context.Update(jobPosting);
+
+                        // Cập nhật trạng thái của ứng viên thành "Hoàn thành"
+                        var inProgressApplications = await _context.JobApplications
+                            .Where(a => a.JobPostingId == id && a.Status == ApplicationStatus.InProgress)
+                            .ToListAsync();
+
+                        foreach (var app in inProgressApplications)
+                        {
+                            app.Status = ApplicationStatus.Completed;
+                            _context.Update(app);
+                        }
+
+                        await _context.SaveChangesAsync();
+                        TempData["SuccessMessage"] = "Đã hoàn thành công việc.";
+                        break;
+
+                    case JobStatus.Cancelled:
+                        // Cập nhật trạng thái bài đăng thành "Đã hủy"
+                        jobPosting.Status = JobStatus.Cancelled;
+                        jobPosting.UpdatedDate = DateTime.Now;
+                        _context.Update(jobPosting);
+
+                        // Cập nhật trạng thái của tất cả ứng viên đang thực hiện hoặc chờ bắt đầu
+                        var activeApplications = await _context.JobApplications
+                            .Where(a => a.JobPostingId == id &&
+                                   (a.Status == ApplicationStatus.WaitingToStart || a.Status == ApplicationStatus.InProgress))
+                            .ToListAsync();
+
+                        foreach (var app in activeApplications)
+                        {
+                            app.Status = ApplicationStatus.Canceled;
+                            _context.Update(app);
+                        }
+
+                        await _context.SaveChangesAsync();
+                        TempData["SuccessMessage"] = "Đã hủy công việc.";
+                        break;
+
+                    default:
+                        TempData["ErrorMessage"] = "Không thể chuyển sang trạng thái này.";
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi cập nhật trạng thái: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+
         // GET: JobPostings/UpdateApplicationStatus
         public async Task<IActionResult> UpdateApplicationStatus(int id, int status, int jobPostingId)
         {
@@ -421,12 +561,20 @@ namespace ZhaoYi_Test2.Controllers
 
             try
             {
-                // Cập nhật trạng thái
-                application.Status = (ApplicationStatus)status;
-                _context.Update(application);
-                await _context.SaveChangesAsync();
+                // Kiểm tra trạng thái hợp lệ
+                if (Enum.IsDefined(typeof(ApplicationStatus), status))
+                {
+                    // Cập nhật trạng thái
+                    application.Status = (ApplicationStatus)status;
+                    _context.Update(application);
+                    await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "Đã cập nhật trạng thái ứng tuyển.";
+                    TempData["SuccessMessage"] = "Đã cập nhật trạng thái ứng tuyển.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Trạng thái không hợp lệ.";
+                }
             }
             catch (Exception ex)
             {
@@ -435,6 +583,8 @@ namespace ZhaoYi_Test2.Controllers
 
             return RedirectToAction(nameof(Details), new { id = jobPostingId });
         }
+
+
 
     }
 }

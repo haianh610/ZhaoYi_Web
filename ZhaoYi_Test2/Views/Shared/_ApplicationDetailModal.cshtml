@@ -1,0 +1,172 @@
+﻿@model ZhaoYi_Test2.Models.JobApplication
+
+<div class="modal fade" id="applicationModal@(Model.JobApplicationId)" tabindex="-1"
+     aria-labelledby="applicationModalLabel@(Model.JobApplicationId)" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header @(Model.Status == ApplicationStatus.Rejected ? "bg-danger text-white" : Model.Status == ApplicationStatus.WaitingToStart ? "bg-success text-white" : "bg-primary text-white")">
+                <h5 class="modal-title" id="applicationModalLabel@(Model.JobApplicationId)">
+                    Chi tiết ứng viên: @Model.InterpreterName
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs" id="applicationTabs@(Model.JobApplicationId)" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="info-tab@(Model.JobApplicationId)"
+                                data-bs-toggle="tab" data-bs-target="#info@(Model.JobApplicationId)"
+                                type="button" role="tab" aria-selected="true">
+                            <i class="bi bi-person"></i> Thông tin
+                        </button>
+                    </li>
+                    @if (!string.IsNullOrEmpty(Model.CVFilePath))
+                    {
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="cv-tab@(Model.JobApplicationId)"
+                                    data-bs-toggle="tab" data-bs-target="#cv@(Model.JobApplicationId)"
+                                    type="button" role="tab" aria-selected="false">
+                                <i class="bi bi-file-earmark-text"></i> Xem CV
+                            </button>
+                        </li>
+                    }
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content mt-3" id="applicationTabsContent@(Model.JobApplicationId)">
+                    <!-- Tab thông tin ứng viên -->
+                    <div class="tab-pane fade show active" id="info@(Model.JobApplicationId)" role="tabpanel">
+                        <div class="text-center mb-3">
+                            @if (Model.Interpreter != null && !string.IsNullOrEmpty(Model.Interpreter.AvatarPath))
+                            {
+                                <img src="@Url.Content($"~/uploads/avatars/{Model.Interpreter.AvatarPath}")" alt="Avatar"
+                                     class="img-fluid rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                            }
+                            else
+                            {
+                                <img src="@Url.Content("~/images/default-avatar.png")" alt="Default Avatar"
+                                     class="img-fluid rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                            }
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Thông tin cá nhân</h6>
+                                <dl class="row">
+                                    <dt class="col-sm-4">Tên ứng viên:</dt>
+                                    <dd class="col-sm-8">@Model.InterpreterName</dd>
+
+                                    <dt class="col-sm-4">Email:</dt>
+                                    <dd class="col-sm-8">@Model.Email</dd>
+
+                                    <dt class="col-sm-4">Điện thoại:</dt>
+                                    <dd class="col-sm-8">@Model.PhoneNumber</dd>
+
+                                    <dt class="col-sm-4">Ngày ứng tuyển:</dt>
+                                    <dd class="col-sm-8">@Model.ApplicationDate.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                                    <dt class="col-sm-4">Trạng thái:</dt>
+                                    <dd class="col-sm-8">
+                                        <span class="badge @GetApplicationStatusClass(Model.Status)">
+                                            @Model.Status
+                                        </span>
+                                    </dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Thông tin phiên dịch viên</h6>
+                                @if (Model.Interpreter != null)
+                                {
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Kinh nghiệm:</dt>
+                                        <dd class="col-sm-8">@Model.Interpreter.YearsOfExperience</dd>
+
+                                        <dt class="col-sm-4">Giới tính:</dt>
+                                        <dd class="col-sm-8">@Model.Interpreter.Gender</dd>
+
+                                        <dt class="col-sm-4">Khu vực:</dt>
+                                        <dd class="col-sm-8">@Model.Interpreter.WorkLocation</dd>
+
+                                        <dt class="col-sm-4">Địa chỉ:</dt>
+                                        <dd class="col-sm-8">@Model.Interpreter.DetailedAddress</dd>
+                                    </dl>
+                                }
+                                else
+                                {
+                                    <p class="text-muted">Không có thông tin chi tiết phiên dịch viên</p>
+                                }
+                            </div>
+                        </div>
+
+                        @if (string.IsNullOrEmpty(Model.CVFilePath))
+                        {
+                            <div class="alert alert-warning mt-3">
+                                Ứng viên chưa tải lên CV.
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Tab CV -->
+                    @if (!string.IsNullOrEmpty(Model.CVFilePath))
+                    {
+                        <div class="tab-pane fade" id="cv@(Model.JobApplicationId)" role="tabpanel">
+                            <div class="ratio ratio-16x9" style="height: 600px;">
+                                <iframe src="@Url.Content($"~/uploads/cv/{Model.CVFilePath}")"
+                                        class="embed-responsive-item"
+                                        allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="modal-footer d-flex justify-content-between">
+                <div>
+                    @if (!string.IsNullOrEmpty(Model.CVFilePath))
+                    {
+                        <a href="@Url.Content($"~/uploads/cv/{Model.CVFilePath}")" target="_blank" class="btn btn-primary">
+                            <i class="bi bi-download"></i> Tải CV
+                        </a>
+                    }
+                </div>
+                <div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    @if (Model.Status == ApplicationStatus.Pending)
+                    {
+                        <a class="btn btn-success"
+                           asp-action="UpdateApplicationStatus"
+                           asp-route-id="@Model.JobApplicationId"
+                           asp-route-status="1"
+                           asp-route-jobPostingId="@ViewBag.JobPostingId">
+                            <i class="bi bi-check-circle"></i> Chấp nhận
+                        </a>
+                        <a class="btn btn-danger"
+                           asp-action="UpdateApplicationStatus"
+                           asp-route-id="@Model.JobApplicationId"
+                           asp-route-status="5"
+                           asp-route-jobPostingId="@ViewBag.JobPostingId">
+                            <i class="bi bi-x-circle"></i> Từ chối
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetApplicationStatusClass(ApplicationStatus status)
+    {
+        return status switch
+        {
+            ApplicationStatus.Pending => "bg-warning",
+            ApplicationStatus.WaitingToStart => "bg-success",
+            ApplicationStatus.InProgress => "bg-primary",
+            ApplicationStatus.Completed => "bg-info",
+            ApplicationStatus.Canceled => "bg-secondary",
+            ApplicationStatus.Rejected => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

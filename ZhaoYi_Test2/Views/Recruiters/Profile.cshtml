@@ -21,36 +21,91 @@
             </div>
         }
 
-        <form method="post">
+        <form method="post" enctype="multipart/form-data" id="profileForm">
             <div asp-validation-summary="All" class="text-danger"></div>
 
             <input type="hidden" asp-for="RecruiterId" />
             <input type="hidden" asp-for="UserId" />
+            <input type="hidden" asp-for="AvatarPath" id="avatarPathInput" />
 
-            <div class="form-group mb-3">
-                <label asp-for="RecruiterName" class="form-label">Tên nhà tuyển dụng</label>
-                <input asp-for="RecruiterName" class="form-control" />
-                <span asp-validation-for="RecruiterName" class="text-danger"></span>
+            <div class="row mb-4">
+                <div class="col-md-4 text-center">
+                    <div class="avatar-container mb-3">
+                        @if (!string.IsNullOrEmpty(Model.AvatarPath))
+                        {
+                            <img src="@Url.Content($"~/uploads/avatars/{Model.AvatarPath}")" alt="Avatar"
+                                 class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;"
+                                 id="avatarPreview" />
+                        }
+                        else
+                        {
+                            <img src="@Url.Content("~/images/default-avatar.png")" alt="Default Avatar"
+                                 class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;"
+                                 id="avatarPreview" />
+                        }
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="avatarFile" class="form-label">Cập nhật ảnh đại diện</label>
+                        <input type="file" id="avatarFile" name="avatarFile" class="form-control" accept="image/*" />
+                        <div class="form-text">Định dạng JPG, PNG. Tối đa 2MB.</div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.AvatarPath))
+                    {
+                        <button type="button" id="removeAvatarBtn" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash"></i> Xóa ảnh đại diện
+                        </button>
+                        <input type="hidden" id="removeAvatar" name="removeAvatar" value="false" />
+                    }
+                </div>
+
+                <div class="col-md-8">
+                    <div class="form-group mb-3">
+                        <label asp-for="RecruiterName" class="form-label">Tên nhà tuyển dụng</label>
+                        <input asp-for="RecruiterName" class="form-control form-field" />
+                        <span asp-validation-for="RecruiterName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="WorkLocation" class="form-label">Khu vực làm việc</label>
+                        <input asp-for="WorkLocation" class="form-control form-field" />
+                        <span asp-validation-for="WorkLocation" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="DetailedAddress" class="form-label">Địa chỉ chi tiết</label>
+                        <textarea asp-for="DetailedAddress" class="form-control form-field" rows="3"></textarea>
+                        <span asp-validation-for="DetailedAddress" class="text-danger"></span>
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="WorkLocation" class="form-label">Khu vực làm việc</label>
-                <input asp-for="WorkLocation" class="form-control" />
-                <span asp-validation-for="WorkLocation" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="DetailedAddress" class="form-label">Địa chỉ chi tiết</label>
-                <textarea asp-for="DetailedAddress" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="DetailedAddress" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
+            <div class="form-group mb-3 d-flex gap-2">
                 <button type="submit" class="btn btn-primary">
                     @(ViewBag.HasProfile ? "Cập nhật hồ sơ" : "Tạo hồ sơ")
                 </button>
+                <a href="javascript:history.back()" class="btn btn-outline-secondary" id="cancelBtn">Hủy</a>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal xác nhận rời trang -->
+<div class="modal fade" id="leaveConfirmModal" tabindex="-1" aria-labelledby="leaveConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="leaveConfirmModalLabel">Xác nhận</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có những thay đổi chưa được lưu. Bạn có chắc chắn muốn rời khỏi trang này không?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ở lại</button>
+                <button type="button" class="btn btn-danger" id="confirmLeaveBtn">Rời khỏi</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -58,4 +113,133 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        let formChanged = false;
+        let originalFormData;
+        const modal = new bootstrap.Modal(document.getElementById('leaveConfirmModal'));
+        let redirectUrl = '';
+        let isSubmitting = false; // Thêm biến này để theo dõi việc đang submit
+
+        // Lưu trạng thái ban đầu của form
+        function saveInitialState() {
+            const form = document.getElementById('profileForm');
+            originalFormData = new FormData(form);
+        }
+
+        // Kiểm tra xem form có thay đổi không
+        function isFormChanged() {
+            if (isSubmitting) return false; // Nếu đang submit thì không coi là thay đổi
+
+            const currentForm = document.getElementById('profileForm');
+            const currentFormData = new FormData(currentForm);
+
+            // Kiểm tra các trường input, textarea, select
+            const formFields = document.querySelectorAll('.form-field');
+            for (const field of formFields) {
+                if (field.value !== originalFormData.get(field.name)) {
+                    return true;
+                }
+            }
+
+            // Kiểm tra nếu đã chọn file avatar mới
+            if (document.getElementById('avatarFile').files.length > 0) {
+                return true;
+            }
+
+            // Kiểm tra nếu đã nhấn nút xóa avatar
+            if (document.getElementById('removeAvatar') && document.getElementById('removeAvatar').value === 'true') {
+                return true;
+            }
+
+            return false;
+        }
+
+        // Xử lý khi rời trang
+        function handleLeavePage(e) {
+            if (!isSubmitting && (formChanged || isFormChanged())) {
+                e.preventDefault();
+                modal.show();
+                redirectUrl = e.target.href || '';
+                return false;
+            }
+            return true;
+        }
+
+        // Preview ảnh trước khi upload
+        document.getElementById('avatarFile').addEventListener('change', function (e) {
+            formChanged = true;
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    avatarPreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Xử lý nút xóa ảnh
+        if (document.getElementById('removeAvatarBtn')) {
+            document.getElementById('removeAvatarBtn').addEventListener('click', function () {
+                formChanged = true;
+                document.getElementById('avatarPreview').src = '@Url.Content("~/images/default-avatar.png")';
+                document.getElementById('avatarFile').value = ''; // Xóa file đã chọn nếu có
+                document.getElementById('removeAvatar').value = 'true';
+            });
+        }
+
+        // Theo dõi thay đổi form
+        document.querySelectorAll('.form-field').forEach(field => {
+            field.addEventListener('input', () => {
+                formChanged = true;
+            });
+        });
+
+        // Cảnh báo khi rời trang
+        document.querySelectorAll('a:not([href^="#"])').forEach(link => {
+            if (!link.id || link.id !== 'confirmLeaveBtn') {
+                link.addEventListener('click', handleLeavePage);
+            }
+        });
+
+        // Nút xác nhận rời khỏi trang
+        document.getElementById('confirmLeaveBtn').addEventListener('click', function() {
+            formChanged = false;
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            } else {
+                window.history.back();
+            }
+        });
+
+        // Nút hủy
+        document.getElementById('cancelBtn').addEventListener('click', function(e) {
+            if (!isSubmitting && (formChanged || isFormChanged())) {
+                e.preventDefault();
+                modal.show();
+                return false;
+            }
+        });
+
+        // Khi mở trang, lưu trạng thái ban đầu của form
+        document.addEventListener('DOMContentLoaded', saveInitialState);
+
+        // Khi form được submit, đánh dấu đang submit
+        document.getElementById('profileForm').addEventListener('submit', function() {
+            isSubmitting = true;
+            formChanged = false;
+        });
+
+        // Cảnh báo khi tải lại trang hoặc đóng tab
+        window.addEventListener('beforeunload', function(e) {
+            if (!isSubmitting && (formChanged || isFormChanged())) {
+                e.preventDefault();
+                e.returnValue = 'Bạn có thay đổi chưa được lưu. Bạn có chắc chắn muốn rời khỏi trang này không?';
+                return e.returnValue;
+            }
+        });
+    </script>
+
 }
+

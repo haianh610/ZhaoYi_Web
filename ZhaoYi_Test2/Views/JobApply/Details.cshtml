@@ -1,9 +1,24 @@
 ﻿@model ZhaoYi_Test2.Models.JobPosting
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
 @{
     ViewData["Title"] = Model.Title;
     bool hasApplied = ViewBag.HasApplied ?? false;
     int userRole = ViewBag.UserRole;
     var interpreter = ViewBag.Interpreter as ZhaoYi_Test2.Models.Interpreter;
+
+    // Helper function to get display name from enum
+    string GetDisplayName(Enum enumValue)
+    {
+        if (enumValue == null) return "Không yêu cầu";
+
+        var displayAttribute = enumValue.GetType()
+            .GetMember(enumValue.ToString())
+            .First()
+            .GetCustomAttribute<DisplayAttribute>();
+
+        return displayAttribute?.Name ?? enumValue.ToString();
+    }
 }
 
 <div class="container">
@@ -42,10 +57,14 @@
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <span class="badge bg-primary fs-6">@Model.Salary.ToString("N0") VND</span>
-                            @if (Model.HiringCount.HasValue)
-                            {
-                                <span class="badge bg-info fs-6 ms-2">Cần: @Model.HiringCount người</span>
+                            @{
+                                var timeLeft = Model.ExpiryDate - DateTime.Now;
+                                var badgeClass = timeLeft.TotalHours < 24 ? "bg-danger" : "bg-success";
+                                var timeDisplay = timeLeft.TotalHours < 24
+                                ? $"Còn {Math.Max(1, (int)timeLeft.TotalHours)} giờ"
+                                : $"Còn {(int)timeLeft.TotalDays} ngày";
                             }
+                            <span class="badge @badgeClass fs-6 ms-2">@timeDisplay</span>
                         </div>
                         <div>
                             <span class="badge bg-secondary">@Model.ViewCount lượt xem</span>
@@ -54,44 +73,54 @@
 
                     <hr />
 
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <dl class="row">
-                                <dt class="col-sm-5">Lĩnh vực:</dt>
-                                <dd class="col-sm-7">@(string.IsNullOrEmpty(Model.Field) ? "Không có" : Model.Field)</dd>
+                    <div class="mb-4">
+                        <h5>Thông tin chung</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Lĩnh vực:</dt>
+                                    <dd class="col-sm-7">@(string.IsNullOrEmpty(Model.Field) ? "Không có" : Model.Field)</dd>
 
-                                <dt class="col-sm-5">Địa điểm:</dt>
-                                <dd class="col-sm-7">@Model.WorkLocation</dd>
+                                    <dt class="col-sm-5">Địa điểm:</dt>
+                                    <dd class="col-sm-7">@Model.WorkLocation</dd>
 
-                                <dt class="col-sm-5">Yêu cầu kinh nghiệm:</dt>
-                                <dd class="col-sm-7">
-                                    @(Model.RequiredExperience.HasValue ?
-                                        Html.DisplayFor(model => model.RequiredExperience).ToString() :
-                                        "Không yêu cầu")
-                                </dd>
-                            </dl>
-                        </div>
-                        <div class="col-md-6">
-                            <dl class="row">
-                                <dt class="col-sm-5">Ngày đăng:</dt>
-                                <dd class="col-sm-7">@Model.PostedDate.ToString("dd/MM/yyyy")</dd>
+                                    <dt class="col-sm-5">Yêu cầu kinh nghiệm:</dt>
+                                    <dd class="col-sm-7">
+                                        @(Model.RequiredExperience.HasValue
+                                            ? GetDisplayName(Model.RequiredExperience.Value)
+                                            : "Không yêu cầu")
+                                    </dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Ngày đăng:</dt>
+                                    <dd class="col-sm-7">@Model.PostedDate.ToString("dd/MM/yyyy")</dd>
 
-                                <dt class="col-sm-5">Hết hạn:</dt>
-                                <dd class="col-sm-7">@Model.ExpiryDate.ToString("dd/MM/yyyy")</dd>
+                                    <dt class="col-sm-5">Hết hạn:</dt>
+                                    <dd class="col-sm-7">@Model.ExpiryDate.ToString("dd/MM/yyyy")</dd>
 
-                                <dt class="col-sm-5">Giới tính:</dt>
-                                <dd class="col-sm-7">
-                                    @(Model.GenderRequirement.HasValue ?
-                                        Html.DisplayFor(model => model.GenderRequirement).ToString() :
-                                        "Không yêu cầu")
-                                </dd>
+                                    <dt class="col-sm-5">Giới tính:</dt>
+                                    <dd class="col-sm-7">
+                                        @(Model.GenderRequirement.HasValue
+                                            ? GetDisplayName(Model.GenderRequirement.Value)
+                                            : "Không yêu cầu")
+                                    </dd>
 
-                                <dt class="col-sm-5">Trình độ:</dt>
-                                <dd class="col-sm-7">
-                                    @(string.IsNullOrEmpty(Model.EducationLevel) ?
-                                        "Không yêu cầu" : Model.EducationLevel)
-                                </dd>
-                            </dl>
+                                    <dt class="col-sm-5">Trình độ:</dt>
+                                    <dd class="col-sm-7">
+                                        @(string.IsNullOrEmpty(Model.EducationLevel)
+                                            ? "Không yêu cầu"
+                                            : Model.EducationLevel)
+                                    </dd>
+
+                                    @if (Model.HiringCount.HasValue)
+                                    {
+                                        <dt class="col-sm-5">Số lượng tuyển:</dt>
+                                        <dd class="col-sm-7">@Model.HiringCount người</dd>
+                                    }
+                                </dl>
+                            </div>
                         </div>
                     </div>
 
@@ -103,6 +132,7 @@
                             </div>
                         </div>
                     </div>
+
 
                     @if (User.Identity.IsAuthenticated && userRole == 1)
                     {
@@ -145,22 +175,40 @@
                 <div class="card-header bg-light">
                     <h5 class="mb-0">Thông tin nhà tuyển dụng</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body text-center">
                     @if (Model.Recruiter != null)
                     {
-                        <h6 class="card-title">@Model.Recruiter.RecruiterName</h6>
-                        <p class="card-text">
-                            <i class="bi bi-geo-alt"></i> @Model.Recruiter.WorkLocation
-                        </p>
-                        @if (!string.IsNullOrEmpty(Model.Recruiter.DetailedAddress))
-                        {
-                            <p class="card-text">
-                                <small class="text-muted">@Model.Recruiter.DetailedAddress</small>
+                        <div class="mb-3">
+                            @if (!string.IsNullOrEmpty(Model.Recruiter.AvatarPath))
+                            {
+                                <img src="@Url.Content($"~/uploads/avatars/{Model.Recruiter.AvatarPath}")" alt="Company Logo"
+                                     class="img-fluid rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                            }
+                            else
+                            {
+                                <img src="@Url.Content("~/images/default-avatar.png")" alt="Default Company Logo"
+                                     class="img-fluid rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                            }
+                        </div>
+                        <h6 class="card-title fw-bold">@Model.Recruiter.RecruiterName</h6>
+                        <div class="card-text">
+                            <p>
+                                <i class="bi bi-geo-alt"></i> @Model.Recruiter.WorkLocation
                             </p>
-                        }
+                            @if (!string.IsNullOrEmpty(Model.Recruiter.DetailedAddress))
+                            {
+                                <p class="text-muted small">
+                                    <i class="bi bi-pin-map"></i> @Model.Recruiter.DetailedAddress
+                                </p>
+                            }
+                        </div>
                     }
                     else
                     {
+                        <div class="mb-3">
+                            <img src="@Url.Content("~/images/default-avatar.png")" alt="Default Company Logo"
+                                 class="img-fluid rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                        </div>
                         <p class="card-text">Không có thông tin chi tiết</p>
                     }
                 </div>
@@ -172,13 +220,13 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex gap-2">
-                        <button class="btn btn-outline-primary">
+                        <button class="btn btn-outline-primary" onclick="shareOnFacebook()">
                             <i class="bi bi-facebook"></i>
                         </button>
-                        <button class="btn btn-outline-info">
+                        <button class="btn btn-outline-info" onclick="shareOnTwitter()">
                             <i class="bi bi-twitter"></i>
                         </button>
-                        <button class="btn btn-outline-success">
+                        <button class="btn btn-outline-success" onclick="shareViaEmail()">
                             <i class="bi bi-envelope"></i>
                         </button>
                         <button class="btn btn-outline-secondary" onclick="copyJobLink()">
@@ -201,6 +249,27 @@
                 console.error('Không thể sao chép đường dẫn: ', err);
             });
         }
+
+        function shareOnFacebook() {
+            var url = encodeURIComponent(window.location.href);
+            var title = encodeURIComponent('@Model.Title - ZhaoYi Translation');
+            window.open('https://www.facebook.com/sharer/sharer.php?u=' + url + '&t=' + title,
+                'facebook-share-dialog', 'width=626,height=436');
+            return false;
+        }
+
+        function shareOnTwitter() {
+            var url = encodeURIComponent(window.location.href);
+            var text = encodeURIComponent('@Model.Title - ZhaoYi Translation');
+            window.open('https://twitter.com/intent/tweet?url=' + url + '&text=' + text,
+                'twitter-share-dialog', 'width=626,height=436');
+            return false;
+        }
+
+        function shareViaEmail() {
+            var subject = encodeURIComponent('@Model.Title - ZhaoYi Translation');
+            var body = encodeURIComponent('Xem công việc này: ' + window.location.href);
+            window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
+        }
     </script>
 }
-

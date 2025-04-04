@@ -38,73 +38,85 @@
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center
                               @(Model.Status == ApplicationStatus.Rejected ? "bg-light" : "bg-primary text-white")">
-                    <h5 class="mb-0">@jobPosting.Title</h5>
+                    <h5 class="mb-0">@(jobPosting?.Title ?? "Không có tiêu đề")</h5>
 
                     @{
                         var statusClass = Model.Status switch
                         {
                             ApplicationStatus.Pending => "bg-warning",
-                            ApplicationStatus.Accepted => "bg-success",
+                            ApplicationStatus.WaitingToStart => "bg-success",
+                            ApplicationStatus.InProgress => "bg-primary",
+                            ApplicationStatus.Completed => "bg-info",
                             ApplicationStatus.Rejected => "bg-danger",
+                            ApplicationStatus.Canceled => "bg-secondary",
                             _ => "bg-secondary"
                         };
                     }
                     <span class="badge @statusClass">@Model.Status</span>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <dl class="row">
-                                <dt class="col-sm-5">Công ty:</dt>
-                                <dd class="col-sm-7">@(recruiter?.RecruiterName ?? "Không có thông tin")</dd>
+                    @if (jobPosting != null)
+                    {
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Công ty:</dt>
+                                    <dd class="col-sm-7">@(recruiter?.RecruiterName ?? "Không có thông tin")</dd>
 
-                                <dt class="col-sm-5">Lương:</dt>
-                                <dd class="col-sm-7">@jobPosting.Salary.ToString("N0") VND</dd>
+                                    <dt class="col-sm-5">Lương:</dt>
+                                    <dd class="col-sm-7">@jobPosting.Salary.ToString("N0") VND</dd>
 
-                                <dt class="col-sm-5">Địa điểm:</dt>
-                                <dd class="col-sm-7">@jobPosting.WorkLocation</dd>
+                                    <dt class="col-sm-5">Địa điểm:</dt>
+                                    <dd class="col-sm-7">@jobPosting.WorkLocation</dd>
 
-                                <dt class="col-sm-5">Lĩnh vực:</dt>
-                                <dd class="col-sm-7">@(string.IsNullOrEmpty(jobPosting.Field) ? "Không có" : jobPosting.Field)</dd>
-                            </dl>
+                                    <dt class="col-sm-5">Lĩnh vực:</dt>
+                                    <dd class="col-sm-7">@(string.IsNullOrEmpty(jobPosting.Field) ? "Không có" : jobPosting.Field)</dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Ngày đăng:</dt>
+                                    <dd class="col-sm-7">@jobPosting.PostedDate.ToString("dd/MM/yyyy")</dd>
+
+                                    <dt class="col-sm-5">Hết hạn:</dt>
+                                    <dd class="col-sm-7">@jobPosting.ExpiryDate.ToString("dd/MM/yyyy")</dd>
+
+                                    @if (Model.Status == ApplicationStatus.WaitingToStart || Model.Status == ApplicationStatus.InProgress)
+                                    {
+                                        <dt class="col-sm-5">Trạng thái công việc:</dt>
+                                        <dd class="col-sm-7">
+                                            @{
+                                                var jobStatusClass = jobPosting.Status switch
+                                                {
+                                                    JobStatus.Active => "bg-success",
+                                                    JobStatus.Completed => "bg-info",
+                                                    JobStatus.InProgress => "bg-primary",
+                                                    JobStatus.Expired => "bg-secondary",
+                                                    JobStatus.Cancelled => "bg-danger",
+                                                    JobStatus.Pending => "bg-warning",
+                                                    _ => "bg-secondary"
+                                                };
+                                            }
+                                            <span class="badge @jobStatusClass">@jobPosting.Status</span>
+                                        </dd>
+                                    }
+                                </dl>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <dl class="row">
-                                <dt class="col-sm-5">Ngày đăng:</dt>
-                                <dd class="col-sm-7">@jobPosting.PostedDate.ToString("dd/MM/yyyy")</dd>
 
-                                <dt class="col-sm-5">Hết hạn:</dt>
-                                <dd class="col-sm-7">@jobPosting.ExpiryDate.ToString("dd/MM/yyyy")</dd>
-
-                                @if (Model.Status == ApplicationStatus.Accepted)
-                                {
-                                    <dt class="col-sm-5">Trạng thái công việc:</dt>
-                                    <dd class="col-sm-7">
-                                        @{
-                                            var jobStatusClass = jobPosting.Status switch
-                                            {
-                                                JobStatus.Active => "bg-success",
-                                                JobStatus.Completed => "bg-info",
-                                                JobStatus.InProgress => "bg-primary",
-                                                JobStatus.Expired => "bg-secondary",
-                                                JobStatus.Cancelled => "bg-danger",
-                                                JobStatus.Pending => "bg-warning",
-                                                _ => "bg-secondary"
-                                            };
-                                        }
-                                        <span class="badge @jobStatusClass">@jobPosting.Status</span>
-                                    </dd>
-                                }
-                            </dl>
+                        <h6>Mô tả công việc</h6>
+                        <div class="card mb-3">
+                            <div class="card-body bg-light">
+                                @Html.Raw(jobPosting.JobDescription.Replace("\n", "<br />"))
+                            </div>
                         </div>
-                    </div>
-
-                    <h6>Mô tả công việc</h6>
-                    <div class="card mb-3">
-                        <div class="card-body bg-light">
-                            @Html.Raw(jobPosting.JobDescription.Replace("\n", "<br />"))
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            Không thể tải thông tin công việc. Bài đăng có thể đã bị xóa.
                         </div>
-                    </div>
+                    }
 
                     @if (Model.Status == ApplicationStatus.Pending)
                     {
@@ -120,18 +132,29 @@
                             </a>
                         </div>
                     }
-                    else if (Model.Status == ApplicationStatus.Accepted)
+                    else if (Model.Status == ApplicationStatus.WaitingToStart)
                     {
                         <div class="alert alert-success">
                             <i class="bi bi-check-circle"></i> Chúc mừng! Đơn ứng tuyển của bạn đã được chấp nhận.
-                            @if (jobPosting.Status == JobStatus.InProgress)
-                            {
-                                <p class="mb-0 mt-2">Công việc đang được thực hiện.</p>
-                            }
-                            else if (jobPosting.Status == JobStatus.Completed)
-                            {
-                                <p class="mb-0 mt-2">Công việc đã hoàn thành.</p>
-                            }
+                            <p class="mb-0 mt-2">Công việc sẽ bắt đầu sớm.</p>
+                        </div>
+                    }
+                    else if (Model.Status == ApplicationStatus.InProgress)
+                    {
+                        <div class="alert alert-primary">
+                            <i class="bi bi-briefcase"></i> Công việc đang được thực hiện.
+                        </div>
+                    }
+                    else if (Model.Status == ApplicationStatus.Completed)
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-check-circle-fill"></i> Công việc đã hoàn thành.
+                        </div>
+                    }
+                    else if (Model.Status == ApplicationStatus.Canceled)
+                    {
+                        <div class="alert alert-secondary">
+                            <i class="bi bi-x-octagon"></i> Công việc đã bị hủy.
                         </div>
                     }
                     else if (Model.Status == ApplicationStatus.Rejected)

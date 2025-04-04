@@ -50,7 +50,10 @@
                 var statusClass = application.Status switch
                 {
                     ApplicationStatus.Pending => "bg-warning",
-                    ApplicationStatus.Accepted => "bg-success",
+                    ApplicationStatus.WaitingToStart => "bg-success",
+                    ApplicationStatus.InProgress => "bg-primary",
+                    ApplicationStatus.Completed => "bg-info",
+                    ApplicationStatus.Canceled => "bg-secondary",
                     ApplicationStatus.Rejected => "bg-danger",
                     _ => "bg-secondary"
                 };
@@ -98,7 +101,9 @@
                                 <strong>Ngày ứng tuyển:</strong> @application.ApplicationDate.ToString("dd/MM/yyyy HH:mm")
                             </div>
 
-                            @if (application.Status == ApplicationStatus.Accepted)
+                            @if (application.Status == ApplicationStatus.WaitingToStart ||
+                           application.Status == ApplicationStatus.InProgress ||
+                           application.Status == ApplicationStatus.Completed)
                             {
                                 <div class="mb-2">
                                     <strong>Trạng thái công việc:</strong>
@@ -135,8 +140,14 @@
 @functions {
     public string GetDisplayName(Enum enumValue)
     {
-        var displayAttribute = enumValue.GetType()
-            .GetField(enumValue.ToString())
+        if (enumValue == null)
+            return "Unknown";
+
+        var field = enumValue.GetType().GetField(enumValue.ToString());
+        if (field == null)
+            return enumValue.ToString();
+
+        var displayAttribute = field
             .GetCustomAttributes(typeof(DisplayAttribute), false)
             .Cast<DisplayAttribute>()
             .SingleOrDefault();

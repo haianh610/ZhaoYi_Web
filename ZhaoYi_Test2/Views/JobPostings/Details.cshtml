@@ -2,15 +2,68 @@
 @{
     ViewData["Title"] = "Chi tiết bài đăng";
     var applications = ViewBag.Applications as List<ZhaoYi_Test2.Models.JobApplication>;
+    var pendingApplications = applications?.Where(a => a.Status == ApplicationStatus.Pending).ToList();
+    var acceptedApplications = applications?.Where(a => a.Status == ApplicationStatus.WaitingToStart).ToList();
+    var hasPendingApplications = pendingApplications?.Any() ?? false;
+    var hasAcceptedApplications = acceptedApplications?.Any() ?? false;
 }
 
 <h1>Chi tiết bài đăng việc làm</h1>
 
 <div>
     <div class="row mb-3">
-        <div class="col">
-            <a asp-action="Edit" asp-route-id="@Model.JobPostingId" class="btn btn-primary">Chỉnh sửa</a>
-            <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
+        <div class="col-md-6">
+            <a asp-action="Edit" asp-route-id="@Model.JobPostingId" class="btn btn-outline-primary">
+                <i class="bi bi-pencil"></i> Chỉnh sửa
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lại danh sách
+            </a>
+        </div>
+
+        <div class="col-md-6 text-end">
+            @if (Model.Status == JobStatus.Active)
+            {
+                <button type="button" class="btn btn-primary"
+                        onclick="checkStartJobConditions(@hasPendingApplications.ToString().ToLower(), @hasAcceptedApplications.ToString().ToLower(), @Model.JobPostingId)">
+                    <i class="bi bi-play-fill"></i> Bắt đầu thực hiện công việc
+                </button>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelJobModal">
+                    <i class="bi bi-x-circle"></i> Hủy bài đăng
+                </button>
+            }
+            else if (Model.Status == JobStatus.InProgress)
+            {
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#completeJobModal">
+                    <i class="bi bi-check-circle"></i> Hoàn thành công việc
+                </button>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelJobModal">
+                    <i class="bi bi-x-circle"></i> Hủy công việc
+                </button>
+            }
+        </div>
+    </div>
+
+    <!-- Hiển thị thông tin trạng thái của bài đăng -->
+    @{
+        var (statusColor, statusIcon, statusMessage) = Model.Status switch
+        {
+            JobStatus.Active => ("success", "bi-check-circle", "Đang tuyển dụng"),
+            JobStatus.InProgress => ("primary", "bi-play-fill", "Đang thực hiện"),
+            JobStatus.Completed => ("info", "bi-trophy", "Đã hoàn thành"),
+            JobStatus.Expired => ("secondary", "bi-clock-history", "Đã hết hạn"),
+            JobStatus.Cancelled => ("danger", "bi-x-circle", "Đã hủy"),
+            JobStatus.Pending => ("warning", "bi-hourglass", "Đang chờ duyệt"),
+            _ => ("secondary", "bi-question-circle", "Không xác định")
+        };
+    }
+    <div class="alert alert-@statusColor mb-4">
+        <div class="d-flex align-items-center">
+            <i class="bi @statusIcon fs-4 me-2"></i>
+            <div>
+                <strong>Trạng thái hiện tại: @Model.Status</strong>
+                <p class="mb-0">@statusMessage</p>
+            </div>
         </div>
     </div>
 
@@ -80,12 +133,14 @@
         </div>
     }
 
-    <!-- Phần hiển thị danh sách ứng viên -->
+    <!-- Phần hiển thị danh sách ứng viên dạng thẻ -->
     <div class="card mb-4">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <!-- Tiêu đề Card -->
+        <div class="card-header bg-primary text-white">
             <h5 class="mb-0">Danh sách ứng viên đã ứng tuyển</h5>
-            <span class="badge bg-light text-dark">Tổng số: @(applications?.Count ?? 0)</span>
         </div>
+
+        <!-- Nội dung Card -->
         <div class="card-body">
             @if (applications == null || !applications.Any())
             {
@@ -95,88 +150,114 @@
             }
             else
             {
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Tên ứng viên</th>
-                                <th>Ngày ứng tuyển</th>
-                                <th>Email</th>
-                                <th>Số điện thoại</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var application in applications)
-                            {
-                                <tr>
-                                    <td>@application.InterpreterName</td>
-                                    <td>@application.ApplicationDate.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>@application.Email</td>
-                                    <td>@application.PhoneNumber</td>
-                                    <td>
-                                        <span class="badge @GetApplicationStatusClass(application.Status)">
-                                            @application.Status
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-info btn-sm"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#applicationModal@(application.JobApplicationId)">
-                                            Chi tiết
-                                        </button>
-                                        <div class="dropdown d-inline-block">
-                                            <button class="btn btn-secondary btn-sm dropdown-toggle" type="button"
-                                                    id="dropdownMenuButton@(application.JobApplicationId)"
-                                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                                Cập nhật
-                                            </button>
-                                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton@(application.JobApplicationId)">
-                                                <li>
-                                                    <a class="dropdown-item"
-                                                       asp-action="UpdateApplicationStatus"
-                                                       asp-route-id="@application.JobApplicationId"
-                                                       asp-route-status="0"
-                                                       asp-route-jobPostingId="@Model.JobPostingId">
-                                                        Chờ phản hồi
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item"
-                                                       asp-action="UpdateApplicationStatus"
-                                                       asp-route-id="@application.JobApplicationId"
-                                                       asp-route-status="1"
-                                                       asp-route-jobPostingId="@Model.JobPostingId">
-                                                        Đã trúng tuyển
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item"
-                                                       asp-action="UpdateApplicationStatus"
-                                                       asp-route-id="@application.JobApplicationId"
-                                                       asp-route-status="2"
-                                                       asp-route-jobPostingId="@Model.JobPostingId">
-                                                        Không trúng tuyển
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                    @foreach (var application in applications)
+                    {
+                        var statusClass = GetApplicationStatusClass(application.Status);
+                        var statusText = application.Status.ToString();
+                        <div class="col">
+                            <div class="card h-100 @(application.Status == ApplicationStatus.Rejected ? "border-danger" : application.Status == ApplicationStatus.WaitingToStart ? "border-success" : application.Status == ApplicationStatus.InProgress ? "border-primary" : "")">
+                                <div class="card-header @(application.Status == ApplicationStatus.Rejected ? "bg-danger text-white" : application.Status == ApplicationStatus.WaitingToStart ? "bg-success text-white" : application.Status == ApplicationStatus.InProgress ? "bg-primary text-white" : "bg-light")">
+                                    <span class="badge @statusClass float-end">@statusText</span>
+                                    <h6 class="mb-0 text-truncate">ID: #@application.JobApplicationId</h6>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        @if (application.Interpreter != null && !string.IsNullOrEmpty(application.Interpreter.AvatarPath))
+                                        {
+                                            <img src="@Url.Content($"~/uploads/avatars/{application.Interpreter.AvatarPath}")" alt="Avatar"
+                                                 class="img-fluid rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <img src="@Url.Content("~/images/default-avatar.png")" alt="Default Avatar"
+                                                 class="img-fluid rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                        }
+                                    </div>
+                                    <h5 class="card-title">@application.InterpreterName</h5>
+                                    <p class="card-text text-muted small">
+                                        Ngày ứng tuyển: @application.ApplicationDate.ToString("dd/MM/yyyy HH:mm")
+                                    </p>
+                                    <button type="button" class="btn btn-info w-100"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#applicationModal@(application.JobApplicationId)">
+                                        <i class="bi bi-eye"></i> Xem chi tiết
+                                    </button>
 
-                                <!-- Modal hiển thị chi tiết ứng viên -->
-                                <div class="modal fade" id="applicationModal@(application.JobApplicationId)" tabindex="-1"
-                                     aria-labelledby="applicationModalLabel@(application.JobApplicationId)" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="applicationModalLabel@(application.JobApplicationId)">
-                                                    Chi tiết ứng viên: @application.InterpreterName
-                                                </h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
+                                    @if (application.Status == ApplicationStatus.Pending)
+                                    {
+                                        <div class="mt-2 d-flex gap-2">
+                                            <a class="btn btn-success flex-grow-1"
+                                               asp-action="UpdateApplicationStatus"
+                                               asp-route-id="@application.JobApplicationId"
+                                               asp-route-status="1"
+                                               asp-route-jobPostingId="@Model.JobPostingId">
+                                                <i class="bi bi-check-circle"></i> Chấp nhận
+                                            </a>
+                                            <a class="btn btn-danger flex-grow-1"
+                                               asp-action="UpdateApplicationStatus"
+                                               asp-route-id="@application.JobApplicationId"
+                                               asp-route-status="5"
+                                               asp-route-jobPostingId="@Model.JobPostingId">
+                                                <i class="bi bi-x-circle"></i> Từ chối
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal hiển thị chi tiết ứng viên -->
+                        <div class="modal fade" id="applicationModal@(application.JobApplicationId)" tabindex="-1"
+                             aria-labelledby="applicationModalLabel@(application.JobApplicationId)" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header @(application.Status == ApplicationStatus.Rejected ? "bg-danger text-white" : application.Status == ApplicationStatus.WaitingToStart ? "bg-success text-white" : application.Status == ApplicationStatus.InProgress ? "bg-primary text-white" : "bg-info text-white")">
+                                        <h5 class="modal-title" id="applicationModalLabel@(application.JobApplicationId)">
+                                            Chi tiết ứng viên: @application.InterpreterName
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <!-- Tab Navigation -->
+                                        <ul class="nav nav-tabs" id="applicationTabs@(application.JobApplicationId)" role="tablist">
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link active" id="info-tab@(application.JobApplicationId)"
+                                                        data-bs-toggle="tab" data-bs-target="#info@(application.JobApplicationId)"
+                                                        type="button" role="tab" aria-selected="true">
+                                                    <i class="bi bi-person"></i> Thông tin
+                                                </button>
+                                            </li>
+                                            @if (!string.IsNullOrEmpty(application.CVFilePath))
+                                            {
+                                                <li class="nav-item" role="presentation">
+                                                    <button class="nav-link" id="cv-tab@(application.JobApplicationId)"
+                                                            data-bs-toggle="tab" data-bs-target="#cv@(application.JobApplicationId)"
+                                                            type="button" role="tab" aria-selected="false">
+                                                        <i class="bi bi-file-earmark-text"></i> Xem CV
+                                                    </button>
+                                                </li>
+                                            }
+                                        </ul>
+
+                                        <!-- Tab Content -->
+                                        <div class="tab-content mt-3" id="applicationTabsContent@(application.JobApplicationId)">
+                                            <!-- Tab thông tin ứng viên -->
+                                            <div class="tab-pane fade show active" id="info@(application.JobApplicationId)" role="tabpanel">
+                                                <div class="text-center mb-3">
+                                                    @if (application.Interpreter != null && !string.IsNullOrEmpty(application.Interpreter.AvatarPath))
+                                                    {
+                                                        <img src="@Url.Content($"~/uploads/avatars/{application.Interpreter.AvatarPath}")" alt="Avatar"
+                                                             class="img-fluid rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                                                    }
+                                                    else
+                                                    {
+                                                        <img src="@Url.Content("~/images/default-avatar.png")" alt="Default Avatar"
+                                                             class="img-fluid rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                                                    }
+                                                </div>
+
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <h6>Thông tin cá nhân</h6>
@@ -214,6 +295,9 @@
 
                                                                 <dt class="col-sm-4">Khu vực:</dt>
                                                                 <dd class="col-sm-8">@application.Interpreter.WorkLocation</dd>
+
+                                                                <dt class="col-sm-4">Địa chỉ:</dt>
+                                                                <dd class="col-sm-8">@application.Interpreter.DetailedAddress</dd>
                                                             </dl>
                                                         }
                                                         else
@@ -223,45 +307,215 @@
                                                     </div>
                                                 </div>
 
-                                                @if (!string.IsNullOrEmpty(application.CVFilePath))
-                                                {
-                                                    <div class="mt-3">
-                                                        <h6>CV của ứng viên</h6>
-                                                        <div class="ratio ratio-16x9">
-                                                            <iframe src="@Url.Content($"~/uploads/cv/{application.CVFilePath}")"
-                                                                    class="embed-responsive-item"
-                                                                    style="width:100%; height:500px;"
-                                                                    allowfullscreen></iframe>
-                                                        </div>
-                                                    </div>
-                                                }
-                                                else
+                                                @if (string.IsNullOrEmpty(application.CVFilePath))
                                                 {
                                                     <div class="alert alert-warning mt-3">
                                                         Ứng viên chưa tải lên CV.
                                                     </div>
                                                 }
                                             </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                                                @if (!string.IsNullOrEmpty(application.CVFilePath))
-                                                {
-                                                    <a href="@Url.Content($"~/uploads/cv/{application.CVFilePath}")" target="_blank" class="btn btn-primary">
-                                                        Tải CV
-                                                    </a>
-                                                }
-                                            </div>
+
+                                            <!-- Tab CV -->
+                                            @if (!string.IsNullOrEmpty(application.CVFilePath))
+                                            {
+                                                <div class="tab-pane fade" id="cv@(application.JobApplicationId)" role="tabpanel">
+                                                    <div class="ratio ratio-16x9" style="height: 600px;">
+                                                        <iframe src="@Url.Content($"~/uploads/cv/{application.CVFilePath}")"
+                                                                class="embed-responsive-item"
+                                                                allowfullscreen></iframe>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-footer d-flex justify-content-between">
+                                        <div>
+                                            @if (!string.IsNullOrEmpty(application.CVFilePath))
+                                            {
+                                                <a href="@Url.Content($"~/uploads/cv/{application.CVFilePath}")" target="_blank" class="btn btn-primary">
+                                                    <i class="bi bi-download"></i> Tải CV
+                                                </a>
+                                            }
+                                        </div>
+                                        <div>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                            @if (application.Status == ApplicationStatus.Pending)
+                                            {
+                                                <a class="btn btn-success"
+                                                   asp-action="UpdateApplicationStatus"
+                                                   asp-route-id="@application.JobApplicationId"
+                                                   asp-route-status="1"
+                                                   asp-route-jobPostingId="@Model.JobPostingId">
+                                                    <i class="bi bi-check-circle"></i> Chấp nhận
+                                                </a>
+                                                <a class="btn btn-danger"
+                                                   asp-action="UpdateApplicationStatus"
+                                                   asp-route-id="@application.JobApplicationId"
+                                                   asp-route-status="5"
+                                                   asp-route-jobPostingId="@Model.JobPostingId">
+                                                    <i class="bi bi-x-circle"></i> Từ chối
+                                                </a>
+                                            }
                                         </div>
                                     </div>
                                 </div>
-                            }
-                        </tbody>
-                    </table>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
         </div>
     </div>
 </div>
+
+<!-- Modal xác nhận bắt đầu công việc -->
+<div class="modal fade" id="startJobModal" tabindex="-1" aria-labelledby="startJobModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="startJobModalLabel">Xác nhận bắt đầu công việc</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn bắt đầu thực hiện công việc này?</p>
+                <p>Khi bắt đầu công việc:</p>
+                <ul>
+                    <li>Trạng thái bài đăng sẽ chuyển sang "Đang thực hiện"</li>
+                    <li>Các ứng viên đã trúng tuyển sẽ được thông báo</li>
+                    <li>Bài đăng sẽ không nhận thêm ứng viên mới</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <a href="#" id="confirmStartJobBtn" class="btn btn-primary">
+                    <i class="bi bi-play-fill"></i> Bắt đầu công việc
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal cảnh báo còn ứng viên chưa phản hồi -->
+<div class="modal fade" id="pendingApplicationsModal" tabindex="-1" aria-labelledby="pendingApplicationsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="pendingApplicationsModalLabel">Chưa phản hồi tất cả ứng viên</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Vẫn còn ứng viên đang chờ phản hồi.
+                </div>
+                <p>Bạn cần phản hồi tất cả ứng viên trước khi bắt đầu công việc.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xác nhận hoàn thành công việc -->
+<div class="modal fade" id="completeJobModal" tabindex="-1" aria-labelledby="completeJobModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="completeJobModalLabel">Xác nhận hoàn thành công việc</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn đánh dấu công việc này đã hoàn thành?</p>
+                <p>Sau khi hoàn thành:</p>
+                <ul>
+                    <li>Trạng thái bài đăng sẽ chuyển sang "Đã hoàn thành"</li>
+                    <li>Trạng thái ứng viên cũng sẽ được cập nhật thành "Đã hoàn thành"</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <a asp-action="UpdateJobStatus" asp-route-id="@Model.JobPostingId" asp-route-status="1" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Xác nhận hoàn thành
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thêm modal cảnh báo khi không có ứng viên được tuyển -->
+<div class="modal fade" id="noAcceptedApplicationsModal" tabindex="-1" aria-labelledby="noAcceptedApplicationsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="noAcceptedApplicationsModalLabel">Chưa có ứng viên được tuyển</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Chưa có ứng viên nào được tuyển.
+                </div>
+                <p>Bạn cần chấp nhận ít nhất một ứng viên trước khi bắt đầu công việc.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xác nhận hủy bài đăng/công việc -->
+<div class="modal fade" id="cancelJobModal" tabindex="-1" aria-labelledby="cancelJobModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="cancelJobModalLabel">Xác nhận hủy công việc</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i> Thao tác này không thể hoàn tác.
+                </div>
+                <p>Bạn có chắc chắn muốn hủy công việc này?</p>
+                <p>Sau khi hủy:</p>
+                <ul>
+                    <li>Trạng thái bài đăng sẽ chuyển sang "Đã hủy"</li>
+                    <li>Trạng thái của các ứng viên đã chấp nhận cũng sẽ chuyển sang "Đã hủy"</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <a asp-action="UpdateJobStatus" asp-route-id="@Model.JobPostingId" asp-route-status="4" class="btn btn-danger">
+                    <i class="bi bi-x-circle"></i> Xác nhận hủy
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Cập nhật hàm kiểm tra điều kiện để bắt đầu công việc
+        function checkStartJobConditions(hasPendingApplications, hasAcceptedApplications, jobId) {
+            if (hasPendingApplications) {
+                // Còn ứng viên chưa phản hồi
+                var pendingModal = new bootstrap.Modal(document.getElementById('pendingApplicationsModal'));
+                pendingModal.show();
+            }
+            else if (!hasAcceptedApplications) {
+                // Không có ứng viên nào được tuyển
+                var noAcceptedModal = new bootstrap.Modal(document.getElementById('noAcceptedApplicationsModal'));
+                noAcceptedModal.show();
+            }
+            else {
+                // Đã phản hồi tất cả ứng viên và có ít nhất 1 ứng viên được tuyển
+                var startModal = new bootstrap.Modal(document.getElementById('startJobModal'));
+                document.getElementById('confirmStartJobBtn').href = `/JobPostings/UpdateJobStatus?id=${jobId}&status=2`;
+                startModal.show();
+            }
+        }
+    </script>
+}
 
 @functions {
     public string GetStatusClass(JobStatus status)
@@ -283,7 +537,10 @@
         return status switch
         {
             ApplicationStatus.Pending => "bg-warning",
-            ApplicationStatus.Accepted => "bg-success",
+            ApplicationStatus.WaitingToStart => "bg-success",
+            ApplicationStatus.InProgress => "bg-primary",
+            ApplicationStatus.Completed => "bg-info",
+            ApplicationStatus.Canceled => "bg-secondary",
             ApplicationStatus.Rejected => "bg-danger",
             _ => "bg-secondary"
         };
