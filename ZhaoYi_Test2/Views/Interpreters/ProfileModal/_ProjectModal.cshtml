@@ -1,0 +1,46 @@
+﻿@model ZhaoYi_Test2.Models.Project
+
+<div class="modal-overlay" id="project-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Dự án/Thành tựu</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+
+        <form id="project-form" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ProjectId" />
+            <input type="hidden" asp-for="InterpreterId" />
+
+            <div class="modal-form-group">
+                <label asp-for="ProjectName">Tên dự án/thành tựu</label>
+                <input asp-for="ProjectName" required placeholder="Ví dụ: Phiên dịch hội nghị quốc tế" />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="StartDate">Thời gian bắt đầu</label>
+                <input asp-for="StartDate" type="date" required />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="EndDate">Thời gian kết thúc</label>
+                <input asp-for="EndDate" type="date" />
+                <div style="margin-top: 8px;">
+                    <input type="checkbox" id="current-project" class="current-checkbox" />
+                    <label for="current-project">Đang thực hiện</label>
+                </div>
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="Description">Mô tả</label>
+                <textarea asp-for="Description" rows="4" placeholder="Mô tả chi tiết về dự án/thành tựu, vai trò của bạn, kết quả đạt được..."></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-modal btn-cancel" onclick="document.querySelector('#project-modal').classList.remove('active')">Hủy</button>
+                <button type="submit" class="btn-modal btn-save">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+

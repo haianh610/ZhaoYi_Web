@@ -1,0 +1,112 @@
+@{
+    ViewData["Title"] = "Chọn vai trò";
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+    ViewData["ShowBottomNav"] = false;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/choose-role.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/global-mobile.css" asp-append-version="true" />
+    <style>
+        /* Styles bổ sung hoặc ghi đè */
+        .mobile-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .content-wrapper {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin-top: -60px; /* Điều chỉnh vị trí theo nhu cầu */
+        }
+
+        .logo-img {
+            width: 324px;
+            height: auto;
+            margin-bottom: 40px;
+        }
+
+        /* Thông báo lỗi */
+        .validation-summary-errors {
+            color: #d9534f;
+            background-color: rgba(217, 83, 79, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            font-size: 14px;
+            text-align: center;
+        }
+
+            .validation-summary-errors ul {
+                list-style-type: none;
+                padding: 0;
+                margin: 0;
+            }
+    </style>
+}
+
+<div class="content-wrapper">
+    <!-- Logo -->
+    <img src="~/images/logo.png" alt="ZhaoYi Logo" class="logo-img" />
+
+    <!-- Question -->
+    <p class="role-question">Bạn là</p>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="validation-summary-errors">
+            <ul>
+                @foreach (var error in ViewData.ModelState[string.Empty].Errors)
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <!-- Role Selection Form -->
+    <form asp-controller="Role" asp-action="ChooseRole" method="post" style="width: 100%;">
+        @Html.AntiForgeryToken()
+
+        <!-- Role Buttons - Now as submit buttons in a form -->
+        <button type="submit" name="selectedRole" value="1" class="btn-role">
+            PHIÊN DỊCH VIÊN
+        </button>
+
+        <button type="submit" name="selectedRole" value="2" class="btn-role">
+            NGƯỜI CÓ NHU CẦU THUÊ PDV
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation for role buttons
+            const buttons = document.querySelectorAll('.btn-role');
+            buttons.forEach(button => {
+                button.addEventListener('mouseover', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                button.addEventListener('mouseout', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+                button.addEventListener('mousedown', function() {
+                    this.style.transform = 'translateY(1px)';
+                });
+                button.addEventListener('mouseup', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+            });
+        });
+    </script>
+}

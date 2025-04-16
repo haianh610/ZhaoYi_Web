@@ -1,0 +1,25 @@
+﻿@model ZhaoYi_Test2.Models.Interpreter
+
+<div class="modal-overlay" id="skills-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Kỹ năng</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+
+        <form id="skills-form" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="modal-form-group">
+                <label for="skills">Kỹ năng (phân cách bằng dấu phẩy)</label>
+                <textarea id="skills" name="skills" rows="5" placeholder="Ví dụ: Phiên dịch Trung-Việt, Biên dịch tài liệu, Xử lý văn bản">@Model?.Skills</textarea>
+                <small>Gợi ý: Thêm các kỹ năng liên quan đến công việc phiên dịch, ngoại ngữ, tin học văn phòng, hoặc các kỹ năng chuyên môn khác.</small>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-modal btn-cancel" onclick="document.querySelector('#skills-modal').classList.remove('active')">Hủy</button>
+                <button type="submit" class="btn-modal btn-save">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,79 @@
+@{
+    // Sử dụng tên controller mới là "Recruiters"
+    string actionName = ViewContext.RouteData.Values["action"]?.ToString();
+    string controllerName = ViewContext.RouteData.Values["controller"]?.ToString();
+    // Kiểm tra có phải là RecruitersController không
+    bool isRecruiterController = controllerName == "Recruiters";
+}
+
+<nav class="bottom-nav">
+    @* Trang chủ của Recruiter *@
+    <a asp-controller="Recruiters" asp-action="Dashboard" class="nav-item @(isRecruiterController && actionName == "Dashboard" ? "active home-icon" : "")">
+        @* Icon Home giống Interpreter *@
+        <img src="~/icon/curved-home2.svg" alt="Trang chủ" class="nav-icon" />
+        <span class="nav-label">Trang chủ</span>
+    </a>
+
+    @* Hồ sơ của Recruiter *@
+    <a asp-controller="Recruiters" asp-action="Profile" class="nav-item @(isRecruiterController && actionName == "Profile" ? "active" : "")">
+        @* Icon Profile giống Interpreter *@
+        <img src="~/icon/userProfile.svg" alt="Hồ sơ" class="nav-icon" />
+        <span class="nav-label">Hồ sơ</span>
+    </a>
+
+    @* Tin nhắn *@
+    <a asp-controller="Messages" asp-action="Index" class="nav-item @(controllerName == "Messages" ? "active" : "")">
+        @* Icon Message giống Interpreter *@
+        <img src="~/icon/curved-messagecircle.svg" alt="Tin nhắn" class="nav-icon" />
+        <span class="nav-label">Tin nhắn</span>
+    </a>
+
+    @* Cài đặt *@
+    <a asp-controller="Settings" asp-action="Index" class="nav-item @(controllerName == "Settings" ? "active" : "")">
+        @* Icon Settings giống Interpreter *@
+        <img src="~/icon/curved-settings.svg" alt="Cài đặt" class="nav-icon" />
+        <span class="nav-label">Cài đặt</span>
+    </a>
+</nav>
+
+@* Giữ nguyên CSS vì nó áp dụng cho cấu trúc và icon chung *@
+<style>
+    .bottom-nav .nav-icon {
+        width: 24px;
+        height: 24px;
+        display: block;
+        margin: 0 auto 4px;
+        transition: all 0.2s ease;
+    }
+
+    .bottom-nav .nav-item:not(.active) .nav-icon {
+        opacity: 0.6;
+        filter: grayscale(100%);
+    }
+
+    .bottom-nav .nav-item.active .nav-icon {
+        opacity: 1;
+        /* Có thể dùng màu khác cho Recruiter nếu muốn */
+        filter: invert(45%) sepia(90%) saturate(1371%) hue-rotate(360deg) brightness(100%) contrast(105%);
+        transform: scale(1.1);
+    }
+
+    .bottom-nav .nav-item:not(.active):hover .nav-icon {
+        opacity: 0.8;
+        filter: grayscale(70%);
+    }
+
+    .bottom-nav .nav-item.active .nav-label {
+        /* Có thể dùng màu khác cho Recruiter nếu muốn */
+        color: #ff6f00;
+        font-weight: 500;
+    }
+
+    .bottom-nav .nav-item {
+        transition: all 0.2s ease;
+    }
+
+        .bottom-nav .nav-item.active {
+            transform: translateY(-2px);
+        }
+</style>

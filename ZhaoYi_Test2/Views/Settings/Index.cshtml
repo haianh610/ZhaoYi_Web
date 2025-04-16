@@ -1,0 +1,169 @@
+﻿@{
+    ViewData["Title"] = "Cài đặt";
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+
+    // Lấy thông tin người dùng từ ViewData được truyền từ controller
+    var userName = ViewData["UserName"] as string ?? "Tên người dùng";
+    var userAvatar = ViewData["UserAvatar"] as string ?? "/images/user.png";
+    var followingCount = ViewData["FollowingCount"] as int? ?? 0;
+    var followersCount = ViewData["FollowersCount"] as int? ?? 0;
+    var userRole = ViewData["UserRole"] as string ?? "User";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/settings.css" asp-append-version="true" />
+	<link href="~/css/shared-nav.css" rel="stylesheet" />
+}
+
+<!-- Header -->
+<div class="settings-header">
+    <div class="header-content">
+        <img src="@userAvatar" alt="User Avatar" class="profile-pic-header">
+        <div class="user-info">
+            <h2 class="user-name">@userName</h2>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-value">@followingCount</span>
+                    <span class="stat-label">Following</span>
+                </div>
+                <div class="stats-separator"></div>
+                <div class="stat-item">
+                    <span class="stat-value">@followersCount</span>
+                    <span class="stat-label">Followers</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Scrollable Content -->
+<div class="settings-content">
+
+    <div class="settings-group">
+        <h3 class="group-title">Cài đặt tài khoản</h3>
+        <ul class="settings-list">
+            <li>
+                <a href="#" class="setting-item">
+                    <span class="setting-text">Nâng cấp tài khoản VIP</span>
+                    <i class="setting-icon fas fa-crown"></i>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Settings" asp-action="ChangePassword" class="setting-item">
+                    <span class="setting-text">Đổi mật khẩu</span>
+                    <i class="setting-icon fas fa-lock"></i>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Settings" asp-action="SecuritySettings" class="setting-item">
+                    <span class="setting-text">Cài đặt bảo mật</span>
+                    <i class="setting-icon fas fa-shield-alt"></i>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Settings" asp-action="MessageSettings" class="setting-item">
+                    <span class="setting-text">Cài đặt tin nhắn</span>
+                    <i class="setting-icon fas fa-comment-dots"></i>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="setting-item" id="deactivateAccount">
+                    <span class="setting-text">Vô hiệu hoá tài khoản</span>
+                    <i class="setting-icon fas fa-user-slash"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="settings-group">
+        <h3 class="group-title">Chính sách và hỗ trợ</h3>
+        <ul class="settings-list">
+            <li>
+                <a asp-controller="Settings" asp-action="About" class="setting-item">
+                    <span class="setting-text">Về ZhaoYi</span>
+                    <i class="setting-icon fas fa-info-circle"></i>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Settings" asp-action="Terms" class="setting-item">
+                    <span class="setting-text">Điều khoản dịch vụ</span>
+                    <i class="setting-icon fas fa-file-alt"></i>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Settings" asp-action="Privacy" class="setting-item">
+                    <span class="setting-text">Chính sách bảo mật</span>
+                    <i class="setting-icon fas fa-shield-alt"></i>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Settings" asp-action="Help" class="setting-item">
+                    <span class="setting-text">Trợ giúp</span>
+                    <i class="setting-icon fas fa-question-circle"></i>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="setting-item">
+                    <span class="setting-text">Đánh giá ứng dụng</span>
+                    <i class="setting-icon fas fa-star"></i>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="setting-item">
+                    <span class="setting-text">Kiểm tra bản cập nhật mới</span>
+                    <i class="setting-icon fas fa-sync-alt"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="logout-container">
+        <form asp-controller="Settings" asp-action="Logout" method="post" id="logoutForm">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="logout-btn">
+                Đăng xuất
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </form>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        // Handle logout confirmation
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutForm = document.getElementById('logoutForm');
+            if (logoutForm) {
+                logoutForm.addEventListener('submit', function(e) {
+                    if (!confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            // Handle confirmation for account deactivation
+            const deactivateAccount = document.getElementById('deactivateAccount');
+            if (deactivateAccount) {
+                deactivateAccount.addEventListener('click', function(e) {
+                    if (!confirm('Bạn có chắc chắn muốn vô hiệu hoá tài khoản không? Đây là hành động không thể hoàn tác.')) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+
+        // Hiển thị vai trò người dùng nếu cần
+        const userRole = "@userRole";
+        console.log("User role:", userRole);
+
+        // Logic hiển thị các tùy chọn dựa trên vai trò nếu cần
+        if (userRole === "Interpreter") {
+            // Hiển thị các tùy chọn cho phiên dịch viên
+            // Ví dụ: document.querySelector('.interpreter-options').style.display = 'block';
+        } else if (userRole === "Recruiter") {
+            // Hiển thị các tùy chọn cho nhà tuyển dụng
+            // Ví dụ: document.querySelector('.recruiter-options').style.display = 'block';
+        }
+    </script>
+}

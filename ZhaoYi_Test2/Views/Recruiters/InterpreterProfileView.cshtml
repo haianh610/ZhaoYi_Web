@@ -1,0 +1,324 @@
+﻿@model ZhaoYi_Test2.Models.Interpreter
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+
+@{
+    // ViewData["Title"] đã được set trong Controller
+    Layout = "~/Views/Shared/_MobileLayout.cshtml"; // Sử dụng layout mobile
+    ViewData["UserRole"] = "Recruiter";
+    ViewData["ShowBottomNav"] = false; // Ẩn bottom nav trên trang chi tiết
+
+    var avatarUrl = !string.IsNullOrEmpty(Model.AvatarPath) ? Url.Content($"~/uploads/avatars/{Model.AvatarPath}") : Url.Content("~/images/user.png");
+    var age = DateTime.Today.Year - Model.DateOfBirth.Year;
+    if (Model.DateOfBirth.Date > DateTime.Today.AddYears(-age)) age--; // Correct age calculation
+    var demographics = $"{Model.Gender}, {age} tuổi";
+    var isBookmarked = ViewBag.IsBookmarked ?? false;
+
+    // Helper function để lấy Display Name của Enum
+    Func<Enum, string> GetEnumDisplayName = (enumValue) =>
+    {
+        if (enumValue == null) return "Chưa cập nhật";
+        var field = enumValue.GetType().GetField(enumValue.ToString());
+        if (field == null) return enumValue.ToString();
+        var displayAttribute = field.GetCustomAttribute<DisplayAttribute>();
+        return displayAttribute?.GetName() ?? enumValue.ToString();
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/interpreter-profile-details.css" asp-append-version="true" />
+    @* Thêm CSS nếu cần ghi đè hoặc bổ sung *@
+    <style>
+        /* Đảm bảo layout không thêm padding đáy khi ẩn nav */
+        .mobile-screen {
+            padding-bottom: 0 !important;
+        }
+
+        /* Style cho các section động */
+        .dynamic-section-item {
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee; /* Phân cách nhẹ nhàng */
+        }
+
+            .dynamic-section-item:last-child {
+                border-bottom: none;
+            }
+
+            .dynamic-section-item h4 {
+                font-size: 0.9rem;
+                font-weight: 600;
+                margin-bottom: 3px;
+                color: #444;
+            }
+
+            .dynamic-section-item p {
+                margin-bottom: 2px;
+                font-size: 0.85rem;
+                color: #666;
+                line-height: 1.4;
+            }
+
+            .dynamic-section-item .date-range {
+                color: #888;
+                font-size: 0.75rem;
+            }
+
+            .dynamic-section-item .description {
+                font-style: italic;
+                color: #777;
+                margin-top: 5px;
+                font-size: 0.8rem;
+            }
+
+        .empty-list-message {
+            color: #888;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+    </style>
+}
+
+
+<!-- Header -->
+<header class="profile-detail-header">
+<a onclick="history.back()" class="back-button"><i class="fas fa-chevron-left"></i></a>
+<div class="header-actions">
+    <a href="#" class="action-button share-button" title="Chia sẻ"><i class="fas fa-share-alt"></i></a>
+    <a href="#" class="action-button options-button" title="Tùy chọn khác"><i class="fas fa-ellipsis-h"></i></a>
+</div>
+</header>
+
+<!-- Main Scrollable Content -->
+<main class="profile-detail-content">
+<section class="interpreter-info-block">
+    <img src="@avatarUrl" alt="Ảnh đại diện @Model.InterpreterName" class="profile-pic">
+    <div class="interpreter-details">
+        <h2>@Model.InterpreterName</h2>
+        <p class="specialty">@(!string.IsNullOrEmpty(Model.Field) ? Model.Field : "Phiên dịch viên")</p>
+        <p class="demographics">@demographics</p>
+    </div>
+    <button class="bookmark-button @(isBookmarked ? "saved" : "")" data-interpreter-id="@Model.InterpreterId" aria-label="@(isBookmarked ? "Bỏ lưu hồ sơ" : "Lưu hồ sơ")">
+        <i class="@(isBookmarked ? "fas" : "far") fa-bookmark"></i>
+    </button>
+</section>
+
+<section class="profile-highlights-block">
+    <div class="highlight-item">
+        <i class="fas fa-briefcase icon"></i>
+        <span>@GetEnumDisplayName(Model.YearsOfExperience)</span>
+    </div>
+    <div class="highlight-item">
+        <i class="fas fa-star icon"></i>
+        <span>5.0 / 5.0</span> @* Placeholder cho rating *@
+    </div>
+    <div class="highlight-item">
+        <i class="fas fa-map-marker-alt icon"></i>
+        <span>@Model.WorkLocation</span>
+    </div>
+    <div class="highlight-item">
+        <i class="fas fa-calendar-check icon"></i>
+        <span>Sẵn sàng</span> @* Placeholder cho availability *@
+    </div>
+</section>
+
+<div class="profile-details-sections">
+    @*<section class="detail-section">
+        <h3>Giới thiệu</h3>
+        <p>Năng động, nhiệt tình, có kinh nghiệm phiên dịch cabin và dịch đuổi cho các hội thảo, sự kiện lớn trong lĩnh vực kinh tế, tài chính.</p>  Placeholder
+    </section>*@
+
+    <section class="detail-section">
+        <h3>Kỹ năng</h3>
+        @if (!string.IsNullOrEmpty(Model.Skills))
+        {
+            <ul>
+                @foreach (var skill in Model.Skills.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    <li>@skill.Trim()</li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="empty-list-message">Chưa cập nhật kỹ năng.</p>
+        }
+    </section>
+
+    <section class="detail-section">
+        <h3>Học vấn</h3>
+        @if (Model.Educations != null && Model.Educations.Any())
+        {
+            foreach (var edu in Model.Educations)
+            {
+                <div class="dynamic-section-item">
+                    <h4>@edu.SchoolName</h4>
+                    <p>@edu.Degree - @edu.Major</p>
+                    <p class="date-range">
+                        @edu.StartDate.ToString("MM/yyyy") - @(edu.EndDate.HasValue ? edu.EndDate.Value.ToString("MM/yyyy") : "Hiện tại")
+                    </p>
+                    @if (!string.IsNullOrEmpty(edu.Description))
+                    {
+                        <p class="description">@edu.Description</p>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <p class="empty-list-message">Chưa cập nhật thông tin học vấn.</p>
+        }
+    </section>
+
+    <section class="detail-section">
+        <h3>Kinh nghiệm làm việc</h3>
+        @if (Model.WorkExperiences != null && Model.WorkExperiences.Any())
+        {
+            foreach (var exp in Model.WorkExperiences)
+            {
+                <div class="dynamic-section-item">
+                    <h4>@exp.JobTitle</h4>
+                    <p>@exp.CompanyName</p>
+                    <p class="date-range">
+                        @exp.StartDate.ToString("MM/yyyy") - @(exp.EndDate.HasValue ? exp.EndDate.Value.ToString("MM/yyyy") : "Hiện tại")
+                    </p>
+                    @if (!string.IsNullOrEmpty(exp.JobDescription))
+                    {
+                        <p class="description">@exp.JobDescription</p>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <p class="empty-list-message">Chưa cập nhật kinh nghiệm làm việc.</p>
+        }
+    </section>
+
+    <section class="detail-section">
+        <h3>Dự án/Thành tựu</h3>
+        @if (Model.Projects != null && Model.Projects.Any())
+        {
+            foreach (var proj in Model.Projects)
+            {
+                <div class="dynamic-section-item">
+                    <h4>@proj.ProjectName</h4>
+                    <p class="date-range">
+                        @proj.StartDate.ToString("MM/yyyy") - @(proj.EndDate.HasValue ? proj.EndDate.Value.ToString("MM/yyyy") : "Hiện tại")
+                    </p>
+                    @if (!string.IsNullOrEmpty(proj.Description))
+                    {
+                        <p class="description">@proj.Description</p>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <p class="empty-list-message">Chưa cập nhật dự án/thành tựu.</p>
+        }
+    </section>
+
+    @* Các section khác nếu cần (ví dụ: ngôn ngữ, chứng chỉ từ các trường riêng) *@
+    <section class="detail-section info-grid">
+        <h3>Thông tin khác</h3>
+        <div class="grid-item">
+            <span class="label">Lĩnh vực chuyên môn</span>
+            <span class="value">@(!string.IsNullOrEmpty(Model.Field) ? Model.Field : "Chưa cập nhật")</span>
+        </div>
+        <div class="grid-item">
+            <span class="label">Địa chỉ chi tiết</span>
+            <span class="value">@(!string.IsNullOrEmpty(Model.DetailedAddress) ? Model.DetailedAddress : "Chưa cập nhật")</span>
+        </div>
+        @* Thêm các thông tin khác từ Model nếu có *@
+    </section>
+
+    <section class="detail-section">
+        <h3>Đánh giá từ nhà tuyển dụng</h3>
+        <p class="empty-list-message">Chưa có đánh giá nào.</p>
+        @* TODO: Hiển thị đánh giá thực tế nếu có *@
+    </section>
+</div>
+</main>
+
+<!-- Footer with Contact Button -->
+<footer class="profile-contact-footer">
+<button class="contact-button" data-interpreter-id="@Model.InterpreterId">Liên hệ tuyển dụng</button>
+</footer>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Bookmark toggle JS
+            const bookmarkButton = document.querySelector('.bookmark-button');
+            if(bookmarkButton) {
+                bookmarkButton.addEventListener('click', (event) => {
+                    const button = event.currentTarget;
+                    const interpreterId = button.dataset.interpreterId;
+                    const isSaved = button.classList.toggle('saved');
+                    const icon = button.querySelector('i');
+                    icon.classList.toggle('far', !isSaved);
+                    icon.classList.toggle('fas', isSaved);
+                    button.setAttribute('aria-label', isSaved ? 'Bỏ lưu hồ sơ' : 'Lưu hồ sơ');
+
+                    // TODO: Add AJAX call to /Recruiters/ToggleBookmark
+                    console.log(`Bookmark toggled for interpreter ${interpreterId}. Saved: ${isSaved}`);
+                     /*
+                     fetch('/Recruiters/ToggleBookmark', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json', /* Add Auth Token */ },
+                         body: JSON.stringify({ interpreterId: interpreterId, isBookmarked: isSaved })
+                     })
+                     .then(response => response.json())
+                     .then(data => { if (!data.success) { button.click(); /* Revert UI on error */ } })
+                     .catch(error => { console.error('Error:', error); button.click(); /* Revert UI */ });
+                     */
+                });
+            }
+
+            // Contact button action
+            const contactButton = document.querySelector('.contact-button');
+            if(contactButton) {
+                contactButton.addEventListener('click', () => {
+                     const interpreterId = contactButton.dataset.interpreterId;
+                     console.log(`Contact button clicked for interpreter ID: ${interpreterId}`);
+                     // TODO: Implement contact action (e.g., open chat modal, redirect to contact page)
+                     alert('Chức năng liên hệ/tuyển dụng đang được phát triển!');
+                });
+            }
+
+             // Share button action
+             const shareButton = document.querySelector('.share-button');
+             if (shareButton) {
+                 shareButton.addEventListener('click', (e) => {
+                     e.preventDefault();
+                     const profileUrl = window.location.href;
+                     const interpreterName = "@Model.InterpreterName";
+                     if (navigator.share) {
+                         navigator.share({
+                             title: `Hồ sơ phiên dịch viên: ${interpreterName}`,
+                             text: `Xem hồ sơ của ${interpreterName} trên ZhaoYi:`,
+                             url: profileUrl,
+                         })
+                         .then(() => console.log('Successful share'))
+                         .catch((error) => console.log('Error sharing', error));
+                     } else {
+                         // Fallback for browsers that don't support Web Share API
+                         prompt('Sao chép liên kết này để chia sẻ:', profileUrl);
+                     }
+                 });
+             }
+
+              // Options button action
+              const optionsButton = document.querySelector('.options-button');
+              if(optionsButton) {
+                  optionsButton.addEventListener('click', (e) => {
+                      e.preventDefault();
+                      // TODO: Implement options menu (e.g., report profile)
+                      alert('Các tùy chọn khác đang được phát triển.');
+                  });
+              }
+
+        });
+    </script>
+}

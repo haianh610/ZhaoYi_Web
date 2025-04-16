@@ -1,0 +1,277 @@
+/* Basic Reset and Font */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'FZ Poppins';
+    background-color: #f0f0f0; /* Background outside the phone */
+    display: flex;             /* Enable flexbox for centering */
+    justify-content: center;   /* Center horizontally */
+    align-items: center;     /* Center vertically */
+    min-height: 90vh;         /* Ensure body takes full viewport height */
+    padding: 20px 0;           /* Add some vertical padding for spacing */
+}
+
+/* Mobile Screen Simulation */
+.mobile-screen {
+    width: 400px; /* iPhone 8 width */
+    min-height: 90vh;
+    height: auto;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Hide content that might overflow */
+    position: relative; /* Needed for absolute positioning inside */
+    margin: auto;
+}
+
+/* Status Bar Styling */
+.status-bar {
+    height: 44px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    color: #000;
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 500;
+    /* background-color: rgba(255, 255, 255, 0.5); */
+    border-top-left-radius: 40px;
+    border-top-right-radius: 40px;
+}
+
+.status-bar .time { }
+
+.status-bar .indicators {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-bar .indicators svg {
+    display: block;
+}
+
+/* Content Alignment & Scrolling */
+.content-wrapper {
+    flex-grow: 1; /* Takes remaining vertical space */
+    display: flex;
+    flex-direction: column;
+    padding: 15px 30px 25px 30px; /* Top, Sides, Bottom padding */
+    overflow-y: auto; /* Allow scrolling if content overflows */
+    align-items: center; /* Center items like buttons by default */
+}
+
+/* Login Title */
+.login-title {
+    font-size: 2rem; /* Approx 32px */
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+    align-self: flex-start; /* Align title to the left */
+}
+
+.title-underline {
+    width: 50px;
+    height: 4px;
+    background-color: #ff7a45; /* Orange underline */
+    border-radius: 2px;
+    margin-bottom: 25px;
+    align-self: flex-start; /* Align underline with title */
+}
+
+/* Subtitle */
+.subtitle {
+    font-size: 0.95rem; /* Approx 15px */
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 30px;
+    width: 100%; /* Take full width */
+    text-align: left;
+}
+
+/* Input Group Styling */
+.input-group {
+    width: 100%;
+    position: relative;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    background-color: #ffffff; /* White background for input */
+    border: 1px solid #e0e0e0; /* Light grey border */
+    border-radius: 12px; /* More rounded corners */
+    padding: 0 15px; /* Padding inside the group */
+    height: 55px; /* Fixed height */
+}
+
+.input-group i {
+    color: #aaa; /* Icon color */
+    font-size: 1.1rem;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.input-group input {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 1rem;
+    color: #333;
+}
+
+.input-group input::placeholder {
+    color: #bbb;
+}
+
+.input-group .icon-right {
+    margin-left: auto; /* Push icon to the right */
+    margin-right: 0; /* Remove right margin for right icon */
+    cursor: pointer;
+}
+
+/* Forgot Password Link */
+.forgot-password {
+    display: block; /* Make it a block element */
+    width: 100%; /* Take full width */
+    text-align: right; /* Align text to the right */
+    margin-bottom: 25px;
+    margin-top: -5px; /* Slightly reduce space after password */
+    font-size: 0.85rem;
+    color: #555;
+    text-decoration: none;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+/* Primary Button Styling */
+.btn-primary {
+    width: 100%;
+    padding: 16px 20px;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    background: linear-gradient(to right, #ff9800, #ff7a45); /* Orange gradient */
+    box-shadow: 0 4px 10px rgba(255, 118, 69, 0.3); /* Subtle orange shadow */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-transform: uppercase;
+    margin-bottom: 30px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255, 118, 69, 0.4);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(255, 118, 69, 0.3);
+}
+
+/* Separator ("HOẶC") */
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 30px;
+    color: #aaa;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.separator::before,
+.separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e0e0e0; /* Light grey line */
+}
+
+.separator:not(:empty)::before {
+    margin-right: .5em;
+}
+
+.separator:not(:empty)::after {
+    margin-left: .5em;
+}
+
+/* Social Login Buttons */
+.btn-social {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center icon and text */
+    padding: 14px 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    background-color: #ffffff;
+    cursor: pointer;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+    color: #333;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.btn-social:hover {
+    background-color: #f9f9f9;
+}
+
+.btn-social i,
+.btn-social img {
+    font-size: 1.4rem; /* Icon size */
+    margin-right: 12px;
+    width: 20px; /* Fixed width for alignment */
+    text-align: center;
+}
+
+/* No need for specific Google color now that we're using an image */
+/* .btn-social.google i { color: #DB4437; } */
+.btn-social.facebook i { color: #4267B2; }
+.btn-social.wechat i { color: #7BB32E; }
+
+/* Sign Up Link */
+.signup-link {
+    margin-top: 25px; /* Space above this link */
+    font-size: 0.9rem;
+    color: #555;
+    text-align: center;
+}
+
+.signup-link a {
+    color: #ff7a45; /* Orange link color */
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.signup-link a:hover {
+    text-decoration: underline;
+}
+
+/* Hide scrollbar but keep scroll functionality */
+/* For Webkit browsers (Chrome, Safari) */
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* For Firefox */
+* {
+    scrollbar-width: none;
+}
+
+/* For IE/Edge */
+* {
+    -ms-overflow-style: none;
+} 

@@ -1,0 +1,256 @@
+﻿/* wwwroot/css/recruiter-job-details.css */
+
+/* Kế thừa base styles nếu cần hoặc đảm bảo global-mobile.css đã bao gồm */
+/* body, .mobile-screen, ... */
+
+.job-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #fff; /* Nền trắng cho header */
+    border-bottom: 1px solid #eee;
+    height: 50px;
+    position: sticky;
+    top: 0; /* Dính lên đầu */
+    z-index: 10;
+}
+
+.back-button {
+    color: #555;
+    font-size: 1.1rem;
+    padding: 8px 10px 8px 0; /* Padding bên phải để dễ bấm */
+    text-decoration: none;
+}
+
+.header-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    flex-grow: 1; /* Chiếm không gian còn lại */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin: 0 10px; /* Khoảng cách với nút */
+}
+
+.edit-button {
+    color: #ff8c00; /* Màu cam */
+    font-size: 1rem;
+    padding: 8px 0 8px 10px; /* Padding bên trái */
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+    .edit-button i {
+        font-size: 0.9rem;
+    }
+
+
+.job-detail-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: #f8f9fa; /* Màu nền chung */
+    padding: 15px;
+}
+
+.detail-card {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.detail-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #eee;
+}
+
+.detail-card-title {
+    font-size: 1.1rem; /* 17.6px */
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.job-status-badge {
+    font-size: 0.75rem; /* 12px */
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+    /* Copy các class status từ recruiter-profile.css */
+    .job-status-badge.active {
+        background-color: #e8f5e9;
+        color: #4caf50;
+    }
+
+    .job-status-badge.pending {
+        background-color: #fff3e0;
+        color: #ff9800;
+    }
+
+    .job-status-badge.expired {
+        background-color: #fbe9e7;
+        color: #f44336;
+    }
+
+    .job-status-badge.cancelled {
+        background-color: #eceff1;
+        color: #607d8b;
+    }
+
+    .job-status-badge.completed {
+        background-color: #e3f2fd;
+        color: #2196f3;
+    }
+
+    .job-status-badge.inprogress {
+        background-color: #e0f2f1;
+        color: #009688;
+    }
+
+.detail-item {
+    display: flex;
+    margin-bottom: 12px;
+    font-size: 0.9rem; /* 14.4px */
+    color: #555;
+}
+
+    .detail-item i.icon {
+        color: #ff8c00; /* Màu icon cam */
+        width: 20px; /* Fixed width for alignment */
+        text-align: center;
+        margin-right: 10px;
+        margin-top: 2px; /* Align icon slightly lower */
+        flex-shrink: 0;
+    }
+
+.detail-label {
+    font-weight: 500;
+    color: #666;
+    width: 110px; /* Độ rộng cố định cho label nếu muốn căn thẳng hàng */
+    flex-shrink: 0;
+    margin-right: 5px;
+}
+
+.detail-value {
+    color: #333;
+    flex-grow: 1;
+    word-break: break-word; /* Xuống dòng nếu text quá dài */
+}
+
+    .detail-value.salary {
+        font-weight: 600;
+        color: #e53935; /* Màu đỏ cho lương */
+    }
+
+.job-description-content {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #444;
+    white-space: pre-wrap; /* Giữ nguyên định dạng xuống dòng từ textarea */
+    padding-top: 5px;
+}
+
+.applicant-list-section {
+    margin-top: 20px;
+}
+
+.applicant-list-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 10px;
+}
+/* Reuse .cv-card styles from recruiter-profile.css if displaying applicants similarly */
+.applicant-card {
+    /* Copy hoặc @import styles từ .cv-card trong recruiter-profile.css */
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.applicant-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.applicant-info {
+    flex-grow: 1;
+}
+
+    .applicant-info h5 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+
+    .applicant-info p {
+        font-size: 0.8rem;
+        color: #777;
+        margin: 0;
+    }
+
+.applicant-status {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 500;
+    /* Thêm màu nền/chữ cho từng status */
+}
+
+    .applicant-status.pending {
+        background-color: #fff3e0;
+        color: #ff9800;
+    }
+
+    .applicant-status.waitingtostart {
+        background-color: #e3f2fd;
+        color: #2196f3;
+    }
+
+    .applicant-status.inprogress {
+        background-color: #e0f2f1;
+        color: #009688;
+    }
+
+    .applicant-status.completed {
+        background-color: #e8f5e9;
+        color: #4caf50;
+    }
+
+    .applicant-status.canceled {
+        background-color: #eceff1;
+        color: #607d8b;
+    }
+
+    .applicant-status.rejected {
+        background-color: #fbe9e7;
+        color: #f44336;
+    }
+
+.no-applicants {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    padding: 15px;
+}

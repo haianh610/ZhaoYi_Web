@@ -1,0 +1,51 @@
+﻿@model ZhaoYi_Test2.Models.WorkExperience
+
+<div class="modal-overlay" id="experience-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Kinh nghiệm làm việc</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+
+        <form id="experience-form" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="WorkExperienceId" />
+            <input type="hidden" asp-for="InterpreterId" />
+
+            <div class="modal-form-group">
+                <label asp-for="JobTitle">Chức vụ</label>
+                <input asp-for="JobTitle" required placeholder="Ví dụ: Phiên dịch viên tiếng Trung" />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="CompanyName">Tên công ty</label>
+                <input asp-for="CompanyName" required placeholder="Ví dụ: Công ty TNHH ZhaoYi" />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="StartDate">Thời gian bắt đầu</label>
+                <input asp-for="StartDate" type="date" required />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="EndDate">Thời gian kết thúc</label>
+                <input asp-for="EndDate" type="date" />
+                <div style="margin-top: 8px;">
+                    <input type="checkbox" id="current-job" class="current-checkbox" />
+                    <label for="current-job">Đang làm việc</label>
+                </div>
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="JobDescription">Mô tả công việc</label>
+                <textarea asp-for="JobDescription" rows="4" placeholder="Mô tả chi tiết về trách nhiệm, thành tựu trong công việc..."></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-modal btn-cancel" onclick="document.querySelector('#experience-modal').classList.remove('active')">Hủy</button>
+                <button type="submit" class="btn-modal btn-save">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+

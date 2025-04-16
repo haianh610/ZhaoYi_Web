@@ -1,0 +1,638 @@
+﻿@model ZhaoYi_Test2.Models.JobPosting
+@using ZhaoYi_Test2.Models
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+
+@{
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+    ViewData["UserRole"] = "Recruiter";
+    ViewData["ShowBottomNav"] = false;
+    ViewData["Title"] = $"Chi tiết: {Model.Title}"; // Đặt Title ở đây
+
+    var applications = ViewBag.Applications as List<JobApplication> ?? new List<JobApplication>();
+
+    // Helper function để lấy Display Name của Enum
+    Func<Enum, string> GetEnumDisplayName = (enumValue) =>
+    {
+        if (enumValue == null) return "Không yêu cầu";
+        var field = enumValue.GetType().GetField(enumValue.ToString());
+        if (field == null) return enumValue.ToString();
+        var displayAttribute = field.GetCustomAttribute<DisplayAttribute>();
+        return displayAttribute?.GetName() ?? enumValue.ToString();
+    };
+
+    Func<ApplicationStatus, string> GetAppStatusDisplayName = (enumValue) =>
+           {
+       var field = enumValue.GetType().GetField(enumValue.ToString());
+       if (field == null) return enumValue.ToString();
+       var displayAttribute = field.GetCustomAttribute<DisplayAttribute>();
+       return displayAttribute?.Name ?? enumValue.ToString();
+           };
+
+
+    // Thêm helper function cho ApplicationStatus class
+    Func<ApplicationStatus, string> GetAppStatusClass = (status) =>
+    {
+        return status switch
+        {
+            ApplicationStatus.Pending => "pending",
+            ApplicationStatus.WaitingToStart => "waitingtostart",
+            ApplicationStatus.InProgress => "inprogress",
+            ApplicationStatus.Completed => "completed",
+            ApplicationStatus.Canceled => "canceled",
+            ApplicationStatus.Rejected => "rejected",
+            _ => "secondary" // Default class
+        };
+    };
+
+    var statusText = GetEnumDisplayName(Model.Status);
+    var statusClass = Model.Status.ToString().ToLower();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/recruiter-job-details.css" asp-append-version="true" />
+    <style>
+        .mobile-screen {
+            padding-bottom: 0 !important;
+        }
+
+        .applicant-card {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+            .applicant-card:hover {
+                background-color: #f8f9fa;
+            }
+        /* Style cho các nút trong modal */
+        .modal-footer .btn {
+            min-width: 80px;
+        }
+        /* Style cho iframe CV */
+        .cv-iframe-container {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            padding-top: 141.42%; /* Aspect Ratio 1:1.414 (A4) */
+            border: 1px solid #dee2e6;
+            background-color: #e9ecef; /* Placeholder background */
+        }
+
+            .cv-iframe-container iframe {
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                right: 0;
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+        /* Loading spinner */
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: .2em;
+        }
+    </style>
+}
+
+<div class="mobile-screen">
+    @Html.AntiForgeryToken() @* Thêm token vào trang để AJAX sử dụng *@
+    <!-- Header -->
+    <header class="job-detail-header">
+        <a asp-action="Profile" asp-controller="Recruiters" class="back-button"><i class="fas fa-chevron-left"></i></a>
+        <h1 class="header-title" title="@Model.Title">@Model.Title</h1>
+        <a asp-action="EditJob" asp-route-id="@Model.JobPostingId" class="edit-button">
+            <i class="fas fa-edit"></i> Sửa
+        </a>
+    </header>
+
+    <!-- Main Content -->
+    <main class="job-detail-content">
+        <div class="detail-card">
+            <div class="detail-card-header">
+                <h2 class="detail-card-title">Thông tin chung</h2>
+                <span class="job-status-badge @statusClass">@statusText</span>
+            </div>
+            @* ... (các detail-item) ... *@
+            <div class="detail-item">
+                <i class="fas fa-tag icon"></i>
+                <span class="detail-label">Lĩnh vực:</span>
+                <span class="detail-value">@Model.Field</span>
+            </div>
+            <div class="detail-item">
+                <i class="fas fa-dollar-sign icon"></i>
+                <span class="detail-label">Mức lương:</span>
+                <span class="detail-value salary">@Model.Salary.ToString("N0") VND</span>
+            </div>
+            <div class="detail-item">
+                <i class="fas fa-map-marker-alt icon"></i>
+                <span class="detail-label">Địa điểm:</span>
+                <span class="detail-value">@Model.WorkLocation</span>
+            </div>
+            <div class="detail-item">
+                <i class="far fa-calendar-alt icon"></i>
+                <span class="detail-label">Ngày đăng:</span>
+                <span class="detail-value">@Model.PostedDate.ToString("dd/MM/yyyy")</span>
+            </div>
+            <div class="detail-item">
+                <i class="far fa-calendar-times icon"></i>
+                <span class="detail-label">Ngày hết hạn:</span>
+                <span class="detail-value">@Model.ExpiryDate.ToString("dd/MM/yyyy")</span>
+            </div>
+            @if (Model.UpdatedDate.HasValue)
+            {
+                <div class="detail-item">
+                    <i class="far fa-calendar-check icon"></i>
+                    <span class="detail-label">Cập nhật:</span>
+                    <span class="detail-value">@Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+            }
+            <div class="detail-item">
+                <i class="far fa-eye icon"></i>
+                <span class="detail-label">Lượt xem:</span>
+                <span class="detail-value">@Model.ViewCount</span>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <h2 class="detail-card-title">Yêu cầu công việc</h2>
+            @* ... (các detail-item) ... *@
+            <div class="detail-item">
+                <i class="fas fa-briefcase icon"></i>
+                <span class="detail-label">Kinh nghiệm:</span>
+                <span class="detail-value">@GetEnumDisplayName(Model.RequiredExperience)</span>
+            </div>
+            <div class="detail-item">
+                <i class="fas fa-venus-mars icon"></i>
+                <span class="detail-label">Giới tính:</span>
+                <span class="detail-value">@GetEnumDisplayName(Model.GenderRequirement)</span>
+            </div>
+            <div class="detail-item">
+                <i class="fas fa-users icon"></i>
+                <span class="detail-label">Số lượng:</span>
+                <span class="detail-value">@(Model.HiringCount.HasValue ? Model.HiringCount.Value.ToString() : "Không giới hạn")</span>
+            </div>
+            <div class="detail-item">
+                <i class="fas fa-graduation-cap icon"></i>
+                <span class="detail-label">Trình độ:</span>
+                <span class="detail-value">@(!string.IsNullOrEmpty(Model.EducationLevel) ? Model.EducationLevel : "Không yêu cầu")</span>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <h2 class="detail-card-title">Mô tả công việc</h2>
+            <div class="job-description-content">@Html.Raw(Model.JobDescription?.Replace("\n", "<br />"))</div>
+        </div>
+
+        @* --- Phần Actions --- *@
+        <div class="detail-card">
+            <h2 class="detail-card-title">Hành động</h2>
+            <div class="d-flex gap-2 flex-wrap">
+                @* Thêm flex-wrap để xuống dòng trên màn hình nhỏ *@
+                @* Nút bắt đầu công việc (logic từ demo) *@
+                @if (Model.Status == JobStatus.Active)
+                {
+                    <button type="button" class="btn btn-primary flex-fill"
+                            onclick="checkStartJobConditions(@applications.Any(a => a.Status == ApplicationStatus.Pending).ToString().ToLower(), @applications.Any(a => a.Status == ApplicationStatus.WaitingToStart).ToString().ToLower(), @Model.JobPostingId)">
+                        <i class="bi bi-play-fill"></i> Bắt đầu công việc
+                    </button>
+                }
+                @if (Model.Status == JobStatus.InProgress)
+                {
+                    <button type="button" class="btn btn-success flex-fill" data-bs-toggle="modal" data-bs-target="#completeJobModal">
+                        <i class="bi bi-check-circle"></i> Hoàn thành
+                    </button>
+                }
+                @* Nút hủy (logic từ demo) - Chỉ hiển thị khi chưa hoàn thành/hủy/hết hạn *@
+                @if (Model.Status == JobStatus.Active || Model.Status == JobStatus.InProgress || Model.Status == JobStatus.Pending)
+                {
+                    <button type="button" class="btn btn-warning flex-fill" data-bs-toggle="modal" data-bs-target="#cancelJobModal">
+                        <i class="bi bi-stop-circle"></i> Hủy công việc
+                    </button>
+                }
+                @* Nút Xóa bài đăng *@
+                <button type="button" class="btn btn-danger flex-fill" data-bs-toggle="modal" data-bs-target="#deleteJobModal">
+                    <i class="bi bi-trash"></i> Xóa bài đăng
+                </button>
+            </div>
+        </div>
+
+        @* --- Phần danh sách ứng viên --- *@
+        <div class="applicant-list-section detail-card">
+            <h2 class="detail-card-title">Danh sách ứng viên (@applications.Count)</h2>
+            @if (applications.Any())
+            {
+                @foreach (var app in applications)
+                {
+                    var interpreterAvatar = !string.IsNullOrEmpty(app.Interpreter?.AvatarPath) ? Url.Content($"~/uploads/avatars/{app.Interpreter.AvatarPath}") : Url.Content("~/images/user.png");
+                    var appStatusClass = GetAppStatusClass(app.Status);
+                    var appStatusText = GetAppStatusDisplayName(app.Status);
+
+                    @* Thêm data-bs-toggle và data-bs-target vào đây *@
+                    <div class="applicant-card"
+                         data-bs-toggle="modal"
+                         data-bs-target="#applicationModal-@app.JobApplicationId"
+                         id="applicant-card-@app.JobApplicationId">
+                        @* Thêm ID để JS cập nhật *@
+                        <img src="@interpreterAvatar" alt="Avatar" class="applicant-avatar" />
+                        <div class="applicant-info">
+                            <a style="text-decoration: none;" onclick="event.stopPropagation();">
+                                <h5>@app.InterpreterName</h5>
+                            </a>
+                            <p>Nộp ngày: @app.ApplicationDate.ToString("dd/MM/yy HH:mm")</p>
+                            <p>
+                                @if (!string.IsNullOrEmpty(app.CVFilePath))
+                                {
+                                    <a href="@Url.Content($"~/uploads/cv/{app.CVFilePath}")" target="_blank" style="font-size: 0.8rem;" onclick="event.stopPropagation();">Xem CV File</a>
+                                }
+                                else
+                                {
+                                    <span style="font-size: 0.8rem; color: #888;">(CV Online)</span>
+                                }
+                            </p>
+                        </div>
+                        @* Thêm ID cho span status để JS cập nhật *@
+                        <span class="applicant-status @appStatusClass" id="applicant-status-@app.JobApplicationId">
+                            @appStatusText
+                        </span>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="no-applicants">Chưa có ứng viên nào ứng tuyển.</p>
+            }
+        </div>
+
+    </main>
+</div>
+
+@* --- MODALS --- *@
+
+@* Modal chi tiết ứng viên *@
+@foreach (var app in applications)
+{
+    var interpreterAvatarModal = !string.IsNullOrEmpty(app.Interpreter?.AvatarPath) ? Url.Content($"~/uploads/avatars/{app.Interpreter.AvatarPath}") : Url.Content("~/images/user.png");
+    var appStatusClassModal = GetAppStatusClass(app.Status);
+    var appStatusTextModal = GetAppStatusDisplayName(app.Status);
+
+    <div class="modal fade" id="applicationModal-@app.JobApplicationId" tabindex="-1"
+         aria-labelledby="applicationModalLabel-@app.JobApplicationId" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            @* Thêm modal-dialog-scrollable *@
+            <div class="modal-content">
+                <div class="modal-header">
+                    @* Bỏ màu nền động *@
+                    <h5 class="modal-title" id="applicationModalLabel-@app.JobApplicationId">
+                        Chi tiết ứng viên: @app.InterpreterName
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs" id="applicationTabs-@app.JobApplicationId" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="info-tab-@app.JobApplicationId"
+                                    data-bs-toggle="tab" data-bs-target="#info-@app.JobApplicationId"
+                                    type="button" role="tab" aria-selected="true">
+                                <i class="bi bi-person"></i> Thông tin
+                            </button>
+                        </li>
+                        @if (!string.IsNullOrEmpty(app.CVFilePath))
+                        {
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="cv-tab-@app.JobApplicationId"
+                                        data-bs-toggle="tab" data-bs-target="#cv-@app.JobApplicationId"
+                                        type="button" role="tab" aria-selected="false">
+                                    <i class="bi bi-file-earmark-text"></i> Xem CV
+                                </button>
+                            </li>
+                        }
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content mt-3" id="applicationTabsContent-@app.JobApplicationId">
+                        <!-- Tab thông tin ứng viên -->
+                        <div class="tab-pane fade show active" id="info-@app.JobApplicationId" role="tabpanel">
+                            <div class="text-center mb-3">
+                                <img src="@interpreterAvatarModal" alt="Avatar"
+                                     class="img-fluid rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Thông tin liên hệ</h6>
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Email:</dt>
+                                        <dd class="col-sm-8">@app.Email</dd>
+                                        <dt class="col-sm-4">Điện thoại:</dt>
+                                        <dd class="col-sm-8">@app.PhoneNumber</dd>
+                                        <dt class="col-sm-4">Ngày nộp:</dt>
+                                        <dd class="col-sm-8">@app.ApplicationDate.ToString("dd/MM/yyyy HH:mm")</dd>
+                                        @* Hiển thị status trong modal *@
+                                        <dt class="col-sm-4">Trạng thái:</dt>
+                                        <dd class="col-sm-8">
+                                            <span class="badge applicant-status @appStatusClassModal" id="modal-applicant-status-@app.JobApplicationId">
+                                                @appStatusTextModal
+                                            </span>
+                                        </dd>
+                                    </dl>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Thông tin phiên dịch</h6>
+                                    @if (app.Interpreter != null)
+                                    {
+                                        <dl class="row">
+                                            <dt class="col-sm-4">Kinh nghiệm:</dt>
+                                            <dd class="col-sm-8">@GetEnumDisplayName(app.Interpreter.YearsOfExperience)</dd>
+                                            <dt class="col-sm-4">Giới tính:</dt>
+                                            <dd class="col-sm-8">@app.Interpreter.Gender</dd>
+                                            <dt class="col-sm-4">Khu vực:</dt>
+                                            <dd class="col-sm-8">@app.Interpreter.WorkLocation</dd>
+                                            <dt class="col-sm-4">Địa chỉ:</dt>
+                                            <dd class="col-sm-8">@app.Interpreter.DetailedAddress</dd>
+                                            <dt class="col-sm-4">Kỹ năng:</dt>
+                                            <dd class="col-sm-8">@app.Interpreter.Skills</dd>
+                                        </dl>
+                                        @* Link xem full profile interpreter *@
+                                        <a asp-controller="Recruiters" asp-action="InterpreterDetails" asp-route-id="@app.InterpreterId" class="btn btn-sm btn-outline-primary mt-2">
+                                            <i class="bi bi-person-lines-fill"></i> Xem hồ sơ đầy đủ
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">Không có thông tin chi tiết.</p>
+                                    }
+                                </div>
+                            </div>
+                            @if (string.IsNullOrEmpty(app.CVFilePath))
+                            {
+                                <div class="alert alert-secondary mt-3" role="alert">
+                                    Ứng viên sử dụng hồ sơ Online.
+                                </div>
+                            }
+                        </div>
+                        <!-- Tab CV -->
+                        @if (!string.IsNullOrEmpty(app.CVFilePath))
+                        {
+                            <div class="tab-pane fade" id="cv-@app.JobApplicationId" role="tabpanel">
+                                <div class="cv-iframe-container">
+                                    <iframe src="@Url.Content($"~/uploads/cv/{app.CVFilePath}")"
+                                            title="Xem CV của @app.InterpreterName"></iframe>
+                                </div>
+                                <a href="@Url.Content($"~/uploads/cv/{app.CVFilePath}")" target="_blank" class="btn btn-sm btn-outline-secondary mt-2">
+                                    <i class="bi bi-box-arrow-up-right"></i> Mở trong tab mới
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="modal-footer justify-content-between">
+                    @* justify-content-between *@
+                    <div>
+                        @* Phần bên trái (Tải CV) *@
+                        @if (!string.IsNullOrEmpty(app.CVFilePath))
+                        {
+                            <a href="@Url.Content($"~/uploads/cv/{app.CVFilePath}")" download class="btn btn-outline-primary">
+                                <i class="bi bi-download"></i> Tải CV
+                            </a>
+                        }
+                    </div>
+                    <div id="modal-action-buttons-@app.JobApplicationId">
+                        @* Phần bên phải (Đóng, Accept/Reject) *@
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        @if (app.Status == ApplicationStatus.Pending)
+                        {
+                            @* Thêm data attributes và class để JS nhận diện *@
+                            <button type="button" class="btn btn-success btn-update-status"
+                                    data-application-id="@app.JobApplicationId"
+                                    data-jobposting-id="@Model.JobPostingId"
+                                    data-new-status="@((int)ApplicationStatus.WaitingToStart)">
+                                <span class="button-text"><i class="bi bi-check-circle"></i> Chấp nhận</span>
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                            </button>
+                            <button type="button" class="btn btn-danger btn-update-status"
+                                    data-application-id="@app.JobApplicationId"
+                                    data-jobposting-id="@Model.JobPostingId"
+                                    data-new-status="@((int)ApplicationStatus.Rejected)">
+                                <span class="button-text"><i class="bi bi-x-circle"></i> Từ chối</span>
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@* Modal xác nhận Xóa bài đăng *@
+<div class="modal fade" id="deleteJobModal" tabindex="-1" aria-labelledby="deleteJobModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteJobModalLabel">Xác nhận xóa bài đăng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa bài đăng này không?</p>
+                <p class="text-danger"><strong>Lưu ý:</strong> Hành động này không thể hoàn tác và sẽ xóa cả các đơn ứng tuyển liên quan.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteJobBtn">
+                    <span class="button-text"><i class="bi bi-trash"></i> Xác nhận xóa</span>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* --- Các modal khác từ demo (Start, Pending, Complete, Cancel, NoAccepted) --- *@
+@* Giữ nguyên HTML của các modal này nếu bạn muốn sử dụng chúng *@
+<!-- Modal xác nhận bắt đầu công việc -->
+<div class="modal fade" id="startJobModal" tabindex="-1" aria-labelledby="startJobModalLabel" aria-hidden="true"> ... </div>
+<!-- Modal cảnh báo còn ứng viên chưa phản hồi -->
+<div class="modal fade" id="pendingApplicationsModal" tabindex="-1" aria-labelledby="pendingApplicationsModalLabel" aria-hidden="true"> ... </div>
+<!-- Modal xác nhận hoàn thành công việc -->
+<div class="modal fade" id="completeJobModal" tabindex="-1" aria-labelledby="completeJobModalLabel" aria-hidden="true"> ... </div>
+<!-- Modal cảnh báo khi không có ứng viên được tuyển -->
+<div class="modal fade" id="noAcceptedApplicationsModal" tabindex="-1" aria-labelledby="noAcceptedApplicationsModalLabel" aria-hidden="true"> ... </div>
+<!-- Modal xác nhận hủy công việc -->
+<div class="modal fade" id="cancelJobModal" tabindex="-1" aria-labelledby="cancelJobModalLabel" aria-hidden="true"> ... </div>
+
+
+@section Scripts {
+    @* Thêm script để xử lý modal và AJAX *@
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const jobPostingId = @Model.JobPostingId;
+            const antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            // 1. Xử lý nút Xóa bài đăng
+            const confirmDeleteBtn = document.getElementById('confirmDeleteJobBtn');
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', function () {
+                    const button = this;
+                    const buttonText = button.querySelector('.button-text');
+                    const spinner = button.querySelector('.spinner-border');
+
+                    // Hiển thị spinner, ẩn text, disable nút
+                    buttonText.style.display = 'none';
+                    spinner.style.display = 'inline-block';
+                    button.disabled = true;
+
+                    fetch(`/Recruiters/DeleteJob/${jobPostingId}`, {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': antiForgeryToken,
+                            'X-Requested-With': 'XMLHttpRequest' // Đánh dấu là AJAX
+                        }
+                        // Không cần body nếu ID đã có trong URL
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Đóng modal
+                            var deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteJobModal'));
+                            deleteModal.hide();
+                            // Chuyển hướng đến trang được trả về từ server
+                            window.location.href = data.redirectUrl;
+                            // TempData sẽ hiển thị ở trang mới
+                        } else {
+                            alert('Lỗi khi xóa bài đăng: ' + data.message);
+                            // Reset nút
+                            buttonText.style.display = 'inline-block';
+                            spinner.style.display = 'none';
+                            button.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting job:', error);
+                        alert('Đã xảy ra lỗi kết nối khi xóa bài đăng.');
+                         // Reset nút
+                        buttonText.style.display = 'inline-block';
+                        spinner.style.display = 'none';
+                        button.disabled = false;
+                    });
+                });
+            }
+
+             // 2. Xử lý nút Chấp nhận/Từ chối ứng viên
+             document.querySelectorAll('.btn-update-status').forEach(button => {
+                button.addEventListener('click', function() {
+                    const btn = this;
+                    const applicationId = btn.dataset.applicationId;
+                    const newStatus = btn.dataset.newStatus;
+                    // const jobPostingId = btn.dataset.jobpostingId; // Đã có ở biến toàn cục
+
+                    const buttonText = btn.querySelector('.button-text');
+                    const spinner = btn.querySelector('.spinner-border');
+
+                    // Disable cả 2 nút trong cụm action
+                    const actionContainer = btn.closest('.modal-footer').querySelector(`[id^="modal-action-buttons-"]`);
+                    if (actionContainer) {
+                        actionContainer.querySelectorAll('button').forEach(b => b.disabled = true);
+                    }
+                    buttonText.style.display = 'none';
+                    spinner.style.display = 'inline-block';
+
+
+                    fetch('/Recruiters/UpdateApplicationStatus', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded', // Gửi dạng form
+                            'RequestVerificationToken': antiForgeryToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: `applicationId=${applicationId}&status=${newStatus}&jobPostingId=${jobPostingId}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Cập nhật UI thành công
+                            console.log('Update success:', data);
+
+                             // Tìm thẻ ứng viên tương ứng trên trang chính
+                             const applicantCard = document.getElementById(`applicant-card-${data.applicationId}`);
+                             const statusBadgeOnCard = document.getElementById(`applicant-status-${data.applicationId}`);
+
+                             // Tìm badge trạng thái trong modal
+                             const statusBadgeInModal = document.getElementById(`modal-applicant-status-${data.applicationId}`);
+
+                            // Cập nhật text và class cho badge
+                            if (statusBadgeOnCard) {
+                                statusBadgeOnCard.textContent = data.newStatusText;
+                                statusBadgeOnCard.className = `applicant-status ${data.newStatusClass}`; // Reset class
+                            }
+                             if (statusBadgeInModal) {
+                                statusBadgeInModal.textContent = data.newStatusText;
+                                statusBadgeInModal.className = `badge applicant-status ${data.newStatusClass}`; // Reset class
+                            }
+
+                             // Ẩn các nút Accept/Reject trong modal vì đã xử lý
+                             const modalActionButtons = document.getElementById(`modal-action-buttons-${data.applicationId}`);
+                             if (modalActionButtons) {
+                                 modalActionButtons.querySelectorAll('.btn-update-status').forEach(b => b.style.display = 'none');
+                             }
+
+                            // Tùy chọn: Đóng modal sau khi cập nhật thành công
+                            var applicationModal = bootstrap.Modal.getInstance(document.getElementById(`applicationModal-${data.applicationId}`));
+                            applicationModal.hide();
+
+                             // Hiển thị thông báo thành công (ví dụ: dùng alert hoặc thư viện toast)
+                             // alert(data.message);
+
+                        } else {
+                            // Xử lý lỗi
+                            alert('Lỗi cập nhật: ' + data.message);
+                            // Reset nút nếu lỗi
+                             if (actionContainer) {
+                                actionContainer.querySelectorAll('button').forEach(b => b.disabled = false);
+                             }
+                             buttonText.style.display = 'inline-block';
+                             spinner.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating status:', error);
+                        alert('Đã xảy ra lỗi kết nối.');
+                         // Reset nút nếu lỗi
+                         if (actionContainer) {
+                            actionContainer.querySelectorAll('button').forEach(b => b.disabled = false);
+                         }
+                         buttonText.style.display = 'inline-block';
+                         spinner.style.display = 'none';
+                    });
+                });
+            });
+
+            // 3. Khởi tạo lại các modal từ demo nếu bạn muốn dùng
+            // Ví dụ:
+             function checkStartJobConditions(hasPendingApplications, hasAcceptedApplications, jobId) {
+                 // ... (Copy code từ demo) ...
+                   if (hasPendingApplications) {
+                        var pendingModal = new bootstrap.Modal(document.getElementById('pendingApplicationsModal'));
+                        pendingModal.show();
+                    }
+                    else if (!hasAcceptedApplications) {
+                        var noAcceptedModal = new bootstrap.Modal(document.getElementById('noAcceptedApplicationsModal'));
+                        noAcceptedModal.show();
+                    }
+                    else {
+                        var startModal = new bootstrap.Modal(document.getElementById('startJobModal'));
+                        document.getElementById('confirmStartJobBtn').href = `/Recruiters/UpdateJobStatus?id=${jobId}&status=@((int)JobStatus.InProgress)`; // Cập nhật status enum
+                        startModal.show();
+                    }
+             }
+            // Phải gọi hàm này từ nút "Bắt đầu công việc"
+             window.checkStartJobConditions = checkStartJobConditions; // Expose to global scope if needed
+
+
+        });
+    </script>
+}

@@ -1,0 +1,57 @@
+﻿@model ZhaoYi_Test2.Models.Education
+
+<div class="modal-overlay" id="education-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Thông tin học vấn</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+
+        <form id="education-form" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="EducationId" />
+            <input type="hidden" asp-for="InterpreterId" />
+
+            <div class="modal-form-group">
+                <label asp-for="SchoolName">Tên trường</label>
+                <input asp-for="SchoolName" required placeholder="Ví dụ: Đại học Ngoại ngữ - Đại học Quốc gia Hà Nội" />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="Major">Chuyên ngành</label>
+                <input asp-for="Major" placeholder="Ví dụ: Ngôn ngữ và Văn hóa Trung Quốc" />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="Degree">Bằng cấp</label>
+                <input asp-for="Degree" placeholder="Ví dụ: Cử nhân, Thạc sĩ" />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="StartDate">Thời gian bắt đầu</label>
+                <input asp-for="StartDate" type="date" required />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="EndDate">Thời gian kết thúc</label>
+                <input asp-for="EndDate" type="date" />
+                <div style="margin-top: 8px;">
+                    <input type="checkbox" id="current-education" class="current-checkbox" />
+                    <label for="current-education">Đang học</label>
+                </div>
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="Description">Mô tả</label>
+                <textarea asp-for="Description" rows="3" placeholder="Mô tả thêm về quá trình học tập, thành tích..."></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-modal btn-cancel" onclick="document.querySelector('#education-modal').classList.remove('active')">Hủy</button>
+                <button type="submit" class="btn-modal btn-save">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+

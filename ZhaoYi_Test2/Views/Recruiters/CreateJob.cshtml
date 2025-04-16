@@ -1,0 +1,168 @@
+﻿@model ZhaoYi_Test2.Models.JobPosting
+@using ZhaoYi_Test2.Models 
+
+@{
+    ViewData["Title"] = "Tạo mới bài đăng";
+    Layout = "~/Views/Shared/_MobileLayout.cshtml"; // Sử dụng layout mobile
+    ViewData["UserRole"] = "Recruiter";
+    ViewData["ShowBottomNav"] = false; // Không hiển thị nav dưới khi tạo
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/job-creation.css" asp-append-version="true" />
+    <style>
+        /* Đảm bảo layout không thêm padding đáy khi ẩn nav */
+        .mobile-screen {
+            padding-bottom: 0 !important;
+        }
+
+
+        /* Hiển thị lỗi validation */
+        .field-validation-error {
+            color: #dc3545; /* Màu đỏ bootstrap mặc định */
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .input-validation-error {
+            border-color: #dc3545 !important; /* Đổi viền input lỗi */
+        }
+
+        .validation-summary-errors ul {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        .validation-summary-errors li {
+            color: #dc3545;
+            margin-bottom: 5px;
+        }
+    </style>
+}
+
+<div class="job-creation-page">
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1 class="page-title">Tạo mới bài đăng</h1>
+        @* Bỏ Step Indicators *@
+    </header>
+
+    <!-- Form Area -->
+    <div class="form-area">
+        <form method="post" asp-action="CreateJob">
+            @* Thêm validation summary *@
+            <div asp-validation-summary="ModelOnly" class="text-danger validation-summary-errors"></div>
+            @Html.AntiForgeryToken() @* Thêm AntiForgeryToken *@
+
+            <div class="form-section">
+                <h2 class="section-title">Thông tin cơ bản</h2>
+
+                <div class="form-group">
+                    <label asp-for="Title" class="form-label"></label> @* asp-for tự lấy DisplayName *@
+                    <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề bài đăng">
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Field" class="form-label"></label>
+                    <input asp-for="Field" class="form-control" placeholder="Ví dụ: Giáo dục, Y tế, Công nghệ...">
+                    <span asp-validation-for="Field" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Salary" class="form-label"></label>
+                    <input asp-for="Salary" type="number" min="0" step="any" class="form-control" placeholder="Nhập mức lương">
+                    <span asp-validation-for="Salary" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="WorkLocation" class="form-label"></label>
+                    <input asp-for="WorkLocation" class="form-control" placeholder="Ví dụ: Quận Hoàng Mai, Hà Nội">
+                    <span asp-validation-for="WorkLocation" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="ExpiryDate" class="form-label"></label>
+                    <input asp-for="ExpiryDate" type="date" class="form-control">
+                    <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">Yêu cầu công việc</h2>
+                <div class="form-group">
+                    <label asp-for="RequiredExperience" class="form-label"></label>
+                    <select asp-for="RequiredExperience" asp-items="Html.GetEnumSelectList<ExperienceLevel>()" class="form-control">
+                        <option value="">-- Chọn mức kinh nghiệm --</option>
+                    </select>
+                    <span asp-validation-for="RequiredExperience" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="GenderRequirement" class="form-label"></label>
+                    <select asp-for="GenderRequirement" asp-items="Html.GetEnumSelectList<GenderRequirement>()" class="form-control">
+                        <option value="">-- Chọn giới tính (nếu có) --</option>
+                    </select>
+                    <span asp-validation-for="GenderRequirement" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="HiringCount" class="form-label"></label>
+                    <input asp-for="HiringCount" type="number" min="1" class="form-control" placeholder="Nhập số lượng cần tuyển">
+                    <span asp-validation-for="HiringCount" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="EducationLevel" class="form-label"></label>
+                    <input asp-for="EducationLevel" class="form-control" placeholder="Ví dụ: Đại học, Cao đẳng, Không yêu cầu...">
+                    <span asp-validation-for="EducationLevel" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">Mô tả công việc</h2>
+                <div class="form-group">
+                    <label asp-for="JobDescription" class="form-label"></label>
+                    <textarea asp-for="JobDescription" class="form-control" rows="7" placeholder="Mô tả chi tiết về công việc, yêu cầu, quyền lợi..."></textarea>
+                    <span asp-validation-for="JobDescription" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-navigation">
+                @* Nút quay lại Dashboard của Recruiter *@
+                <a asp-controller="Recruiters" asp-action="Dashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    Đăng bài <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Script để đặt ngày mặc định cho ExpiryDate là 30 ngày kể từ hôm nay
+        document.addEventListener('DOMContentLoaded', function() {
+            const expiryDateInput = document.getElementById('ExpiryDate');
+            if (expiryDateInput && !expiryDateInput.value) { // Chỉ đặt nếu chưa có giá trị
+                const today = new Date();
+                const futureDate = new Date();
+                futureDate.setDate(today.getDate() + 30);
+
+                const year = futureDate.getFullYear();
+                const month = (futureDate.getMonth() + 1).toString().padStart(2, '0');
+                const day = futureDate.getDate().toString().padStart(2, '0');
+
+                expiryDateInput.value = `${year}-${month}-${day}`;
+            }
+        });
+    </script>
+}

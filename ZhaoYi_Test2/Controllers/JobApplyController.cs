@@ -76,7 +76,7 @@ namespace ZhaoYi_Test2.Controllers
             ViewBag.HasApplied = hasApplied;
             ViewBag.UserRole = user.Role;
 
-            return View(jobPosting);
+            return View("DetailsMobile",jobPosting);
         }
 
         // GET: JobApply/Apply/5
@@ -165,6 +165,10 @@ namespace ZhaoYi_Test2.Controllers
 
             if (jobPosting == null)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "Bài đăng không tồn tại hoặc đã hết hạn." });
+                }
                 TempData["ErrorMessage"] = "Bài đăng không tồn tại hoặc đã hết hạn.";
                 return RedirectToAction("Dashboard", "Interpreters");
             }
@@ -175,6 +179,10 @@ namespace ZhaoYi_Test2.Controllers
 
             if (interpreter == null)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "Thông tin phiên dịch viên không hợp lệ." });
+                }
                 TempData["ErrorMessage"] = "Thông tin phiên dịch viên không hợp lệ.";
                 return RedirectToAction("Profile", "Interpreters");
             }
@@ -216,11 +224,11 @@ namespace ZhaoYi_Test2.Controllers
                 System.Diagnostics.Debug.WriteLine("No file uploaded or file is empty");
             }
 
-            // Xóa validation errors cho navigation properties
+            // Xóa validation errors cho navigation properties 
             ModelState.Remove("JobPosting");
             ModelState.Remove("Interpreter");
             ModelState.Remove("User");
-
+            
             // Log ModelState errors
             if (!ModelState.IsValid)
             {
@@ -230,6 +238,14 @@ namespace ZhaoYi_Test2.Controllers
                     {
                         System.Diagnostics.Debug.WriteLine($"ModelState Error: {error.ErrorMessage}");
                     }
+                }
+
+                // Khi sử dụng Ajax, không nhất thiết phải check ModelState.IsValid, 
+                // vì đây là quá trình áp dụng và có thể chấp nhận dữ liệu không hoàn chỉnh
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    // Bỏ qua validation errors cho Ajax request
+                    // return Json(new { success = false, message = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin." });
                 }
             }
 
@@ -254,17 +270,25 @@ namespace ZhaoYi_Test2.Controllers
                 await _context.SaveChangesAsync();
                 System.Diagnostics.Debug.WriteLine("Application saved successfully");
 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = true, message = "Đã gửi đơn ứng tuyển thành công." });
+                }
+
                 TempData["SuccessMessage"] = "Đã gửi đơn ứng tuyển thành công.";
                 return RedirectToAction("MyApplications");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Database Error: {ex.Message}");
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = $"Lỗi khi gửi đơn ứng tuyển: {ex.Message}" });
+                }
                 ModelState.AddModelError("", $"Lỗi khi gửi đơn ứng tuyển: {ex.Message}");
                 return View(application);
             }
         }
-
 
         // GET: JobApply/MyApplications
         [Authorize]

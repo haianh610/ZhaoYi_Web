@@ -1,0 +1,145 @@
+﻿@model ZhaoYi_Test2.Models.JobPosting
+@using ZhaoYi_Test2.Models 
+
+@{
+    ViewData["Title"] = "Chỉnh sửa bài đăng";
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+    ViewData["UserRole"] = "Recruiter";
+    ViewData["ShowBottomNav"] = false;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/job-creation.css" asp-append-version="true" />
+    <style>
+        .mobile-screen {
+            padding-bottom: 0 !important;
+        }
+        /* Copy style validation từ CreateJob.cshtml */
+        .field-validation-error {
+            color: #dc3545;
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .input-validation-error {
+            border-color: #dc3545 !important;
+        }
+
+        .validation-summary-errors ul {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        .validation-summary-errors li {
+            color: #dc3545;
+            margin-bottom: 5px;
+        }
+    </style>
+}
+
+<div class="mobile-screen job-creation-page">
+    <!-- Header -->
+    <header class="page-header">
+        <h1 class="page-title">Chỉnh sửa bài đăng</h1>
+    </header>
+
+    <!-- Form Area -->
+    <div class="form-area">
+        <form method="post" asp-action="EditJob" asp-route-id="@Model.JobPostingId">
+            <div asp-validation-summary="ModelOnly" class="text-danger validation-summary-errors"></div>
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="JobPostingId" /> @* Quan trọng: cần Id để biết sửa record nào *@
+            @* Các trường không cho sửa có thể dùng input hidden hoặc hiển thị dạng readonly *@
+            <input type="hidden" asp-for="UserId" />
+            <input type="hidden" asp-for="RecruiterId" />
+            <input type="hidden" asp-for="PostedDate" />
+            <input type="hidden" asp-for="ViewCount" />
+            <input type="hidden" asp-for="Status" />
+
+
+            <div class="form-section">
+                <h2 class="section-title">Thông tin cơ bản</h2>
+                <div class="form-group">
+                    <label asp-for="Title" class="form-label"></label>
+                    <input asp-for="Title" class="form-control">
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Field" class="form-label"></label>
+                    <input asp-for="Field" class="form-control">
+                    <span asp-validation-for="Field" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Salary" class="form-label"></label>
+                    <input asp-for="Salary" type="number" min="0" step="any" class="form-control">
+                    <span asp-validation-for="Salary" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="WorkLocation" class="form-label"></label>
+                    <input asp-for="WorkLocation" class="form-control">
+                    <span asp-validation-for="WorkLocation" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ExpiryDate" class="form-label"></label>
+                    <input asp-for="ExpiryDate" type="date" class="form-control">
+                    <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">Yêu cầu công việc</h2>
+                <div class="form-group">
+                    <label asp-for="RequiredExperience" class="form-label"></label>
+                    <select asp-for="RequiredExperience" asp-items="Html.GetEnumSelectList<ExperienceLevel>()" class="form-control">
+                        <option value="">-- Chọn mức kinh nghiệm --</option>
+                    </select>
+                    <span asp-validation-for="RequiredExperience" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="GenderRequirement" class="form-label"></label>
+                    <select asp-for="GenderRequirement" asp-items="Html.GetEnumSelectList<GenderRequirement>()" class="form-control">
+                        <option value="">-- Chọn giới tính (nếu có) --</option>
+                    </select>
+                    <span asp-validation-for="GenderRequirement" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="HiringCount" class="form-label"></label>
+                    <input asp-for="HiringCount" type="number" min="1" class="form-control">
+                    <span asp-validation-for="HiringCount" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="EducationLevel" class="form-label"></label>
+                    <input asp-for="EducationLevel" class="form-control">
+                    <span asp-validation-for="EducationLevel" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">Mô tả công việc</h2>
+                <div class="form-group">
+                    <label asp-for="JobDescription" class="form-label"></label>
+                    <textarea asp-for="JobDescription" class="form-control" rows="7"></textarea>
+                    <span asp-validation-for="JobDescription" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-navigation">
+                @* Nút quay lại trang chi tiết *@
+                <a asp-action="JobDetails" asp-route-id="@Model.JobPostingId" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Hủy
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    Lưu thay đổi <i class="fas fa-save"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

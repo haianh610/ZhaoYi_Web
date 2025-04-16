@@ -15,6 +15,11 @@ namespace ZhaoYi_Test2.Data
         {
             base.OnModelCreating(builder);
 
+            // Cấu hình tên bảng với tiền tố "Interpreter"
+            builder.Entity<Education>().ToTable("InterpreterEducations");
+            builder.Entity<WorkExperience>().ToTable("InterpreterWorkExperiences");
+            builder.Entity<Project>().ToTable("InterpreterProjects");
+
             // JobPosting -> JobApplication: CASCADE
             builder.Entity<JobApplication>()
                 .HasOne(ja => ja.JobPosting)
@@ -63,15 +68,37 @@ namespace ZhaoYi_Test2.Data
                 .WithMany()
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Interpreter -> Education: CASCADE
+            builder.Entity<Education>()
+                .HasOne(e => e.Interpreter)
+                .WithMany(i => i.Educations)
+                .HasForeignKey(e => e.InterpreterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Interpreter -> WorkExperience: CASCADE
+            builder.Entity<WorkExperience>()
+                .HasOne(w => w.Interpreter)
+                .WithMany(i => i.WorkExperiences)
+                .HasForeignKey(w => w.InterpreterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Interpreter -> Project: CASCADE
+            builder.Entity<Project>()
+                .HasOne(p => p.Interpreter)
+                .WithMany(i => i.Projects)
+                .HasForeignKey(p => p.InterpreterId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
-
-
 
         public DbSet<Interpreter> Interpreters { get; set; }
         public DbSet<Recruiter> Recruiters { get; set; }
         public DbSet<JobPosting> JobPostings { get; set; }
         public DbSet<JobApplication> JobApplications { get; set; }
 
-
+        // Đăng ký DbSet với cùng tên property nhưng bảng có tiền tố "Interpreter"
+        public DbSet<Education> Educations { get; set; }
+        public DbSet<WorkExperience> WorkExperiences { get; set; }
+        public DbSet<Project> Projects { get; set; }
     }
 }

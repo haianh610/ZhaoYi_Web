@@ -1,0 +1,671 @@
+/* Interpreter Dashboard Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'FZ Poppins', sans-serif; /* Thêm fallback font */
+    /* Hide scrollbar for all elements in Firefox */
+    scrollbar-width: none;
+    /* Hide scrollbar for all elements in IE/Edge */
+    -ms-overflow-style: none;
+}
+
+/* Hide scrollbar for all elements in Webkit browsers (Chrome, Safari) */
+::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    /* Giữ nguyên, không ảnh hưởng trực tiếp đến mobile-screen bên trong */
+    background-color: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Nên đổi thành flex-start nếu muốn màn hình sát trên cùng */
+    min-height: 100vh;
+}
+
+
+/* Mobile Screen Container */
+.mobile-screen {
+    width: 375px;
+    /* height: 812px; */ /* Nên để chiều cao tự động hoặc max-height: 100vh */
+    max-height: 100vh;
+    height: 100vh; /* Hoặc giữ nếu bạn muốn cố định */
+    border: 1px solid #ccc;
+    border-radius: 10px; /* Figma có vẻ bo tròn ít hơn? Có thể giảm xuống 5px nếu muốn */
+    position: relative;
+    background-color: #f7f7f7; /* Đổi thành màu nền chính của Figma nếu #f7f7f7 chưa đúng */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Status bar - Giữ nguyên style hiện tại */
+.status-bar {
+    padding: 15px 20px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ff8c00;
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0; /* Đảm bảo status bar không bị co lại */
+}
+
+.status-bar .time {
+    font-weight: 600;
+}
+
+.status-bar .indicators {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Top Header with Search & Controls */
+.top-header {
+    padding: 15px 20px;
+    background: linear-gradient(177deg, #F15A29 3.16%, #FFB459 103.62%);
+    color: white;
+    position: relative;
+    z-index: 10;
+    border-radius: 0 0 33px 33px;
+    flex-shrink: 0; /* Đảm bảo header không bị co lại */
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-bar {
+    flex: 1;
+    /* --- THAY ĐỔI: Nền cam nhạt hơn --- */
+    background: #ffae42; /* Hoặc rgba(255, 255, 255, 0.3) nếu muốn trong suốt nhẹ */
+    border-radius: 20px;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+}
+
+    .search-bar input {
+        background: transparent;
+        border: none;
+        color: white;
+        outline: none;
+        width: 100%;
+        margin-left: 8px;
+        font-size: 14px;
+    }
+
+        .search-bar input::placeholder {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+    .search-bar i {
+        font-size: 14px;
+    }
+
+/* --- THAY ĐỔI: Nền cam nhạt hơn cho nút Thông báo --- */
+.notification-btn {
+    background: #ffae42; /* Giống search bar */
+    border: none;
+    color: white;
+    border-radius: 20px; /* Figma có vẻ bo tròn ít hơn? Có thể giảm */
+    height: 36px;
+    width: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+}
+
+/* --- Giữ nguyên style nút Lọc --- */
+.filter-btn {
+    background: #F2583E; /* Màu đỏ cam đặc trưng */
+    border: none;
+    color: white;
+    border-radius: 20px; /* Figma có vẻ bo tròn ít hơn? Có thể giảm */
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    width: auto;
+    padding: 0 15px;
+    gap: 8px;
+}
+
+.filter-icon {
+    position: relative;
+    display: inline-block;
+    width: 14px;
+    height: 12px;
+}
+
+.filter-icon span {
+    position: absolute;
+    left: 0;
+    background: white;
+    height: 2px;
+    border-radius: 1px;
+}
+
+.filter-icon span:nth-child(1) {
+    width: 100%;
+    top: 0;
+}
+
+.filter-icon span:nth-child(2) {
+    width: 70%;
+    top: 5px;
+}
+
+.filter-icon span:nth-child(3) {
+    width: 40%;
+    top: 10px;
+}
+
+.badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    background: #ff3b30;
+    border-radius: 50%;
+    border: 2px solid #ff8c00;
+}
+
+/* Urgent Banner - Giữ nguyên, có vẻ đã khớp Figma */
+.urgent-banner {
+    margin-top: 15px;
+    padding: 10px 15px;
+    background: #FFEB0A;
+    border-radius: 20px;
+    font-weight: 600;
+    display: flex;
+    color: #FF5100;
+    align-items: center;
+    gap: 10px;
+}
+
+    .urgent-banner i {
+        color: #FF5100;
+    }
+
+/* Main Content Area */
+.main-content {
+    flex-grow: 1; /* Cho phép nội dung chiếm không gian còn lại */
+    padding: 0 20px 20px 20px; /* Giữ padding dọc và ngang */
+    /* Hoặc chỉ padding dọc: padding: 0 0 20px 0; nếu section tự xử lý padding ngang */
+    overflow-y: auto; /* Chỉ scroll dọc vùng này */
+    /* --- THÊM DÒNG NÀY --- */
+    overflow-x: hidden; /* Ngăn chặn cuộn ngang do margin âm của con */
+    background: #f7f7f7;
+    position: relative; /* Thêm nếu chưa có, có thể cần cho các phần tử con */
+}
+
+/* Job Sections */
+.job-section {
+    margin-bottom: 30px;
+}
+
+/* --- Wrapper cho phần bài đăng gấp --- */
+.urgent-job-section-wrapper {
+    background-image: url('../images/abstract-gradient-background-with-grainy-effect 1.png'); /* <<===== THAY ĐƯỜNG DẪN */
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: cover;
+    /* Kéo nền ra ngoài bằng margin âm */
+    margin: 0 -20px 0px -20px; /* Khoảng cách 20px tương ứng padding của .main-content cũ */
+    /* Chỉ padding dọc bên trong wrapper */
+    padding: 20px 0 5px 0; /* Giảm padding đáy nếu scroll-indicator nằm ngoài container cuộn */
+    position: relative;
+}
+
+
+    /* Tiêu đề bên trong wrapper */
+    .urgent-job-section-wrapper .section-title {
+        font-size: 18px;
+        /* Padding ngang để bù lại margin âm của cha */
+        padding-left: 20px;
+        padding-right: 20px;
+        margin-bottom: 15px; /* Khoảng cách tới container cuộn */
+        margin-top: 0; /* Reset margin top */
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: white; /* Màu chữ trên nền */
+        font-weight: 600;
+        position: relative;
+        z-index: 1;
+    }
+
+        .urgent-job-section-wrapper .section-title i {
+            color: white; /* Màu icon trên nền */
+        }
+
+/* Horizontal scroll container for urgent jobs */
+.urgent-job-container {
+    display: flex;
+    /* --- QUAN TRỌNG: Giữ cuộn ngang --- */
+    overflow-x: auto;
+    /* --- QUAN TRỌNG: Cho phép hiển thị tràn dọc --- */
+    overflow-y: visible; /* <<===== THAY ĐỔI CHÍNH */
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    margin: 0 0 0 0; /* Giữ nguyên nếu cần */
+    padding: 0 20px 15px 20px; /* Đảm bảo có padding đáy đủ cho bóng đổ/margin thẻ */
+    -webkit-overflow-scrolling: touch;
+    position: relative; /* Giữ nguyên */
+    z-index: 1;
+    scroll-behavior: smooth;
+    user-select: none;
+    touch-action: pan-x;
+}
+
+    .urgent-job-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* --- THAY ĐỔI: Style cho thẻ công việc gấp --- */
+    .urgent-job-container .job-card {
+        min-width: 280px;
+        width: 330px;
+        /* --- Giữ chiều cao cố định --- */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* Ẩn tràn bên trong thẻ nếu nội dung vẫn quá dài cho height */
+        flex-shrink: 0;
+        scroll-snap-align: start;
+        margin-bottom: 5px;
+        background: linear-gradient(160deg, #fff2d9 0%, #ffe8cc 100%);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        position: relative;
+    }
+
+
+/* Visual indicator to show there's more content */
+/*.urgent-job-container::after {
+    content: '';
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 30px;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(247, 247, 247, 0.8));
+    pointer-events: none;*/ /* Allow clicking through the gradient */
+/*}*/
+
+
+/* Scroll indicator dots - Giữ nguyên hoặc bỏ nếu Figma không có */
+.job-section:first-of-type::after {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 4px;
+    background-color: #ddd;
+    border-radius: 2px;
+    margin: 5px auto 20px auto;
+}
+
+.section-title {
+    font-size: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #F15A29;
+    font-weight: 600; /* Figma có vẻ đậm hơn */
+}
+
+    .section-title i {
+        color: #ff8c00;
+    }
+
+/* Job Cards (Chung & Regular) */
+.job-card {
+    background: white; /* Nền trắng cho thẻ thường */
+    border-radius: 8px;
+    /* --- THAY ĐỔI: Điều chỉnh bóng đổ --- */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Có thể cần tinh chỉnh thêm */
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+/*.job-card.urgent {
+    border-left: 4px solid #ff3b30;
+}*/
+
+.job-card-content {
+    padding: 15px;
+    display: flex;
+    align-items: center; /* Hoặc flex-start */
+    position: relative; /* Cần cho chevron nếu có */
+    /* --- QUAN TRỌNG: Cho phép content lớn lên và cuộn --- */
+    flex-grow: 1; /* Cho phép chiếm không gian còn lại */
+    overflow-y: auto; /* CHO PHÉP CUỘN DỌC CHỈ VÙNG NÀY NẾU NỘI DUNG TRÀN */
+    min-height: 0; /* Giúp flexbox tính toán đúng */
+    /* --- Ẩn scrollbar nội bộ nếu muốn (đã có global nhưng thêm cho chắc) --- */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+    .job-card-content::-webkit-scrollbar {
+        display: none; /* Webkit */
+    }
+
+.job-card .logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+
+.job-details {
+    flex: 1;
+    min-width: 0;
+    /* Bỏ overflow ở đây vì vùng cha (.job-card-content) đã xử lý */
+    /* overflow: hidden; */
+}
+
+/* --- THÊM: Xử lý tràn văn bản cho các dòng cụ thể --- */
+.job-title,
+.company-name,
+.info-line {
+    white-space: nowrap; /* Ngăn không cho xuống dòng */
+    overflow: hidden; /* Ẩn phần bị tràn */
+    text-overflow: ellipsis; /* Hiển thị dấu '...' */
+    display: block; /* Đảm bảo text-overflow hoạt động đúng */
+    /* Điều chỉnh lại display: flex nếu cần cho info-line icon */
+}
+
+
+.job-title {
+    font-size: 16px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600; /* Đậm hơn theo Figma */
+    color: #333; /* Màu chữ chính */
+}
+
+    .job-title i {
+        color: #ff3b30;
+        font-size: 14px;
+    }
+/* Icon lửa */
+
+
+.company-name {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.info-line {
+    display: flex; /* Giữ lại flex */
+    align-items: center;
+    gap: 5px;
+    /* white-space, overflow, text-overflow sẽ áp dụng cho text bên trong */
+    /* Cần đặt overflow hidden cho span chứa text nếu có */
+}
+    .info-line span { /* Giả sử text nằm trong span */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-grow: 1; /* Cho phép text chiếm không gian và bị cắt */
+    }
+
+    .info-line i {
+        width: 12px;
+        text-align: center;
+    }
+/* Căn chỉnh icon */
+
+
+.highlight {
+    color: #ff8c00;
+    font-weight: 500;
+}
+
+
+/* --- QUAN TRỌNG: Style cho Chevron Icon --- */
+/* Đảm bảo nó được định vị đúng trong .job-card-content nếu có */
+.chevron-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #cccccc;
+    font-size: 16px;
+    /* Thêm z-index nếu cần nó nổi lên trên */
+    /* z-index: 1; */
+}
+
+.job-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: white;
+    border-top: 1px solid #eee;
+    flex-shrink: 0;
+}
+
+.time-left {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: #ff3b30; /* Giữ nguyên màu đỏ cho thời gian */
+}
+
+    .time-left i {
+        font-size: 12px;
+    }
+
+.bookmark-btn {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 18px; /* Tăng kích thước icon bookmark */
+    cursor: pointer;
+    padding: 5px; /* Tăng vùng bấm */
+}
+
+    .bookmark-btn.saved {
+        color: #ff8c00;
+    }
+
+/* Floating Action Button */
+.fab {
+    position: absolute;
+    bottom: 80px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(to right, #ff8c00, #ffae42);
+    color: white;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
+    border: none;
+    cursor: pointer;
+    z-index: 100;
+}
+
+/* Bottom Navigation styles moved to shared-nav.css */
+
+/* --- Urgent Job Search Modal Styles --- */
+
+.modal-overlay {
+    position: fixed; /* Sit on top of everything */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black overlay */
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's above other content */
+    /* Match parent container's context if needed */
+    /* If .mobile-screen is the boundary: */
+    /* position: absolute; inside .mobile-screen */
+}
+
+.modal-overlay.active {
+    display: flex; /* Show the modal */
+}
+
+.modal-content {
+    background-color: #fff;
+    border-radius: 20px;
+    padding: 0; /* Reset padding, handle inside */
+    width: 90%; /* Percentage of the overlay width */
+    max-width: 340px; /* Max width for the modal */
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    overflow: hidden; /* Needed for banner radius */
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header-banner {
+    /* Reuse urgent-banner styles but adjust for modal context */
+    background-color: #FFEB3B;
+    color: #333;
+    padding: 10px 15px;
+    font-weight: bold;
+    font-size: 13px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%; /* Take full width of modal */
+    border-top-left-radius: 20px; /* Match modal radius */
+    border-top-right-radius: 20px; /* Match modal radius */
+}
+.modal-header-banner i { color: #FFA000; }
+
+.modal-body {
+    padding: 20px 25px; /* Padding for the main content area */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Spacing between elements */
+}
+
+.modal-description {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    text-align: center; /* Center description text */
+}
+
+.modal-section-title {
+    font-size: 15px;
+    font-weight: 500; /* Medium weight */
+    color: #444;
+    margin-bottom: -5px; /* Reduce space before location box */
+}
+
+.location-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: #F7F8FF; /* Very light purple/blue */
+    border: 1px solid #E8EBFF; /* Lighter border */
+    padding: 12px 15px;
+    border-radius: 10px;
+}
+
+.location-icon-bg {
+    background-color: #E8EBFF; /* Slightly darker purple/blue */
+    border-radius: 8px;
+    padding: 8px;
+    display: inline-flex; /* Shrink wrap icon */
+}
+
+.location-icon-bg i {
+    color: #ff8c00; /* Orange icon */
+    font-size: 16px;
+    display: block; /* Prevents extra space */
+}
+
+.location-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+}
+
+.filter-link {
+    font-size: 13px;
+    color: #ff8c00;
+    text-decoration: none;
+    display: flex; /* Use flex for alignment */
+    align-items: center; /* Align icon and text */
+    gap: 5px; /* Space between text and icon */
+    margin-top: -5px; /* Adjust spacing */
+}
+
+.filter-link i {
+    font-size: 11px; /* Smaller chevron */
+}
+
+.cost-info, .balance-info {
+    font-size: 15px;
+    color: #333;
+}
+
+.highlight-points {
+    color: #ff8c00; /* Orange for points */
+    font-weight: bold;
+}
+
+.buy-more-link {
+    font-size: 13px;
+    color: #ff8c00;
+    text-decoration: none;
+    font-weight: 500;
+    margin-top: -10px; /* Adjust spacing */
+}
+
+.modal-footer {
+     padding: 0 25px 25px 25px; /* Only bottom padding */
+}
+
+.btn-confirm {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(90deg, #ff8c00, #ffae42); /* Orange gradient */
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: 0 4px 10px rgba(255, 140, 0, 0.3);
+    transition: background 0.3s ease;
+}
+
+.btn-confirm:hover {
+     background: linear-gradient(90deg, #e67e00, #f39c12);
+} 

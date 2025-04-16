@@ -1,0 +1,149 @@
+@model ZhaoYi_Test2.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+    ViewData["ShowBottomNav"] = false;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/global-mobile.css" asp-append-version="true" />
+    <style>
+
+        .mobile-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Thông báo lỗi */
+        .validation-summary-errors {
+            color: #d9534f;
+            background-color: rgba(217, 83, 79, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            font-size: 14px;
+        }
+
+            .validation-summary-errors ul {
+                list-style-type: none;
+                padding: 0;
+                margin: 0;
+            }
+
+        /* Thông báo thành công */
+        .success-message {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .success-message i {
+                margin-right: 8px;
+            }
+    </style>
+}
+
+<div class="content-wrapper">
+    <h1 class="login-title">Đăng nhập</h1>
+    <div class="title-underline"></div>
+    <p class="subtitle">Vui lòng đăng nhập vào tài khoản của bạn để tiếp tục với ứng dụng</p>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="success-message">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+    {
+        <div class="validation-summary-errors">
+            <ul>
+                @foreach (var error in ViewData.ModelState[string.Empty].Errors)
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <form asp-controller="Account" asp-action="Login" method="post" style="width: 100%;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+        <div class="input-group">
+            <i class="far fa-envelope"></i>
+            <input type="email" asp-for="Email" placeholder="Email của bạn" required>
+        </div>
+
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="passwordInput" asp-for="Password" placeholder="Mật khẩu của bạn" required>
+            <i class="fas fa-eye-slash icon-right" id="togglePassword"></i>
+        </div>
+
+        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center;">
+                <input type="checkbox" id="rememberMe" asp-for="RememberMe" style="margin-right: 8px;">
+                <label for="rememberMe" style="font-size: 13px; color: #666;">Ghi nhớ đăng nhập</label>
+            </div>
+            <a asp-controller="Account" asp-action="ForgotPassword" class="forgot-password">Quên mật khẩu?</a>
+        </div>
+
+        <button type="submit" class="btn-primary">Đăng nhập</button>
+    </form>
+
+    <div class="separator">HOẶC</div>
+
+    <button class="btn-social google">
+        <img src="~/images/ic_google.png" alt="Google logo" width="18" height="18" />
+        <span>Đăng nhập với Google</span>
+    </button>
+    <button class="btn-social facebook">
+        <i class="fab fa-facebook-f"></i>
+        <span>Đăng nhập với Facebook</span>
+    </button>
+    <button class="btn-social wechat">
+        <i class="fab fa-weixin"></i>
+        <span>Đăng nhập với Wechat</span>
+    </button>
+
+    <p class="signup-link">
+        Bạn không có tài khoản? <a asp-controller="Account" asp-action="Register">Đăng ký</a>
+    </p>
+</div>
+
+@section Scripts {
+    <script>
+        // Simple script to toggle password visibility
+        document.addEventListener('DOMContentLoaded', function() {
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('passwordInput');
+
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener('click', function () {
+                    // Toggle the type attribute
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+
+                    // Toggle the icon
+                    this.classList.toggle('fa-eye');
+                    this.classList.toggle('fa-eye-slash');
+                });
+            }
+        });
+    </script>
+}

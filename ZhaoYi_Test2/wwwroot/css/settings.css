@@ -1,0 +1,255 @@
+﻿/* ~/css/settings.css */
+
+/* --- Inherit or Copy Base & Reused Styles --- */
+/* (mobile-screen, status-bar, fab, bottom-nav, nav-item - Ensure these exist) */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'FZ Poppins';
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Hide scrollbar but keep scroll functionality */
+/* For Webkit browsers (Chrome, Safari) */
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* For Firefox */
+* {
+    scrollbar-width: none;
+}
+
+/* For IE/Edge */
+* {
+    -ms-overflow-style: none;
+}
+
+
+
+.status-bar { /* Copied - Orange background */
+    padding: 15px 20px 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ff4343;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+    z-index: 10;
+    position: relative;
+}
+
+    .status-bar .time {
+        font-weight: 600;
+    }
+
+    .status-bar .indicators {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        filter: brightness(0) invert(1);
+    }
+
+        .status-bar .indicators svg path {
+            fill: #fff !important;
+        }
+
+        .status-bar .indicators svg rect {
+            stroke: #fff !important;
+            fill: #fff !important;
+        }
+
+/* --- Settings Page Header --- */
+.settings-header {
+    background: linear-gradient(177deg, #F15A29 3.16%, #FFB459 103.62%);
+    padding: 15px 25px 25px 25px; /* Bottom padding for overlap */
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    position: relative;
+    flex-shrink: 0;
+    z-index: 5;
+    color: #fff;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.profile-pic-header {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.5); /* Optional white border */
+    flex-shrink: 0;
+}
+
+.user-info {
+    flex-grow: 1;
+}
+
+.user-name {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.stats {
+    display: flex;
+    gap: 15px; /* Gap between following/followers */
+    align-items: center;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 16px;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+}
+
+.stats-separator {
+    width: 1px;
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* --- Main Content Area (White lists area) --- */
+.settings-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: #fff;
+    border-top-left-radius: 30px; /* Rounded top corners */
+    border-top-right-radius: 30px;
+    padding: 25px 0 90px 0; /* Top, No sides (items have padding), Bottom */
+    margin-top: -30px; /* Pull up to overlap header curve */
+    position: relative;
+    z-index: 6; /* Above header curve, below FAB */
+}
+
+.settings-group {
+    margin-bottom: 20px;
+    padding: 0 20px; /* Padding for group title */
+}
+
+    .settings-group:last-of-type { /* Last group before logout */
+        margin-bottom: 30px;
+    }
+
+
+.group-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #ff8c00; /* Orange title */
+    margin-bottom: 10px;
+    padding: 0 5px; /* Slight padding for title */
+}
+
+.settings-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: #fff; /* Ensure background for list */
+    border-radius: 10px; /* Rounded corners for the list block */
+    /* Optional subtle shadow for the list block */
+    /* box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05); */
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 15px; /* Padding inside each item */
+    border-bottom: 1px solid #f0f0f0; /* Separator line */
+    text-decoration: none;
+    color: #333; /* Default text color */
+    transition: background-color 0.2s ease;
+}
+
+    .setting-item:last-child {
+        border-bottom: none; /* Remove border for last item */
+    }
+
+    .setting-item:hover { /* Optional hover effect */
+        background-color: #f9f9f9;
+    }
+
+.setting-text {
+    font-size: 15px;
+    flex-grow: 1; /* Allow text to take space */
+    padding-right: 10px; /* Space between text and icon */
+}
+
+.setting-icon {
+    color: #aaa; /* Default icon color */
+    font-size: 18px; /* Icon size */
+    width: 20px; /* Fixed width for alignment */
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* --- Logout Button --- */
+.logout-container {
+    text-align: center;
+    padding: 10px 20px; /* Padding around logout */
+}
+
+.logout-btn {
+    color: #ff8c00; /* Orange text */
+    font-size: 17px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-flex; /* Use inline-flex */
+    align-items: center;
+    gap: 8px; /* Space between text and icon */
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+    .logout-btn i {
+        font-size: 15px; /* Adjust icon size */
+    }
+
+
+/* --- FAB and Bottom Nav (Reuse from previous CSS) --- */
+.fab {
+    position: absolute;
+    bottom: 80px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(to right, #ff8c00, #ffae42);
+    color: white;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
+    border: none;
+    cursor: pointer;
+    z-index: 100;
+}
+
+/* Bottom Navigation styles moved to shared-nav.css */

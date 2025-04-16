@@ -1,0 +1,604 @@
+@model ZhaoYi_Test2.Models.JobPosting
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+    ViewData["ShowBottomNav"] = false;
+    
+    bool hasApplied = ViewBag.HasApplied ?? false;
+    int userRole = ViewBag.UserRole;
+    var interpreter = ViewBag.Interpreter as ZhaoYi_Test2.Models.Interpreter;
+
+    // Helper function to get display name from enum
+    string GetDisplayName(Enum enumValue)
+    {
+        if (enumValue == null) return "Không yêu cầu";
+
+        var displayAttribute = enumValue.GetType()
+            .GetMember(enumValue.ToString())
+            .First()
+            .GetCustomAttribute<DisplayAttribute>();
+
+        return displayAttribute?.Name ?? enumValue.ToString();
+    }
+    
+    // Calculate time remaining
+    var timeLeft = Model.ExpiryDate - DateTime.Now;
+    var timeDisplay = timeLeft.TotalHours < 24
+        ? $"Còn {Math.Max(1, (int)timeLeft.TotalHours)} giờ"
+        : $"Còn {(int)timeLeft.TotalDays} ngày";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/job-details.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/apply-popup.css" asp-append-version="true" />
+}
+
+<!-- Header -->
+<div class="job-detail-header">
+    <a href="javascript:history.back()" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <div class="header-actions">
+        <button class="action-button share-button" id="shareButton">
+            <i class="fas fa-share-alt"></i>
+        </button>
+    </div>
+</div>
+
+<main class="job-detail-content">
+    <!-- Company Info -->
+    <div class="company-info-block">
+        @if (Model.Recruiter != null && !string.IsNullOrEmpty(Model.Recruiter.AvatarPath))
+        {
+            <img src="~/uploads/avatars/@Model.Recruiter.AvatarPath" alt="Company Logo" class="company-logo">
+        }
+        else
+        {
+            <img src="~/images/logo-zhaoyi.png" alt="Default Company Logo" class="company-logo">
+        }
+        <div class="company-details">
+            <h2>@(Model.Recruiter?.RecruiterName ?? "Công ty ZhaoYi")</h2>
+            <p>@(string.IsNullOrEmpty(Model.Field) ? "Dịch vụ phiên dịch" : Model.Field) • 
+               @(Model.HiringCount.HasValue ? $"Cần tuyển {Model.HiringCount} người" : "Không giới hạn số lượng")</p>
+        </div>
+        <button class="bookmark-button" aria-label="Lưu công việc">
+            <i class="far fa-bookmark"></i>
+        </button>
+    </div>
+
+    <!-- Job Title -->
+    <div class="job-title-block">
+        <h1>@Model.Title</h1>
+        <p class="applicant-count">@Model.ViewCount lượt xem</p>
+    </div>
+
+    <!-- Job Highlights -->
+    <div class="job-highlights-block">
+        <div class="highlight-item">
+            <i class="fas fa-map-marker-alt icon"></i>
+            <span>@Model.WorkLocation</span>
+        </div>
+        <div class="highlight-item">
+            <i class="fas fa-clock icon"></i>
+            <span>@timeDisplay</span>
+        </div>
+        <div class="highlight-item">
+            <i class="fas fa-money-bill-wave icon"></i>
+            <span>@Model.Salary.ToString("N0") VND</span>
+        </div>
+        <div class="highlight-item">
+            <i class="fas fa-briefcase icon"></i>
+            <span>
+                @(Model.RequiredExperience.HasValue
+                    ? GetDisplayName(Model.RequiredExperience.Value)
+                    : "Không yêu cầu kinh nghiệm")
+            </span>
+        </div>
+    </div>
+
+    <!-- Job Details Sections -->
+    <div class="job-details-sections">
+        <!-- Job Description -->
+        <div class="detail-section">
+            <h3>Mô tả công việc</h3>
+            <div>
+                @Html.Raw(Model.JobDescription.Replace("\n", "<br />"))
+            </div>
+        </div>
+
+        <!-- Requirements -->
+        @if (Model.RequiredExperience.HasValue || !string.IsNullOrEmpty(Model.EducationLevel) || Model.GenderRequirement.HasValue)
+        {
+            <div class="detail-section">
+                <h3>Yêu cầu ứng viên</h3>
+                <ul>
+                    @if (!string.IsNullOrEmpty(Model.EducationLevel))
+                    {
+                        <li>Trình độ học vấn: @Model.EducationLevel</li>
+                    }
+                    @if (Model.RequiredExperience.HasValue)
+                    {
+                        <li>Kinh nghiệm: @GetDisplayName(Model.RequiredExperience.Value)</li>
+                    }
+                    @if (Model.GenderRequirement.HasValue)
+                    {
+                        <li>Giới tính: @GetDisplayName(Model.GenderRequirement.Value)</li>
+                    }
+                    <li>Kỹ năng giao tiếp tốt, có khả năng làm việc dưới áp lực cao</li>
+                    <li>Ưu tiên ứng viên có kinh nghiệm trong lĩnh vực @(string.IsNullOrEmpty(Model.Field) ? "phiên dịch" : Model.Field)</li>
+                </ul>
+            </div>
+        }
+
+        <!-- Benefits -->
+        <div class="detail-section">
+            <h3>Quyền lợi</h3>
+            <ul>
+                <li>Mức lương cạnh tranh: @Model.Salary.ToString("N0") VND</li>
+                <li>Thưởng dự án, thưởng hiệu suất làm việc, thưởng lễ Tết</li>
+                <li>Được đóng BHXH, BHYT, BHTN đầy đủ theo quy định</li>
+                <li>Chế độ nghỉ phép 12 ngày/năm</li>
+                <li>Cơ hội đào tạo và phát triển chuyên môn</li>
+                <li>Môi trường làm việc chuyên nghiệp, năng động</li>
+            </ul>
+        </div>
+
+        <!-- Location -->
+        <div class="detail-section">
+            <h3>Địa điểm làm việc</h3>
+            <div class="location-address">
+                <i class="fas fa-map-marker-alt icon"></i>
+                <div>
+                    <p>@Model.WorkLocation</p>
+                    @if (Model.Recruiter != null && !string.IsNullOrEmpty(Model.Recruiter.DetailedAddress))
+                    {
+                        <p>@Model.Recruiter.DetailedAddress</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer with Apply Button -->
+@if (User.Identity.IsAuthenticated && userRole == 1)
+{
+    <footer class="job-apply-footer">
+        @if (hasApplied)
+        {
+            <button class="apply-button applied" disabled>
+                <i class="fas fa-check-circle"></i> Đã ứng tuyển
+            </button>
+        }
+        else if (interpreter == null)
+        {
+            <a asp-controller="Interpreters" asp-action="Profile" class="apply-button warning">
+                <i class="fas fa-exclamation-triangle"></i> Tạo hồ sơ để ứng tuyển
+            </a>
+        }
+        else
+        {
+            <button class="apply-button" id="openApplyModalBtn">Ứng tuyển ngay</button>
+        }
+    </footer>
+}
+else if (!User.Identity.IsAuthenticated)
+{
+    <footer class="job-apply-footer">
+        <a asp-area="Identity" asp-page="/Account/Login" class="apply-button login">
+            Đăng nhập để ứng tuyển
+        </a>
+    </footer>
+}
+
+<!-- Application Modal -->
+@if (User.Identity.IsAuthenticated && userRole == 1 && interpreter != null && !hasApplied)
+{
+    <div class="apply-modal-overlay" id="applyModalOverlay">
+        <div class="apply-popup-content">
+            <!-- Header with time and close -->
+            <div class="apply-popup-header">
+                <span id="currentTime">@DateTime.Now.ToString("HH:mm")</span>
+                <span class="apply-popup-close-btn" id="closeApplyModalBtn">&times;</span>
+            </div>
+
+            <!-- Job Info -->
+            <h2>Ứng tuyển vào vị trí</h2>
+            <h1>@Model.Title</h1>
+            <p>@(Model.Recruiter?.RecruiterName ?? "Công ty ZhaoYi")</p>
+
+            <form id="applicationForm" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <!-- Hidden fields -->
+                <input type="hidden" name="JobPostingId" value="@Model.JobPostingId" />
+                <input type="hidden" name="InterpreterId" value="@interpreter.InterpreterId" />
+                
+                <!-- Personal Information -->
+                <div class="form-group mb-3">
+                    <label class="form-label">Họ và tên</label>
+                    <input type="text" name="InterpreterName" class="form-control modal-input" value="@interpreter.InterpreterName" readonly />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="Email" class="form-control modal-input" value="@User.Identity.Name" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="tel" name="PhoneNumber" class="form-control modal-input" value="" />
+                </div>
+
+                <!-- CV Options -->
+                <div class="form-group mb-3">
+                    <label class="form-label">Chọn phương thức nộp CV</label>
+                    <div class="cv-options">
+                        <button type="button" class="btn btn-primary selected" data-cv-option="online">
+                            CV online của tôi <i class="far fa-file-alt"></i>
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-cv-option="upload">
+                            Tải CV từ thiết bị <i class="fas fa-upload"></i>
+                        </button>
+                    </div>
+                    <div id="cvFileNameDisplay" class="cv-file-name" style="display:none;"></div>
+                    <input type="file" id="cvFileUpload" name="cvFile" accept=".doc,.docx,.pdf" style="display: none;" />
+                    <input type="hidden" id="cvOption" name="cvOption" value="online" />
+                    <p class="file-note">File doc, docx, pdf dung lượng ≤ 5MB</p>
+                </div>
+
+                <!-- Error message display -->
+                <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
+
+                <!-- Confirmation Checkbox -->
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirmCheck" required>
+                    <label class="form-check-label" for="confirmCheck">
+                        Tôi xác nhận rằng thông tin cung cấp là chính xác và đồng ý với các điều khoản dịch vụ.
+                    </label>
+                </div>
+
+                <!-- Notes Section -->
+                <div class="note-with-icon">
+                    <span class="note-icon-circle">!</span>
+                    <p>Lưu ý</p>
+                </div>
+                <p class="note-content">
+                    Zhaoyi khuyến khích các bạn hãy luôn cẩn trọng trong quá trình tìm kiếm việc và chủ động nghiên cứu kỹ về thông tin công ty, vị trí việc làm trước khi ứng tuyển.
+                    Ứng viên cần có trách nhiệm với hành vi ứng tuyển của mình. Nếu bạn gặp phải tin tuyển dụng hoặc nhận được liên lạc đáng ngờ của nhà tuyển dụng,
+                    hãy báo cáo ngay cho Zhaoyi qua email hotro@zhaoyi.vn được hỗ trợ kịp thời.
+                </p>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-submit" id="submitApplicationBtn">
+                    <span class="btn-text">Nộp hồ sơ</span>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Notification Modal -->
+    <div class="success-modal-overlay" id="successModalOverlay">
+        <div class="success-modal-content">
+            <button class="success-modal-close-btn" id="closeSuccessModalBtn"><i class="fas fa-times"></i></button>
+            <div class="success-modal-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="success-modal-title">THÔNG BÁO</h3>
+            <p class="success-modal-message">
+                Bạn đã nộp hồ sơ thành công!
+            </p>
+            <a href="@Url.Action("Dashboard", "Interpreters")" class="btn-modal-continue" id="homeBtn">Về trang chủ</a>
+            <button class="btn-modal-close" id="continueBtn">Tiếp tục xem việc làm</button>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update current time
+            function updateTime() {
+                if (document.getElementById('currentTime')) {
+                    const now = new Date();
+                    const hours = now.getHours().toString().padStart(2, '0');
+                    const minutes = now.getMinutes().toString().padStart(2, '0');
+                    document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+                }
+            }
+            setInterval(updateTime, 60000); // Update every minute
+            updateTime();
+
+            // Bookmark toggle functionality
+            const bookmarkBtn = document.querySelector('.bookmark-button');
+            if (bookmarkBtn) {
+                bookmarkBtn.addEventListener('click', function() {
+                    const icon = this.querySelector('i');
+                    if (icon.classList.contains('far')) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        this.classList.add('saved');
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        this.classList.remove('saved');
+                    }
+                });
+            }
+
+            // Share functionality
+            const shareButton = document.getElementById('shareButton');
+            if (shareButton) {
+                shareButton.addEventListener('click', function() {
+                    if (navigator.share) {
+                        navigator.share({
+                            title: '@Model.Title - ZhaoYi Translation',
+                            url: window.location.href
+                        }).catch(console.error);
+                    } else {
+                        // Fallback for browsers that don't support Web Share API
+                        alert('Sao chép liên kết này để chia sẻ: ' + window.location.href);
+                        copyToClipboard(window.location.href);
+                    }
+                });
+            }
+
+            function copyToClipboard(text) {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text)
+                        .then(() => console.log('Copied to clipboard'))
+                        .catch(err => console.error('Could not copy text: ', err));
+                }
+            }
+
+            @if (User.Identity.IsAuthenticated && userRole == 1 && interpreter != null && !hasApplied)
+            {
+            <text>
+            // --- Application Modal Logic --- //
+            const openApplyModalBtn = document.getElementById('openApplyModalBtn');
+            const applyModalOverlay = document.getElementById('applyModalOverlay');
+            const closeApplyModalBtn = document.getElementById('closeApplyModalBtn');
+            const cvOptionButtons = document.querySelectorAll('.btn[data-cv-option]');
+            const cvFileUploadInput = document.getElementById('cvFileUpload');
+            const cvOptionInput = document.getElementById('cvOption');
+            const submitApplicationBtn = document.getElementById('submitApplicationBtn');
+            const successModalOverlay = document.getElementById('successModalOverlay');
+            const closeSuccessModalBtn = document.getElementById('closeSuccessModalBtn');
+            const continueBtn = document.getElementById('continueBtn');
+            const applicationForm = document.getElementById('applicationForm');
+            const cvFileNameDisplay = document.getElementById('cvFileNameDisplay');
+
+            let selectedCvOption = 'online'; // Default
+            let selectedFile = null; // Variable to store the selected file object
+
+            // Function to open Apply modal
+            const openApplyModal = () => {
+                if (applyModalOverlay) {
+                    applyModalOverlay.classList.add('active');
+                    // Reset form/selection on open
+                    cvOptionButtons.forEach(btn => btn.classList.remove('selected'));
+                    document.querySelector('.btn[data-cv-option="online"]')?.classList.add('selected');
+                    selectedCvOption = 'online';
+                    cvOptionInput.value = 'online';
+                    selectedFile = null;
+                    if(cvFileUploadInput) cvFileUploadInput.value = ''; // Clear file input
+                    if(cvFileNameDisplay) {
+                        cvFileNameDisplay.textContent = '';
+                        cvFileNameDisplay.style.display = 'none';
+                    }
+                }
+            };
+
+            // Function to close Apply modal
+            const closeApplyModal = () => {
+                if (applyModalOverlay) {
+                    applyModalOverlay.classList.remove('active');
+                }
+            };
+
+            // Function to open Success modal
+            const openSuccessModal = () => {
+                if (successModalOverlay) {
+                    successModalOverlay.classList.add('active');
+                }
+            };
+
+            // Function to close Success modal
+            const closeSuccessModal = () => {
+                if (successModalOverlay) {
+                    successModalOverlay.classList.remove('active');
+                }
+            };
+
+            // --- Event Listeners for Apply Modal --- //
+            if (openApplyModalBtn) {
+                openApplyModalBtn.addEventListener('click', openApplyModal);
+            }
+            if (closeApplyModalBtn) {
+                closeApplyModalBtn.addEventListener('click', closeApplyModal);
+            }
+            if (applyModalOverlay) {
+                applyModalOverlay.addEventListener('click', (event) => {
+                    // Close if clicked on the overlay itself, not the content
+                    if (event.target === applyModalOverlay) {
+                        closeApplyModal();
+                    }
+                });
+            }
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && applyModalOverlay?.classList.contains('active')) {
+                    closeApplyModal();
+                }
+            });
+
+            // --- CV Option Selection --- //
+            cvOptionButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault(); // Prevent form submission
+                    cvOptionButtons.forEach(btn => btn.classList.remove('selected'));
+                    button.classList.add('selected');
+                    selectedCvOption = button.getAttribute('data-cv-option');
+                    cvOptionInput.value = selectedCvOption;
+                    
+                    if (selectedCvOption === 'upload' && cvFileUploadInput) {
+                        cvFileUploadInput.click();
+                    }
+                });
+            });
+
+            // --- Handle File Selection --- //
+            if (cvFileUploadInput) {
+                cvFileUploadInput.addEventListener('change', (event) => {
+                    if (event.target.files && event.target.files[0]) {
+                        selectedFile = event.target.files[0];
+                        if (cvFileNameDisplay) {
+                            cvFileNameDisplay.textContent = selectedFile.name;
+                            cvFileNameDisplay.style.display = 'block';
+                        }
+                        if (selectedFile.size > 5 * 1024 * 1024) {
+                            alert('Kích thước tệp không được vượt quá 5MB.');
+                            selectedFile = null;
+                            cvFileUploadInput.value = '';
+                            if (cvFileNameDisplay) {
+                                cvFileNameDisplay.textContent = '';
+                                cvFileNameDisplay.style.display = 'none';
+                            }
+                            cvOptionButtons.forEach(btn => btn.classList.remove('selected'));
+                            document.querySelector('.btn[data-cv-option="online"]')?.classList.add('selected');
+                            selectedCvOption = 'online';
+                            cvOptionInput.value = 'online';
+                            return;
+                        }
+                    } else {
+                        selectedFile = null;
+                        if (cvFileNameDisplay) {
+                            cvFileNameDisplay.textContent = '';
+                            cvFileNameDisplay.style.display = 'none';
+                        }
+                        if (selectedCvOption === 'upload') {
+                            cvOptionButtons.forEach(btn => btn.classList.remove('selected'));
+                            document.querySelector('.btn[data-cv-option="online"]')?.classList.add('selected');
+                            selectedCvOption = 'online';
+                            cvOptionInput.value = 'online';
+                        }
+                    }
+                });
+            }
+
+            // --- Handle Application Submission with Ajax --- //
+            if (applicationForm) {
+                applicationForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    
+                    // Validation
+                    if (selectedCvOption === 'upload' && !selectedFile) {
+                        document.getElementById('errorMessage').textContent = 'Vui lòng chọn tệp CV để tải lên hoặc chọn CV online.';
+                        document.getElementById('errorMessage').style.display = 'block';
+                        return;
+                    }
+
+                    if (!document.getElementById('confirmCheck').checked) {
+                        document.getElementById('errorMessage').textContent = 'Vui lòng xác nhận điều khoản dịch vụ.';
+                        document.getElementById('errorMessage').style.display = 'block';
+                        return;
+                    }
+
+                    // Disable button and show spinner
+                    const submitBtn = document.getElementById('submitApplicationBtn');
+                    const btnText = submitBtn.querySelector('.btn-text');
+                    const spinner = submitBtn.querySelector('.spinner-border');
+                    
+                    submitBtn.disabled = true;
+                    btnText.style.display = 'none';
+                    spinner.style.display = 'inline-block';
+                    
+                    // Hide error message if any
+                    document.getElementById('errorMessage').style.display = 'none';
+                    
+                    // Create FormData for Ajax submission
+                    const formData = new FormData(applicationForm);
+                    
+                    // Send Ajax request
+                    fetch('@Url.Action("Apply", "JobApply")', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Reset button state
+                        submitBtn.disabled = false;
+                        btnText.style.display = 'inline-block';
+                        spinner.style.display = 'none';
+                        
+                        // Handle response
+                        if (data.success) {
+                            // Close application modal and show success modal
+                            closeApplyModal();
+                            openSuccessModal();
+                        } else {
+                            // Show error message
+                            document.getElementById('errorMessage').textContent = data.message || 'Đã xảy ra lỗi khi gửi đơn ứng tuyển.';
+                            document.getElementById('errorMessage').style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        // Reset button state
+                        submitBtn.disabled = false;
+                        btnText.style.display = 'inline-block';
+                        spinner.style.display = 'none';
+                        
+                        // Show error message
+                        document.getElementById('errorMessage').textContent = 'Lỗi kết nối: ' + error.message;
+                        document.getElementById('errorMessage').style.display = 'block';
+                        console.error('Error:', error);
+                    });
+                });
+            }
+
+            // --- Event Listeners for Success Modal --- //
+            if (closeSuccessModalBtn) {
+                closeSuccessModalBtn.addEventListener('click', closeSuccessModal);
+            }
+            if (successModalOverlay) {
+                successModalOverlay.addEventListener('click', (event) => {
+                    if (event.target === successModalOverlay) {
+                        closeSuccessModal();
+                    }
+                });
+            }
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && successModalOverlay?.classList.contains('active')) {
+                    closeSuccessModal();
+                }
+            });
+            if (document.getElementById('homeBtn')) {
+                document.getElementById('homeBtn').addEventListener('click', (event) => {
+                    // Link already has href, no need to do anything
+                });
+            }
+            if (document.getElementById('continueBtn')) {
+                document.getElementById('continueBtn').addEventListener('click', () => {
+                    closeSuccessModal();
+                });
+            }
+
+            // If there's a success message from the server, show the success modal
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <text>
+                // Show success modal when the page loads if there's a success message
+                setTimeout(() => {
+                    openSuccessModal();
+                }, 500);
+                </text>
+            }
+            </text>
+            }
+        });
+    </script>
+}

@@ -1,0 +1,66 @@
+﻿@model ZhaoYi_Test2.Models.Interpreter
+
+<div class="modal-overlay" id="basic-info-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Thông tin cơ bản</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+
+        <form id="basic-info-form" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+
+            <div class="modal-form-group">
+                <label asp-for="InterpreterName">Họ và tên</label>
+                <input asp-for="InterpreterName" required />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="Gender">Giới tính</label>
+                <select asp-for="Gender" required>
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                </select>
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="DateOfBirth">Ngày sinh</label>
+                <input asp-for="DateOfBirth" type="date" required />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="Field">Lĩnh vực</label>
+                <input asp-for="Field" required placeholder="Ví dụ: Phiên dịch thương mại, Biên dịch Y tế, v.v." />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="WorkLocation">Khu vực làm việc</label>
+                <input asp-for="WorkLocation" required />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="DetailedAddress">Địa chỉ chi tiết</label>
+                <input asp-for="DetailedAddress" required />
+            </div>
+
+            <div class="modal-form-group">
+                <label asp-for="YearsOfExperience">Kinh nghiệm</label>
+                <select asp-for="YearsOfExperience" required>
+                    <option value="@ZhaoYi_Test2.Models.ExperienceLevel.LessThanOneYear">Dưới 1 năm</option>
+                    <option value="@ZhaoYi_Test2.Models.ExperienceLevel.OneYear">1 năm</option>
+                    <option value="@ZhaoYi_Test2.Models.ExperienceLevel.TwoYears">2 năm</option>
+                    <option value="@ZhaoYi_Test2.Models.ExperienceLevel.ThreeYears">3 năm</option>
+                    <option value="@ZhaoYi_Test2.Models.ExperienceLevel.FourYears">4 năm</option>
+                    <option value="@ZhaoYi_Test2.Models.ExperienceLevel.FiveYears">5 năm</option>
+                    <option value="@ZhaoYi_Test2.Models.ExperienceLevel.MoreThanFiveYears">Hơn 5 năm</option>
+                </select>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-modal btn-cancel" onclick="document.querySelector('#basic-info-modal').classList.remove('active')">Hủy</button>
+                <button type="submit" class="btn-modal btn-save">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>

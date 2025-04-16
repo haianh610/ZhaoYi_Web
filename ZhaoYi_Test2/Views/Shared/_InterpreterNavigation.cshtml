@@ -1,0 +1,67 @@
+@{
+    string actionName = ViewContext.RouteData.Values["action"]?.ToString();
+    string controllerName = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+
+<nav class="bottom-nav">
+    <a asp-controller="Interpreters" asp-action="Dashboard" class="nav-item @((controllerName == "Interpreters" && actionName == "Home") || (controllerName == "Interpreters" && actionName == "Dashboard") ? "active home-icon" : "")">
+        <img src="~/icon/curved-home2.svg" alt="Home" class="nav-icon" />
+        <span class="nav-label">Trang chủ</span>
+    </a>
+    <a asp-controller="Interpreters" asp-action="Profile" class="nav-item @(controllerName == "Interpreters" && actionName == "Profile" ? "active" : "")">
+        <img src="~/icon/userProfile.svg" alt="Profile" class="nav-icon" />
+        <span class="nav-label">Hồ sơ</span>
+    </a>
+    <a href="javascript:void(0);" class="nav-item @(controllerName == "Messages" ? "active" : "")">
+        <img src="~/icon/curved-messagecircle.svg" alt="Messages" class="nav-icon" />
+        <span class="nav-label">Tin nhắn</span>
+    </a>
+    <a asp-controller="Settings" asp-action="Index" class="nav-item @(controllerName == "Settings" ? "active" : "")">
+        <img src="~/icon/curved-settings.svg" alt="Settings" class="nav-icon" />
+        <span class="nav-label">Cài đặt</span>
+    </a>
+</nav>
+
+<style>
+    .bottom-nav .nav-icon {
+        width: 24px;
+        height: 24px;
+        display: block;
+        margin: 0 auto 4px;
+        transition: all 0.2s ease;
+    }
+
+    /* Styles for inactive icons */
+    .bottom-nav .nav-item:not(.active) .nav-icon {
+        opacity: 0.6;
+        filter: grayscale(100%);
+    }
+
+    /* Styles for active icons */
+    .bottom-nav .nav-item.active .nav-icon {
+        opacity: 1;
+        filter: invert(45%) sepia(90%) saturate(1371%) hue-rotate(360deg) brightness(100%) contrast(105%);
+        transform: scale(1.1); /* Slightly larger when active */
+    }
+
+    /* Hover effect for inactive icons */
+    .bottom-nav .nav-item:not(.active):hover .nav-icon {
+        opacity: 0.8;
+        filter: grayscale(70%);
+    }
+
+    /* Active text style */
+    .bottom-nav .nav-item.active .nav-label {
+        color: #ff6f00; /* Same color as the active icon */
+        font-weight: 500;
+    }
+
+    /* Nav item animation */
+    .bottom-nav .nav-item {
+        transition: all 0.2s ease;
+    }
+
+        .bottom-nav .nav-item.active {
+            transform: translateY(-2px);
+        }
+</style>

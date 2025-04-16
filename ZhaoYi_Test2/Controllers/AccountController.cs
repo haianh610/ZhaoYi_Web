@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +26,7 @@ namespace ZhaoYi_Test2.Controllers
         public IActionResult Login(string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
-            return View();
+            return View("LoginMobile");
         }
 
         [HttpPost]
@@ -46,8 +46,8 @@ namespace ZhaoYi_Test2.Controllers
                     }
                     return RedirectToAction("Index", "Home");
                 }
-                ModelState.AddModelError(string.Empty, "??ng nh?p kh�ng th�nh c�ng.");
-                return View(model);
+                ModelState.AddModelError(string.Empty, "Đăng nhập không thành công.");
+                return View("LoginMobile",model);
             }
             return View(model);
         }
@@ -57,7 +57,7 @@ namespace ZhaoYi_Test2.Controllers
         public IActionResult Register(string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
-            return View();
+            return View("RegisterMobile");
         }
 
         [HttpPost]
@@ -80,7 +80,7 @@ namespace ZhaoYi_Test2.Controllers
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
-            return View(model);
+            return View("RegisterMobile", model);
         }
 
         [HttpPost]

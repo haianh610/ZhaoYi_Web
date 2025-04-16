@@ -1,0 +1,402 @@
+/* ~/css/apply-popup.css */
+
+/* === BASE (Inherited) === */
+/* Assuming base font, box-sizing are inherited */
+* {
+    font-family: 'FZ Poppins';
+}
+
+/* === APPLY POPUP OVERLAY === */
+.apply-modal-overlay { /* Reuse the overlay class name from JS */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center; /* Center the popup vertically and horizontally */
+    z-index: 1100;
+    padding: 20px; /* Add padding for smaller screens */
+}
+
+.apply-modal-overlay.active {
+    display: flex;
+}
+
+/* === APPLY POPUP CONTENT CONTAINER (Adapting .container) === */
+.apply-popup-content { /* New class name for the white box */
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%; /* Take full width within padding */
+    max-width: 400px; /* Limit max width */
+    text-align: center;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+    position: relative; /* For absolute positioning of close button */
+    max-height: 90vh; /* Prevent excessive height */
+    overflow-y: auto; /* Allow scrolling if content exceeds max-height */
+    color: #333; /* Default text color for light background */
+
+    /* Hide scrollbar */
+    ::-webkit-scrollbar { display: none; }
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+/* --- Header --- */
+.apply-popup-header { /* Adapting .header */
+    display: flex;
+    justify-content: space-between; /* Space out time and close */
+    align-items: center;
+    margin-bottom: 15px;
+    color: #888; /* Lighter color for header text */
+    font-size: 13px;
+    padding: 0 5px; /* Slight padding */
+}
+
+.apply-popup-close-btn { /* Adapting .close */
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 26px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #aaa;
+    line-height: 1;
+    padding: 0 5px;
+}
+.apply-popup-close-btn:hover {
+    color: #555;
+}
+
+/* --- Job Info --- */
+h1 { /* Job Title */
+    font-size: 20px; /* Slightly smaller */
+    margin-bottom: 5px;
+    font-weight: 700;
+    color: #333;
+}
+h2 { /* Apply to position text */
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #555;
+}
+.apply-popup-content > p { /* Company Name */
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* --- Buttons --- */
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px; /* Consistent border-radius */
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    width: 100%;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px; /* Space between text and icon */
+    transition: all 0.2s ease;
+}
+
+.btn i { /* Icon styling */
+    font-size: 16px;
+}
+
+.btn-primary { /* CV Online */
+    background-color: #ff8c00; /* Orange */
+    color: white;
+    border: 1.5px solid transparent;
+}
+.btn-primary:hover {
+    background-color: #e67e22;
+}
+
+.btn-secondary { /* Upload CV */
+    background-color: #fff7ec; /* Light orange */
+    color: #e67e22; /* Darker orange text */
+    border: 1.5px solid #ffe8cc; /* Light orange border */
+}
+.btn-secondary:hover {
+    background-color: #fff0db;
+    border-color: #ffcc80;
+}
+
+/* Selected state */
+.btn.selected {
+    border-width: 2px;
+    border-color: #e67e00; /* Darker orange border when selected */
+    box-shadow: 0 0 8px rgba(230, 126, 34, 0.3);
+}
+.btn-secondary.selected {
+     background-color: #fff0db; /* Slightly darker bg when selected */
+}
+
+.btn-submit { /* Nop ho so */
+    background-color: #e67e22; /* Darker orange */
+    color: white;
+    font-weight: 700;
+    margin-top: 20px; /* Space above submit */
+}
+.btn-submit:hover {
+    background-color: #d35400;
+}
+
+/* --- Notes --- */
+.file-note { /* Adapting .note */
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 25px;
+    margin-top: -2px;
+}
+
+.note-with-icon { /* Container for icon+label */
+    display: flex;
+    /* justify-content: center; */ /* Align left instead */
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #c90000; /* Red color */
+    margin-bottom: 8px;
+}
+
+.note-icon-circle { /* Adapting span ! */
+    background-color: #c90000;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex; /* Use inline-flex */
+    justify-content: center;
+    align-items: center;
+    margin-right: 8px;
+    font-style: normal; /* Ensure ! is not italic */
+    flex-shrink: 0;
+}
+
+.note-content {
+    font-size: 12px;
+    color: #555; /* Slightly darker grey */
+    line-height: 1.5;
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+/* --- Removed Form Fields CSS --- */
+
+.apply-form {
+    margin-top: 20px; 
+    margin-bottom: 20px;
+    text-align: left; 
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+.input-wrapper {
+    position: relative;
+}
+.input-wrapper input[type="text"],
+.input-wrapper input[type="email"] {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    color: #333;
+    font-size: 14px;
+}
+.input-wrapper input::placeholder {
+    color: #bbb;
+}
+.input-wrapper input:focus {
+    outline: none;
+    border-color: #ff8c00;
+    box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.15);
+}
+
+
+/* === SUCCESS MODAL STYLES === */
+.success-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1200;
+    padding: 20px;
+}
+
+.success-modal-overlay.active {
+    display: flex;
+}
+
+.success-modal-content {
+    background-color: white;
+    padding: 30px 20px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.success-modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #888;
+    cursor: pointer;
+}
+
+.success-modal-icon {
+    margin: 0 auto 15px;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background-color: #f1f9f1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.success-modal-icon i {
+    font-size: 40px;
+    color: #4CAF50;
+}
+
+.success-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #333;
+    text-transform: uppercase;
+}
+
+.success-modal-message {
+    font-size: 15px;
+    color: #555;
+    margin-bottom: 25px;
+}
+
+.btn-modal-continue {
+    background-color: #ff8c00;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 25px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    display: block;
+    text-align: center;
+    margin-bottom: 10px;
+    text-decoration: none;
+}
+
+.btn-modal-continue:hover {
+    background-color: #e67e00;
+}
+
+.btn-modal-close {
+    background-color: transparent;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px 25px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.btn-modal-close:hover {
+    background-color: #f9f9f9;
+    border-color: #bbb;
+    color: #333;
+}
+
+/* Alert styling */
+.alert {
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.alert-danger {
+    background-color: #fff2f0;
+    color: #d9534f;
+    border: 1px solid #ffd0cc;
+}
+
+/* === INPUT STYLES === */
+.modal-input {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    color: #333;
+    font-size: 14px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+
+.modal-input:focus {
+    outline: none;
+    border-color: #ff8c00;
+    box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.15);
+}
+
+.modal-input::placeholder {
+    color: #bbb;
+}
+
+.modal-input:disabled, 
+.modal-input[readonly] {
+    background-color: #f9f9f9;
+    cursor: not-allowed;
+    border-color: #eee;
+}
+
+/* File name display */
+.cv-file-name {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: #555;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 10px;
+}

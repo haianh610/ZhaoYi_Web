@@ -1,0 +1,503 @@
+@model IEnumerable<ZhaoYi_Test2.Models.Interpreter>
+@using System.ComponentModel.DataAnnotations 
+@using System.Reflection
+
+@{
+    ViewData["Title"] = "Trang chủ Nhà tuyển dụng";
+    Layout = "~/Views/Shared/_MobileLayout.cshtml"; // Sử dụng layout mobile chung
+    ViewData["UserRole"] = "Recruiter"; // Xác định vai trò cho layout
+    ViewData["ShowBottomNav"] = true; // Hiển thị thanh điều hướng dưới cùng
+
+    var bookmarkedIds = ViewBag.BookmarkedInterpreterIds as List<int> ?? new List<int>();
+
+    // Helper function để lấy Display Name của Enum trong View (hơi phức tạp, nên đưa vào Helper class nếu dùng nhiều)
+    Func<Enum, string> GetEnumDisplayName = (enumValue) =>
+    {
+        if (enumValue == null) return "";
+        return enumValue.GetType()
+                        .GetMember(enumValue.ToString())
+                        .First()
+                        .GetCustomAttribute<DisplayAttribute>()?
+                        .GetName() ?? enumValue.ToString();
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/recruiter-dashboard.css" asp-append-version="true" />
+     <link rel="stylesheet" href="~/css/shared-nav.css" asp-append-version="true" />
+}
+    <!-- Header -->
+    <div class="top-header">
+        <div class="header-controls">
+            <!-- Form tìm kiếm -->
+            <form method="get" asp-action="Dashboard" class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" name="searchTerm" placeholder="Tìm phiên dịch viên..." value="@ViewBag.SearchTerm" />
+                 <!-- Nút submit ẩn nếu cần -->
+                 <!-- <button type="submit" style="display:none;"></button> -->
+            </form>
+            <button class="filter-btn" id="filterBtn">
+                <span class="filter-icon"><span></span><span></span><span></span></span>
+                Bộ lọc
+            </button>
+            <a href="@Url.Action("Index", "Notifications")" class="notification-btn">
+                <i class="fas fa-bell"></i>
+                <span class="badge" style="display:none;"></span> <!-- Ẩn badge nếu không có thông báo -->
+            </a>
+        </div>
+        <!-- Urgent Banner -->
+        <div class="urgent-banner" id="openUrgentSearchBtn">
+            <i class="fas fa-bolt"></i>
+            <span>TÌM PHIÊN DỊCH VIÊN CẤP TỐC</span>
+        </div>
+    </div>
+
+    <!-- Main Scrollable Content -->
+    <div class="main-content">
+        <h2 class="section-title">Phiên dịch viên dành cho bạn</h2>
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info" style="text-align: center; padding: 20px; background-color: #fff; border-radius: 8px; color: #666;">
+                Không tìm thấy phiên dịch viên nào phù hợp.
+            </div>
+        }
+        else
+        {
+            @foreach (var interpreter in Model)
+            {
+                var avatarUrl = !string.IsNullOrEmpty(interpreter.AvatarPath) ? Url.Content($"~/uploads/avatars/{interpreter.AvatarPath}") : Url.Content("~/images/user.png");
+                var age = DateTime.Today.Year - interpreter.DateOfBirth.Year;
+                if (interpreter.DateOfBirth.Date > DateTime.Today.AddYears(-age)) age--; // Correct age calculation
+                var isBookmarked = bookmarkedIds.Contains(interpreter.InterpreterId);
+
+                <a asp-action="InterpreterDetails" asp-route-id="@interpreter.InterpreterId" class="interpreter-card">
+                    <img src="@avatarUrl" alt="Interpreter Avatar @interpreter.InterpreterName" class="profile-pic">
+
+                    <div class="card-info">
+                        <div class="card-main-info">
+                            <h3 class="card-name">@interpreter.InterpreterName</h3>
+                            <p class="card-specialty">@(!string.IsNullOrEmpty(interpreter.Field) ? interpreter.Field : "Phiên dịch viên")</p>
+                             <p class="card-demographics">@interpreter.Gender, @age tuổi</p>
+                        </div>
+
+                        <ul class="card-details-list">
+                             <li class="detail-item">
+                                <span class="detail-icon"><i class="fas fa-briefcase"></i></span>
+                                <span class="detail-text">Lĩnh vực: @(!string.IsNullOrEmpty(interpreter.Field) ? interpreter.Field : "Chưa cập nhật")</span>
+                            </li>
+                            <li class="detail-item">
+                                <span class="detail-icon"><i class="fas fa-award"></i></span>
+                                <span class="detail-text">Kinh nghiệm: @GetEnumDisplayName(interpreter.YearsOfExperience)</span>
+                            </li>
+                            <li class="detail-item">
+                                <span class="detail-icon"><i class="fas fa-map-marker-alt"></i></span>
+                                <span class="detail-text">Làm việc tại: @interpreter.WorkLocation</span>
+                            </li>
+                        </ul>
+
+                        <span class="see-more-link">Xem thêm</span>
+                    </div>
+
+                    <button class="bookmark-icon @(isBookmarked ? "saved" : "")" data-interpreter-id="@interpreter.InterpreterId" aria-label="@(isBookmarked ? "Bỏ lưu hồ sơ" : "Lưu hồ sơ")">
+                        <i class="@(isBookmarked ? "fas" : "far") fa-bookmark"></i>
+                    </button>
+                </a>
+            }
+        }
+
+    </div>
+
+    <!-- Floating Action Button for creating new job posts -->
+    <a asp-action="CreateJob" class="fab" aria-label="Đăng tin tuyển dụng mới">
+        <i class="fas fa-plus"></i>
+    </a>
+
+    <!-- Bottom Navigation -->
+    @* Sẽ được render bởi _MobileLayout.cshtml *@
+
+    <!-- Filter Modal -->
+    <div class="filter-modal" id="filterModal">
+        <div class="filter-modal-content">
+            <!-- Search Bar with Close Button -->
+            <div class="filter-search-container">
+                 <!-- Form lọc -->
+                <form method="get" asp-action="Dashboard" class="filter-search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="searchTerm" placeholder="Nhập tên, kỹ năng, lĩnh vực..." value="@ViewBag.SearchTerm" />
+                     <!-- Nút đóng modal -->
+                    <button type="button" class="filter-close-btn" id="closeFilterBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <!-- Các input ẩn hoặc select cho các bộ lọc khác -->
+                    <select name="experience" style="display: none;">
+                        <option value="">Kinh nghiệm</option>
+                        @foreach (var expValue in Enum.GetValues(typeof(ExperienceLevel)))
+                        {
+                            var isSelected = ViewBag.Experience != null && (ExperienceLevel)ViewBag.Experience == (ExperienceLevel)expValue;
+                            <option value="@((int)expValue)" selected="@isSelected">@GetEnumDisplayName((ExperienceLevel)expValue)</option>
+                        }
+                    </select>
+                     <input type="text" name="location" value="@ViewBag.Location" style="display:none;" id="filterLocationInput" />
+                     <!-- Nút submit form ẩn -->
+                    <button type="submit" style="display: none;"></button>
+                </form>
+            </div>
+
+            <!-- Filter Content -->
+            <div class="filter-body">
+                <h2 class="filter-title">Bộ lọc</h2>
+
+                <!-- Experience Filter -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">Kinh nghiệm</h3>
+                    <div class="filter-options-grid">
+                         <button class="filter-option-btn @(ViewBag.Experience == null ? "active" : "")" data-filter="experience" data-value="">Tất cả</button>
+                        @foreach (var expValue in Enum.GetValues(typeof(ExperienceLevel)))
+                        {
+                            <button class="filter-option-btn @(ViewBag.Experience != null && (ExperienceLevel)ViewBag.Experience == (ExperienceLevel)expValue ? "active" : "")"
+                                    data-filter="experience" data-value="@((int)expValue)">
+                                @GetEnumDisplayName((ExperienceLevel)expValue)
+                            </button>
+                        }
+                    </div>
+                </div>
+
+
+                <!-- Location Filter -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">Địa điểm</h3>
+                    <div class="location-selector">
+                        <div class="location-item" id="openLocationPicker">
+                             <i class="fas fa-map-marker-alt"></i>
+                             <span id="selectedLocationDisplay">@(string.IsNullOrEmpty(ViewBag.Location) ? "Chọn địa điểm" : ViewBag.Location)</span>
+                             <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                </div>
+
+                 <!-- Các bộ lọc khác (Gender, Skills, Fields...) có thể thêm vào đây -->
+
+            </div>
+
+            <!-- Filter Action Buttons -->
+            <div class="filter-actions">
+                <button type="button" class="reset-btn">Đặt lại</button>
+                <button type="button" class="apply-btn" id="applyFilterBtn">Áp dụng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location Picker Modal -->
+    <div class="location-picker-container" id="locationPicker">
+        <div class="location-picker-content">
+            <div class="location-picker-header">
+                <h3 class="location-picker-title">Chọn địa điểm</h3>
+                <button type="button" class="location-picker-close" id="closeLocationPicker">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="location-picker-search">
+                <input type="text" class="location-search-input" placeholder="Tìm kiếm địa điểm">
+            </div>
+            <ul class="location-list">
+                 <li class="location-list-item @(ViewBag.Location == "Hà Nội" ? "selected" : "")" data-location="Hà Nội">Hà Nội</li>
+                 <li class="location-list-item @(ViewBag.Location == "TP. Hồ Chí Minh" ? "selected" : "")" data-location="TP. Hồ Chí Minh">TP. Hồ Chí Minh</li>
+                 <li class="location-list-item @(ViewBag.Location == "Đà Nẵng" ? "selected" : "")" data-location="Đà Nẵng">Đà Nẵng</li>
+                 <li class="location-list-item @(ViewBag.Location == "Hải Phòng" ? "selected" : "")" data-location="Hải Phòng">Hải Phòng</li>
+                 <li class="location-list-item @(ViewBag.Location == "Cần Thơ" ? "selected" : "")" data-location="Cần Thơ">Cần Thơ</li>
+                 <li class="location-list-item @(ViewBag.Location == "Bắc Ninh" ? "selected" : "")" data-location="Bắc Ninh">Bắc Ninh</li>
+                 <li class="location-list-item @(ViewBag.Location == "Bình Dương" ? "selected" : "")" data-location="Bình Dương">Bình Dương</li>
+                 <li class="location-list-item @(ViewBag.Location == "Đồng Nai" ? "selected" : "")" data-location="Đồng Nai">Đồng Nai</li>
+                <!-- Thêm các tỉnh thành khác nếu cần -->
+            </ul>
+            <div class="location-picker-actions">
+                <button type="button" class="location-picker-apply" id="applyLocationPicker">Áp dụng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Urgent Interpreter Search Modal -->
+    <div class="modal-overlay" id="recruiterUrgentSearchModal">
+        <div class="modal-content">
+            <div class="modal-header-banner">
+                <i class="fas fa-bolt"></i>
+                <span>TÌM PHIÊN DỊCH VIÊN CẤP TỐC</span>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">
+                    Tính năng AI "Tuyển dụng phiên dịch viên cấp tốc" giúp doanh nghiệp nhanh chóng tìm ứng viên phù hợp nhất theo yêu cầu về trình độ, thời gian và vị trí, với thao tác đơn giản khi AI đã tự động chọn lọc từ hồ sơ doanh nghiệp có sẵn.
+                </p>
+
+                <h4 class="modal-section-title">Địa điểm</h4>
+                <div class="location-box">
+                    <span class="location-icon-bg">
+                         <i class="fas fa-map-marker-alt"></i>
+                    </span>
+                     <!-- Lấy địa điểm mặc định của Recruiter nếu có, hoặc placeholder -->
+                    <span class="location-text">Hà Nội</span>
+                </div>
+
+                <a href="#" class="filter-link">
+                    Điều chỉnh thêm về bộ lọc <i class="fas fa-chevron-right"></i>
+                </a>
+
+                <!-- Account Tier Section -->
+                <div class="account-tier-section">
+                     <div class="account-tier-info">
+                        Hạng của bạn:
+                         <!-- Lấy hạng tài khoản thực tế nếu có -->
+                        <span class="tier-label">STANDARD</span>
+                    </div>
+                    <a href="#" class="pricing-link">Xem thêm bảng báo giá dịch vụ</a>
+                     <a href="#" class="upgrade-prompt">
+                        Nâng cấp ngay, để sở hữu nhiều tính năng ưu việt từ AI của Zhaoyi
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-confirm" id="confirmRecruiterUrgentSearchBtn">XÁC NHẬN</button>
+            </div>
+        </div>
+    </div>
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- Bookmark Toggle JS ---
+        document.querySelectorAll('.bookmark-icon').forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const interpreterId = button.dataset.interpreterId; // Lấy ID từ data attribute
+                const isSaved = button.classList.toggle('saved');
+                const icon = button.querySelector('i');
+                icon.classList.toggle('far', !isSaved);
+                icon.classList.toggle('fas', isSaved);
+                button.setAttribute('aria-label', isSaved ? 'Bỏ lưu hồ sơ' : 'Lưu hồ sơ');
+
+                // --- TODO: Add AJAX call here ---
+                // Gửi yêu cầu đến server để lưu/xóa bookmark cho interpreterId
+                 console.log(`Bookmark toggled for interpreter ${interpreterId}. Saved: ${isSaved}`);
+                 /*
+                 fetch('/Recruiters/ToggleBookmark', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                         // Thêm token xác thực nếu cần
+                     },
+                     body: JSON.stringify({ interpreterId: interpreterId, isBookmarked: isSaved })
+                 })
+                 .then(response => response.json())
+                 .then(data => {
+                     if (!data.success) {
+                         // Hoàn tác trạng thái nếu lỗi
+                         button.classList.toggle('saved');
+                         icon.classList.toggle('far', isSaved);
+                         icon.classList.toggle('fas', !isSaved);
+                         alert('Lỗi khi cập nhật bookmark');
+                     }
+                 })
+                 .catch(error => {
+                     console.error('Error:', error);
+                      // Hoàn tác trạng thái nếu lỗi
+                     button.classList.toggle('saved');
+                     icon.classList.toggle('far', isSaved);
+                     icon.classList.toggle('fas', !isSaved);
+                     alert('Lỗi kết nối khi cập nhật bookmark');
+                 });
+                 */
+            });
+        });
+
+        // --- JS for Recruiter Urgent Search Modal ---
+        const openUrgentSearchBtn = document.getElementById('openUrgentSearchBtn');
+        const recruiterUrgentSearchModal = document.getElementById('recruiterUrgentSearchModal');
+        const confirmRecruiterUrgentSearchBtn = document.getElementById('confirmRecruiterUrgentSearchBtn');
+
+        if (openUrgentSearchBtn && recruiterUrgentSearchModal) {
+            const openRecruiterModal = () => recruiterUrgentSearchModal.classList.add('active');
+            const closeRecruiterModal = () => recruiterUrgentSearchModal.classList.remove('active');
+
+            openUrgentSearchBtn.addEventListener('click', openRecruiterModal);
+            recruiterUrgentSearchModal.addEventListener('click', (event) => {
+                if (event.target === recruiterUrgentSearchModal) closeRecruiterModal();
+            });
+            if (confirmRecruiterUrgentSearchBtn) {
+                confirmRecruiterUrgentSearchBtn.addEventListener('click', () => {
+                    console.log("Recruiter Urgent Search Confirm clicked");
+                    // Thêm hành động tìm kiếm cấp tốc ở đây
+                    closeRecruiterModal();
+                });
+            }
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && recruiterUrgentSearchModal.classList.contains('active')) closeRecruiterModal();
+            });
+        }
+
+        // --- JS for Filter Modal ---
+        const filterBtn = document.querySelector('.filter-btn');
+        const filterModal = document.getElementById('filterModal');
+        const closeFilterBtn = document.getElementById('closeFilterBtn');
+        const applyFilterBtn = document.getElementById('applyFilterBtn');
+        const resetFilterBtn = document.querySelector('.reset-btn');
+        const filterForm = filterModal.querySelector('form');
+        const experienceFilterButtons = filterModal.querySelectorAll('.filter-option-btn[data-filter="experience"]');
+        const experienceSelect = filterForm.querySelector('select[name="experience"]');
+        const openLocationPickerBtn = document.getElementById('openLocationPicker');
+        const locationPickerModal = document.getElementById('locationPicker');
+        const closeLocationPickerBtn = document.getElementById('closeLocationPicker');
+        const applyLocationPickerBtn = document.getElementById('applyLocationPicker');
+        const locationListItems = locationPickerModal.querySelectorAll('.location-list-item');
+        const filterLocationInput = document.getElementById('filterLocationInput'); // Input ẩn trong form chính
+        const selectedLocationDisplay = document.getElementById('selectedLocationDisplay'); // Span hiển thị địa điểm đã chọn
+        const locationSearchInput = locationPickerModal.querySelector('.location-search-input');
+
+
+        // Function to close the filter modal
+        function closeFilterModal() {
+            filterModal.style.opacity = '0';
+             setTimeout(() => {
+                filterModal.classList.remove('active');
+                document.body.style.overflow = '';
+                filterModal.style.opacity = '';
+             }, 300); // Wait for animation
+        }
+
+        // Open filter modal
+        if (filterBtn && filterModal) {
+            filterBtn.addEventListener('click', () => {
+                filterModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        }
+
+        // Close filter modal
+        if (closeFilterBtn) {
+            closeFilterBtn.addEventListener('click', closeFilterModal);
+        }
+
+        // Handle click outside filter modal (optional, can be annoying)
+        /*
+        if (filterModal) {
+             filterModal.addEventListener('click', (event) => {
+                 if (event.target === filterModal) {
+                     closeFilterModal();
+                 }
+             });
+        }
+        */
+
+        // Close with Escape key
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && filterModal.classList.contains('active')) {
+                closeFilterModal();
+            }
+             if (event.key === 'Escape' && locationPickerModal.classList.contains('active')) {
+                 closeLocationPickerModal();
+            }
+        });
+
+         // Handle Experience filter buttons
+        experienceFilterButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Cập nhật trạng thái active cho button
+                experienceFilterButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                // Cập nhật giá trị cho select ẩn
+                if (experienceSelect) {
+                    experienceSelect.value = this.dataset.value;
+                }
+            });
+        });
+
+         // --- Location Picker Logic ---
+         let selectedLocationValue = filterLocationInput.value || ""; // Lấy giá trị hiện tại
+
+         function openLocationPickerModal() {
+            if (locationPickerModal) locationPickerModal.classList.add('active');
+             // Reset search and scroll
+            if(locationSearchInput) locationSearchInput.value = '';
+            filterLocationList('');
+            locationPickerModal.querySelector('.location-list').scrollTop = 0;
+         }
+
+         function closeLocationPickerModal() {
+            if (locationPickerModal) locationPickerModal.classList.remove('active');
+         }
+
+          function filterLocationList(searchTerm) {
+            const term = searchTerm.toLowerCase().trim();
+            locationListItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(term)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+         if (openLocationPickerBtn) {
+             openLocationPickerBtn.addEventListener('click', openLocationPickerModal);
+         }
+         if (closeLocationPickerBtn) {
+             closeLocationPickerBtn.addEventListener('click', closeLocationPickerModal);
+         }
+
+          // Handle location search input
+         if (locationSearchInput) {
+            locationSearchInput.addEventListener('input', function() {
+                filterLocationList(this.value);
+            });
+        }
+
+
+         locationListItems.forEach(item => {
+             item.addEventListener('click', function() {
+                 locationListItems.forEach(li => li.classList.remove('selected'));
+                 this.classList.add('selected');
+                 selectedLocationValue = this.dataset.location; // Cập nhật giá trị tạm thời
+                 // Không đóng modal ngay, chờ nhấn áp dụng
+             });
+         });
+
+         if (applyLocationPickerBtn) {
+             applyLocationPickerBtn.addEventListener('click', () => {
+                 // Cập nhật input ẩn và text hiển thị khi nhấn áp dụng
+                 if (filterLocationInput) filterLocationInput.value = selectedLocationValue;
+                 if (selectedLocationDisplay) selectedLocationDisplay.textContent = selectedLocationValue || "Chọn địa điểm";
+                 closeLocationPickerModal();
+             });
+         }
+
+         // Handle Apply filter button
+        if (applyFilterBtn && filterForm) {
+            applyFilterBtn.addEventListener('click', () => {
+                filterForm.submit(); // Submit form lọc
+                // Không cần đóng modal ở đây, submit sẽ load lại trang
+            });
+        }
+
+         // Handle Reset filter button
+        if (resetFilterBtn && filterForm) {
+            resetFilterBtn.addEventListener('click', () => {
+                // Reset input fields in the form
+                filterForm.querySelector('input[name="searchTerm"]').value = '';
+                 filterForm.querySelector('select[name="experience"]').value = '';
+                filterForm.querySelector('input[name="location"]').value = '';
+
+                // Reset UI elements in the modal
+                experienceFilterButtons.forEach(b => b.classList.remove('active'));
+                 filterModal.querySelector('.filter-option-btn[data-filter="experience"][data-value=""]').classList.add('active');
+                 if(selectedLocationDisplay) selectedLocationDisplay.textContent = "Chọn địa điểm";
+                selectedLocationValue = "";
+
+                 // Optional: Submit the reset form immediately or wait for apply
+                 filterForm.submit();
+            });
+        }
+    });
+</script>
+}

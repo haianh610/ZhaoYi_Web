@@ -1,0 +1,1532 @@
+@model ZhaoYi_Test2.Models.Interpreter
+@{
+    ViewData["Title"] = "Hồ sơ";
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+    ViewData["UserRole"] = "Interpreter";
+    ViewData["ShowBottomNav"] = true;
+
+    // Use model data or fallback to placeholder data
+    var profileName = Model?.InterpreterName ?? "Hà Yến Nhi";
+    var gender = Model?.Gender ?? "Nữ";
+
+    var age = Model?.DateOfBirth != null ?
+                    (DateTime.Now.Year - Model.DateOfBirth.Year) : 22;
+    var profileDetails = $"Giới tính: {gender} - Tuổi: {age}";
+    var profileImageUrl = !string.IsNullOrEmpty(Model?.AvatarPath) ?
+                         $"/uploads/avatars/{Model.AvatarPath}" : "/images/user.png";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/interpreter-profile.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/shared-nav.css" asp-append-version="true" />
+	<link href="~/css/profile-modal.css" rel="stylesheet" />
+}
+
+<!-- Profile Header -->
+<div class="profile-header">
+    <div class="header-title-bar">
+        <span class="page-title">Hồ sơ</span>
+        <button class="options-btn"><i class="fas fa-ellipsis-h"></i></button>
+    </div>
+    <div class="profile-summary">
+        <img src="@profileImageUrl" alt="Profile Picture" class="profile-pic-large">
+        <div class="profile-info">
+            <div class="profile-name">@profileName</div>
+            <div class="profile-details">@profileDetails</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="profile-tabs">
+    <div class="tab-item" data-tab="profile">Hồ sơ của bạn</div>
+    <div class="tab-item active" data-tab="jobs">Quản lý việc làm</div>
+</div>
+
+<!-- Main Scrollable Content -->
+<div class="profile-content">
+    <!-- Tab Content: Job Management (Visible by default based on 'active' tab) -->
+    <div class="tab-pane active" id="jobs-content">
+        <!-- Filter Dropdown -->
+        <div class="filter-section">
+            <span class="filter-label">Bộ lọc</span>
+            <select class="filter-dropdown">
+                <option value="all">Tất cả trạng thái</option>
+                <option value="pending">Chờ duyệt</option>
+                <option value="approved">Đã duyệt</option>
+                <option value="rejected">Từ chối</option>
+                <option value="interview">Phỏng vấn</option>
+                <option value="hired">Đã nhận việc</option>
+            </select>
+        </div>
+
+       @if (ViewBag.JobApplications != null && ViewBag.JobApplications.Count > 0)
+        {
+            foreach (var application in ViewBag.JobApplications)
+            {
+                <div class="applied-job-card">
+                    <span class="job-status">@application.StatusText</span>
+                    <h3 class="job-title">@application.JobTitle</h3>
+                    <p class="company-name">@application.RecruiterName</p>
+                    <div class="application-details">
+                        <div>
+                            <span class="detail-label">Ngày nộp</span>
+                            <div class="detail-value">@application.ApplicationDate.ToString("dd/MM/yyyy")</div>
+                        </div>
+                        <div>
+                            <span class="detail-label">CV ứng tuyển</span>
+                            <div class="detail-value">
+                                @if (!string.IsNullOrEmpty(application.CVFilePath))
+                                {
+                                    <a href="/uploads/cvs/@application.CVFilePath" class="cv-link">@System.IO.Path.GetFileName(application.CVFilePath)</a>
+                                }
+                                else
+                                {
+                                    <span>Không có CV</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="feedback-section">
+                        <div class="feedback-label">Phản hồi từ Nhà Tuyển dụng</div>
+                        <div class="feedback-tags">
+                            @if (application.HasFeedback)
+                            {
+                                <span class="feedback-tag">Đã phản hồi</span>
+                            }
+                            else
+                            {
+                                <span class="feedback-tag">Chưa thấy NTD phản hồi</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Fallback for when no applications exist -->
+            <div class="applied-job-card">
+                <span class="job-status">Ứng tuyển thành công</span>
+                <h3 class="job-title">Phiên dịch viên tiếng Trung</h3>
+                <p class="company-name">Công ty TNHH Tập đoàn ZhaoYi</p>
+                <div class="application-details">
+                    <div>
+                        <span class="detail-label">Ngày nộp</span>
+                        <div class="detail-value">31/3/2025</div>
+                    </div>
+                    <div>
+                        <span class="detail-label">CV ứng tuyển</span>
+                        <div class="detail-value"><a href="#" class="cv-link">CV Online 1.pdf</a></div>
+                    </div>
+                </div>
+                <div class="feedback-section">
+                    <div class="feedback-label">Phản hồi từ Nhà Tuyển dụng</div>
+                    <div class="feedback-tags">
+                        <span class="feedback-tag">Đã phản hồi</span>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <h2 class="section-heading">Việc làm gợi ý</h2>
+
+        @if (ViewBag.RecommendedJobs != null && ViewBag.RecommendedJobs.Count > 0)
+        {
+            foreach (var job in ViewBag.RecommendedJobs)
+            {
+                var companyLogo = !string.IsNullOrEmpty(job.Recruiter.AvatarPath) ?
+                $"/uploads/avatars/{job.Recruiter.AvatarPath}" : "/images/logo.png";
+                var timeLeft = job.ExpiryDate - DateTime.Now;
+                var timeLeftText = timeLeft.TotalHours < 24 ?
+                $"Còn {Math.Max(1, (int)timeLeft.TotalHours)}h" :
+                $"Còn {(int)timeLeft.TotalDays}d";
+
+                <div class="job-suggestion-card" data-id="@job.JobPostingId">
+                    <img src="@companyLogo" alt="Company Logo" class="company-logo">
+                    <div class="job-info">
+                        <h3 class="job-title">@job.Title</h3>
+                        <p class="company-name">@job.Recruiter.RecruiterName</p>
+                        <ul class="job-details-list">
+                            <li class="detail-item">
+                                <i class="fas fa-briefcase"></i>
+                                Lĩnh vực dịch: @(string.IsNullOrEmpty(job.Field) ? "Chung" : job.Field)
+                            </li>
+                            <li class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                @job.WorkLocation
+                            </li>
+                            <li class="detail-item">
+                                <i class="far fa-clock"></i>
+                                @timeLeftText
+                            </li>
+                        </ul>
+                    </div>
+                    <button class="bookmark-icon" data-job-id="@job.JobPostingId">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Fallback for when no suggested jobs exist -->
+            <div class="job-suggestion-card">
+                <img src="~/images/logo.png" alt="Company Logo" class="company-logo">
+                <div class="job-info">
+                    <h3 class="job-title">Phiên dịch viên tiếng Trung</h3>
+                    <p class="company-name">Công ty Cổ phần Tập đoàn ZhaoYi</p>
+                    <ul class="job-details-list">
+                        <li class="detail-item"><i class="fas fa-briefcase"></i> Lĩnh vực dịch: Thương mại</li>
+                        <li class="detail-item"><i class="fas fa-map-marker-alt"></i> Hoàng Mai, Hà Nội</li>
+                        <li class="detail-item"><i class="far fa-clock"></i> Còn 5h</li>
+                    </ul>
+                </div>
+                <button class="bookmark-icon"><i class="far fa-bookmark"></i></button>
+            </div>
+        }
+    </div>
+
+    <!-- Tab Content: Your Profile (Hidden by default) -->
+    <div class="tab-pane" id="profile-content">
+        <!-- Họ và tên Section -->
+        <div class="profile-section name-section">
+            <h4 class="section-subtitle">Thông tin cơ bản</h4>
+            <ul class="details-list">
+                <li class="detail-item">
+                    <i class="fas fa-briefcase detail-icon-orange"></i>
+                    <span>Lĩnh vực: @(!string.IsNullOrEmpty(Model?.Field) ? Model.Field : "Không có thông tin")</span>
+                </li>
+                <li class="detail-item">
+                    <i class="fas fa-star detail-icon-orange"></i>
+                    <span>Kinh nghiệm: @(Model?.YearsOfExperience.ToString() ?? "Không có thông tin")</span>
+                </li>
+                <li class="detail-item">
+                    <i class="fas fa-map-marker-alt detail-icon-orange"></i>
+                    <span>Địa chỉ làm việc: @(Model?.WorkLocation ?? "Không có thông tin")</span>
+                </li>
+            </ul>
+            <div class="item-actions">
+                <button class="btn-edit-item" data-modal="basic-info-modal">
+                    <i class="fas fa-pencil-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-add-section" id="add-section-btn"><i class="fas fa-plus"></i> Thêm mục</button>
+            <button class="btn btn-secondary" id="download-pdf-btn">Tải xuống PDF</button>
+            <button class="btn btn-secondary" id="share-profile-btn">Chia sẻ Profile</button>
+        </div>
+
+        <!-- Profile Completion Section -->
+        <div class="profile-section completion-section">
+            <div class="completion-header">
+                <h4 class="section-subtitle">Mức độ hoàn thành hồ sơ</h4>
+                <i class="fas fa-check-circle completion-icon"></i>
+                <i class="fas fa-star star-icon"></i>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" style="width: @(ViewBag.ProfileCompletionPercentage ?? 0)%;"></div>
+            </div>
+            <div class="update-prompt-card">
+                <img src="~/images/ic_build.png" alt="Update icon">
+                <div class="prompt-text">
+                    <h5>Cập nhật thông tin cá nhân</h5>
+                    <span>Mức độ hoàn thành hồ sơ +20%</span>
+                </div>
+                <div class="prompt-nav">
+                    <button class="nav-arrow"><i class="fas fa-arrow-left"></i></button>
+                    <button class="nav-arrow"><i class="fas fa-arrow-right"></i></button>
+                </div>
+                <button class="btn btn-update-now" data-modal="basic-info-modal">Cập nhật ngay</button>
+            </div>
+        </div>
+
+        <!-- View Stats Section -->
+        <div class="profile-section stats-section">
+            <h4 class="section-subtitle">Thống kê lượt xem từ nhà tuyển dụng</h4>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-value">@(ViewBag.WeeklyViews ?? 0)</span>
+                    <span class="stat-label">Lượt xem trong tuần</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value">@(ViewBag.MonthlyViews ?? 0)</span>
+                    <span class="stat-label">Lượt xem trong tháng</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value">@(ViewBag.YearlyViews ?? 0)</span>
+                    <span class="stat-label">Lượt xem trong năm</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Education Section -->
+        <div class="profile-section dynamic-section education">
+            <img src="~/images/ic_knowledge.png" alt="Education" class="section-image">
+            <div class="section-content">
+                <h4 class="section-subtitle">Học vấn</h4>
+                @if (Model?.Educations != null && Model.Educations.Count > 0)
+                {
+                    foreach (var education in Model.Educations)
+                    {
+                        <div class="education-item" data-id="@education.EducationId">
+                            <h5>@education.SchoolName</h5>
+                            <p>@education.Degree - @education.Major</p>
+                            <p>@education.StartDate.ToString("MM/yyyy") - @(education.EndDate.HasValue ? education.EndDate.Value.ToString("MM/yyyy") : "Hiện tại")</p>
+                            <p>@education.Description</p>
+                            <div class="item-actions">
+                                <button class="btn-edit-item" data-modal="education-modal" data-id="@education.EducationId">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                                <button class="btn-delete-item" data-type="education" data-id="@education.EducationId">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>Bạn chưa thêm thông tin học vấn. Hãy thêm để hoàn thiện hồ sơ.</p>
+                }
+                <button class="btn btn-add-section-secondary" data-modal="education-modal">Thêm học vấn</button>
+            </div>
+        </div>
+
+        <!-- Work Experience Section -->
+        <div class="profile-section dynamic-section experience">
+            <img src="~/images/ic_build.png" alt="Experience" class="section-image">
+            <div class="section-content">
+                <h4 class="section-subtitle">Kinh nghiệm làm việc</h4>
+                @if (Model?.WorkExperiences != null && Model.WorkExperiences.Count > 0)
+                {
+                    foreach (var experience in Model.WorkExperiences)
+                    {
+                        <div class="experience-item" data-id="@experience.WorkExperienceId">
+                            <h5>@experience.JobTitle</h5>
+                            <p>@experience.CompanyName</p>
+                            <p>@experience.StartDate.ToString("MM/yyyy") - @(experience.EndDate.HasValue ? experience.EndDate.Value.ToString("MM/yyyy") : "Hiện tại")</p>
+                            @if (!string.IsNullOrEmpty(experience.JobDescription))
+                            {
+                                <p class="experience-description">@experience.JobDescription</p>
+                            }
+                            <div class="item-actions">
+                                <button class="btn-edit-item" data-modal="experience-modal" data-id="@experience.WorkExperienceId">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                                <button class="btn-delete-item" data-type="experience" data-id="@experience.WorkExperienceId">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>Bạn chưa thêm kinh nghiệm làm việc. Hãy thêm để hoàn thiện hồ sơ.</p>
+                }
+                <button class="btn btn-add-section-secondary" data-modal="experience-modal">Thêm kinh nghiệm</button>
+            </div>
+        </div>
+
+        <!-- Skills Section -->
+        <div class="profile-section dynamic-section skills">
+            <img src="~/images/ic_skill.png" alt="Skills" class="section-image">
+            <div class="section-content">
+                <h4 class="section-subtitle">Kỹ năng</h4>
+                @if (!string.IsNullOrEmpty(Model?.Skills))
+                {
+                    <div class="skills-container">
+                        @foreach (var skill in Model.Skills.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            <span class="skill-tag">@skill.Trim()</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p>Bạn chưa thêm kỹ năng. Hãy thêm để hoàn thiện hồ sơ.</p>
+                }
+                <button class="btn btn-add-section-secondary" data-modal="skills-modal">Cập nhật kỹ năng</button>
+            </div>
+        </div>
+
+        <!-- Projects/Achievements Section -->
+        <div class="profile-section dynamic-section projects">
+            <img src="~/images/ic_bar.png" alt="Projects" class="section-image">
+            <div class="section-content">
+                <h4 class="section-subtitle">Dự án/Thành tựu</h4>
+                @if (Model?.Projects != null && Model.Projects.Count > 0)
+                {
+                    foreach (var project in Model.Projects)
+                    {
+                        <div class="project-item" data-id="@project.ProjectId">
+                            <h5>@project.ProjectName</h5>
+                            <p>@project.StartDate.ToString("MM/yyyy") - @(project.EndDate.HasValue ? project.EndDate.Value.ToString("MM/yyyy") : "Hiện tại")</p>
+                            @if (!string.IsNullOrEmpty(project.Description))
+                            {
+                                <p class="project-description">@project.Description</p>
+                            }
+                            <div class="item-actions">
+                                <button class="btn-edit-item" data-modal="project-modal" data-id="@project.ProjectId">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                                <button class="btn-delete-item" data-type="project" data-id="@project.ProjectId">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>Bạn chưa thêm dự án hoặc thành tựu. Hãy thêm để hoàn thiện hồ sơ.</p>
+                }
+                <button class="btn btn-add-section-secondary" data-modal="project-modal">Thêm dự án/thành tựu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Modal Partial Views -->
+@await Html.PartialAsync("ProfileModal/_BasicInfoModal", Model)
+@await Html.PartialAsync("ProfileModal/_SkillsModal", Model)
+@await Html.PartialAsync("ProfileModal/_EducationModal", new Education { InterpreterId = Model?.InterpreterId ?? 0 })
+@await Html.PartialAsync("ProfileModal/_ExperienceModal", new WorkExperience { InterpreterId = Model?.InterpreterId ?? 0 })
+@await Html.PartialAsync("ProfileModal/_ProjectModal", new Project { InterpreterId = Model?.InterpreterId ?? 0 })
+
+<!-- Confirmation Dialog -->
+<div class="modal-overlay" id="confirm-delete-modal">
+    <div class="modal-content" style="max-width: 300px;">
+        <div class="modal-header">
+            <h3 class="modal-title">Xác nhận xóa</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <p style="margin-bottom: 20px;">Bạn có chắc chắn muốn xóa mục này?</p>
+        <input type="hidden" id="delete-item-id">
+        <input type="hidden" id="delete-item-type">
+        <div class="modal-footer">
+            <button class="btn-modal btn-cancel" id="cancel-delete-btn">Hủy</button>
+            <button class="btn-modal btn-save" id="confirm-delete-btn">Xóa</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Biến lưu trữ trạng thái tab hiện tại
+            let activeTabId = localStorage.getItem('activeProfileTab') || 'profile';
+            
+            // Basic Tab Switching Logic
+            const tabs = document.querySelectorAll('.tab-item');
+            const panes = document.querySelectorAll('.tab-pane');
+
+            // Khôi phục trạng thái tab từ localStorage
+            function restoreActiveTab() {
+                tabs.forEach(t => t.classList.remove('active'));
+                panes.forEach(p => p.classList.remove('active'));
+                
+                const tabToActivate = document.querySelector(`.tab-item[data-tab="${activeTabId}"]`);
+                if (tabToActivate) {
+                    tabToActivate.classList.add('active');
+                    const targetPaneId = activeTabId + '-content';
+                    const targetPane = document.getElementById(targetPaneId);
+                    if (targetPane) {
+                        targetPane.classList.add('active');
+                    }
+                }
+            }
+            
+            // Khôi phục trạng thái tab khi trang được tải
+            restoreActiveTab();
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Deactivate all tabs and panes
+                    tabs.forEach(t => t.classList.remove('active'));
+                    panes.forEach(p => p.classList.remove('active'));
+
+                    // Activate clicked tab and corresponding pane
+                    tab.classList.add('active');
+                    const targetPaneId = tab.getAttribute('data-tab') + '-content';
+                    const targetPane = document.getElementById(targetPaneId);
+                    if (targetPane) {
+                        targetPane.classList.add('active');
+                        // Lưu trạng thái tab hiện tại vào localStorage
+                        activeTabId = tab.getAttribute('data-tab');
+                        localStorage.setItem('activeProfileTab', activeTabId);
+                    }
+                });
+            });
+
+            // Bookmark job functionality
+            document.querySelectorAll('.bookmark-icon').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const jobId = button.closest('.job-suggestion-card').dataset.id;
+                    const isSaved = button.classList.contains('saved');
+
+                    // Toggle UI state
+                    button.classList.toggle('saved');
+                    const icon = button.querySelector('i');
+                    icon.classList.toggle('far');
+                    icon.classList.toggle('fas');
+
+                    // Add AJAX call to save/remove bookmark
+                    fetch('/api/bookmarks', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            jobId: jobId,
+                            isBookmarked: !isSaved
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Bookmark updated:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error updating bookmark:', error);
+                        // Revert UI state if request failed
+                        button.classList.toggle('saved');
+                        icon.classList.toggle('far');
+                        icon.classList.toggle('fas');
+                    });
+                });
+            });
+
+            // Modal handling
+            function openModal(modalId) {
+                document.getElementById(modalId).classList.add('active');
+            }
+
+            function closeModal(modalId) {
+                document.getElementById(modalId).classList.remove('active');
+            }
+
+            function closeAllModals() {
+                document.querySelectorAll('.modal-overlay').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+
+            // Close modal when clicking outside the content
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        closeAllModals();
+                    }
+                });
+            });
+
+            // Close modal when clicking the close button
+            document.querySelectorAll('.modal-close').forEach(closeBtn => {
+                closeBtn.addEventListener('click', function() {
+                    closeAllModals();
+                });
+            });
+
+            // Close modal when pressing Escape
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    closeAllModals();
+                }
+            });
+
+            // Centralized modal form setup
+            function setupModalForms() {
+                // Education form setup
+                const educationForm = document.getElementById('education-form');
+                if (educationForm) {
+                    educationForm.addEventListener('submit', function(e) {
+                        e.preventDefault(); // Prevent default submission
+                        const educationId = this.querySelector('[name="EducationId"]').value;
+                        const action = educationId && parseInt(educationId) > 0 ?
+                            '/Interpreters/EditEducation' : '/Interpreters/AddEducation';
+                        
+                        // Use Ajax instead of form submit
+                        submitFormWithAjax(this, action, 'education');
+                    });
+                }
+
+                // Work Experience form setup
+                const experienceForm = document.getElementById('experience-form');
+                if (experienceForm) {
+                    experienceForm.addEventListener('submit', function(e) {
+                        e.preventDefault(); // Prevent default submission
+                        const experienceId = this.querySelector('[name="WorkExperienceId"]').value;
+                        const action = experienceId && parseInt(experienceId) > 0 ?
+                            '/Interpreters/EditWorkExperience' : '/Interpreters/AddWorkExperience';
+                        
+                        // Use Ajax instead of form submit
+                        submitFormWithAjax(this, action, 'experience');
+                    });
+                }
+
+                // Project form setup
+                const projectForm = document.getElementById('project-form');
+                if (projectForm) {
+                    projectForm.addEventListener('submit', function(e) {
+                        e.preventDefault(); // Prevent default submission
+                        const projectId = this.querySelector('[name="ProjectId"]').value;
+                        const action = projectId && parseInt(projectId) > 0 ?
+                            '/Interpreters/EditProject' : '/Interpreters/AddProject';
+                        
+                        // Use Ajax instead of form submit
+                        submitFormWithAjax(this, action, 'project');
+                    });
+                }
+
+                // Basic Info form setup
+                const basicInfoForm = document.getElementById('basic-info-form');
+                if (basicInfoForm) {
+                    basicInfoForm.addEventListener('submit', function(e) {
+                        e.preventDefault(); // Prevent default submission
+                        
+                        // Use Ajax instead of form submit
+                        submitFormWithAjax(this, '/Interpreters/UpdateBasicInfo', 'basicInfo');
+                    });
+                }
+
+                // Skills form setup
+                const skillsForm = document.getElementById('skills-form');
+                if (skillsForm) {
+                    skillsForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        submitFormWithAjax(this, '/Interpreters/UpdateSkills', 'skills');
+                    });
+                }
+
+                // Setup current/checkbox functionality
+                document.querySelectorAll('.current-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        const endDateField = this.closest('form').querySelector('[name$="EndDate"]');
+                        if (endDateField) {
+                            endDateField.disabled = this.checked;
+                            if (this.checked) {
+                                endDateField.value = '';
+                            }
+                        }
+                    });
+                });
+            }
+            
+            // Function to submit form with Ajax
+            function submitFormWithAjax(form, actionUrl, formType) {
+                // Show loading state
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.textContent;
+                submitBtn.textContent = 'Đang lưu...';
+                submitBtn.disabled = true;
+                
+                // Create FormData from form
+                const formData = new FormData(form);
+                
+                // Create fetch request
+                fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Show success notification
+                        showNotification('success', data.message || 'Cập nhật thành công');
+                        
+                        // Close the modal
+                        closeModal(form.closest('.modal-overlay').id);
+                        
+                        // Update UI based on the form type and response data
+                        updateUI(formType, data);
+                        
+                        // Đảm bảo tab "Hồ sơ của bạn" được hiển thị sau khi lưu
+                        if (activeTabId === 'profile') {
+                            restoreActiveTab();
+                        }
+                    } else {
+                        // Show error notification
+                        showNotification('error', data.message || 'Có lỗi xảy ra');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('error', 'Có lỗi xảy ra khi gửi dữ liệu');
+                })
+                .finally(() => {
+                    // Reset button state
+                    submitBtn.textContent = originalBtnText;
+                    submitBtn.disabled = false;
+                });
+            }
+            
+            // Function to show notification
+            function showNotification(type, message) {
+                // Check if notification container exists, if not create it
+                let notificationContainer = document.getElementById('notification-container');
+                if (!notificationContainer) {
+                    notificationContainer = document.createElement('div');
+                    notificationContainer.id = 'notification-container';
+                    notificationContainer.style.position = 'fixed';
+                    notificationContainer.style.top = '10px';
+                    notificationContainer.style.right = '10px';
+                    notificationContainer.style.zIndex = '9999';
+                    document.body.appendChild(notificationContainer);
+                }
+                
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.style.padding = '10px 15px';
+                notification.style.marginBottom = '10px';
+                notification.style.borderRadius = '4px';
+                notification.style.animation = 'fadeIn 0.3s ease-in';
+                
+                if (type === 'success') {
+                    notification.style.backgroundColor = '#4caf50';
+                    notification.style.color = 'white';
+                } else if (type === 'error') {
+                    notification.style.backgroundColor = '#f44336';
+                    notification.style.color = 'white';
+                }
+                
+                notification.textContent = message;
+                
+                // Add notification to container
+                notificationContainer.appendChild(notification);
+                
+                // Remove notification after 3 seconds
+                setTimeout(() => {
+                    notification.style.animation = 'fadeOut 0.3s ease-out';
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                }, 3000);
+            }
+            
+            // Function to update UI based on form type and data
+            function updateUI(formType, data) {
+                switch (formType) {
+                    case 'education':
+                        updateEducationUI(data.item);
+                        break;
+                    case 'experience':
+                        updateExperienceUI(data.item);
+                        break;
+                    case 'project':
+                        updateProjectUI(data.item);
+                        break;
+                    case 'skills':
+                        updateSkillsUI(data.skills);
+                        break;
+                    case 'basicInfo':
+                        updateBasicInfoUI(data.item);
+                        break;
+                }
+            }
+            
+            // Function to update basic info section
+            function updateBasicInfoUI(basicInfo) {
+                if (!basicInfo) return;
+                
+                // Cập nhật thông tin header
+                const profileName = document.querySelector('.profile-name');
+                if (profileName) {
+                    profileName.textContent = basicInfo.interpreterName;
+                }
+                
+                // Cập nhật thông tin giới tính và tuổi
+                const profileDetails = document.querySelector('.profile-details');
+                if (profileDetails && basicInfo.gender && basicInfo.age) {
+                    profileDetails.textContent = `Giới tính: ${basicInfo.gender} - Tuổi: ${basicInfo.age}`;
+                }
+                
+                // Cập nhật các chi tiết trong phần thông tin cơ bản
+                const detailsList = document.querySelectorAll('.name-section .details-list .detail-item');
+                if (detailsList && detailsList.length > 0) {
+                    // Cập nhật lĩnh vực
+                    const fieldItem = detailsList[0].querySelector('span');
+                    if (fieldItem) {
+                        fieldItem.textContent = `Lĩnh vực: ${basicInfo.field || 'Không có thông tin'}`;
+                    }
+                    
+                    // Cập nhật kinh nghiệm
+                    const experienceItem = detailsList[1].querySelector('span');
+                    if (experienceItem) {
+                        experienceItem.textContent = `Kinh nghiệm: ${basicInfo.experienceText || 'Không có thông tin'}`;
+                    }
+                    
+                    // Cập nhật địa chỉ làm việc
+                    const locationItem = detailsList[2].querySelector('span');
+                    if (locationItem) {
+                        locationItem.textContent = `Địa chỉ làm việc: ${basicInfo.workLocation || 'Không có thông tin'}`;
+                    }
+                }
+                
+                // Cập nhật mức độ hoàn thành hồ sơ nếu có
+                if (basicInfo.profileCompletionPercentage) {
+                    const progressBar = document.querySelector('.progress-bar');
+                    if (progressBar) {
+                        progressBar.style.width = `${basicInfo.profileCompletionPercentage}%`;
+                    }
+                }
+                
+                console.log('Đã cập nhật thông tin cơ bản:', basicInfo);
+            }
+            
+            // Function to update education section
+            function updateEducationUI(education) {
+                const educationSection = document.querySelector('.profile-section.education .section-content');
+                if (!educationSection) return;
+                
+                // Format dates for display
+                const startDateFormatted = formatDateForDisplay(education.startDate);
+                const endDateFormatted = education.endDate ? formatDateForDisplay(education.endDate) : 'Hiện tại';
+                
+                // Check if this is an edit or a new item
+                const existingItem = document.querySelector(`.education-item[data-id="${education.educationId}"]`);
+                
+                if (existingItem) {
+                    // Update existing item
+                    existingItem.querySelector('h5').textContent = education.schoolName;
+                    existingItem.querySelectorAll('p')[0].textContent = `${education.degree} - ${education.major}`;
+                    existingItem.querySelectorAll('p')[1].textContent = `${startDateFormatted} - ${endDateFormatted}`;
+                    if (existingItem.querySelectorAll('p')[2]) {
+                        existingItem.querySelectorAll('p')[2].textContent = education.description || '';
+                    }
+                } else {
+                    // Create new item
+                    const placeholder = educationSection.querySelector('p:not(.education-item)');
+                    if (placeholder) {
+                        placeholder.remove(); // Remove "No education" message if exists
+                    }
+                    
+                    // Create new element
+                    const newEducationItem = document.createElement('div');
+                    newEducationItem.className = 'education-item';
+                    newEducationItem.dataset.id = education.educationId;
+                    
+                    newEducationItem.innerHTML = `
+                        <h5>${education.schoolName}</h5>
+                        <p>${education.degree} - ${education.major}</p>
+                        <p>${startDateFormatted} - ${endDateFormatted}</p>
+                        ${education.description ? `<p>${education.description}</p>` : ''}
+                        <div class="item-actions">
+                            <button class="btn-edit-item" data-modal="education-modal" data-id="${education.educationId}">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            <button class="btn-delete-item" data-type="education" data-id="${education.educationId}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Insert before the "Add" button
+                    const addButton = educationSection.querySelector('.btn-add-section-secondary');
+                    educationSection.insertBefore(newEducationItem, addButton);
+                    
+                    // Attach event listeners to the new buttons
+                    setupNewItemButtons(newEducationItem);
+                }
+            }
+            
+            // Function to update experience section
+            function updateExperienceUI(experience) {
+                const experienceSection = document.querySelector('.profile-section.experience .section-content');
+                if (!experienceSection) return;
+                
+                // Format dates for display
+                const startDateFormatted = formatDateForDisplay(experience.startDate);
+                const endDateFormatted = experience.endDate ? formatDateForDisplay(experience.endDate) : 'Hiện tại';
+                
+                // Check if this is an edit or a new item
+                const existingItem = document.querySelector(`.experience-item[data-id="${experience.workExperienceId}"]`);
+                
+                if (existingItem) {
+                    // Update existing item
+                    existingItem.querySelector('h5').textContent = experience.jobTitle;
+                    existingItem.querySelectorAll('p')[0].textContent = experience.companyName;
+                    existingItem.querySelectorAll('p')[1].textContent = `${startDateFormatted} - ${endDateFormatted}`;
+                    
+                    let descElem = existingItem.querySelector('.experience-description');
+                    if (experience.jobDescription) {
+                        if (descElem) {
+                            descElem.textContent = experience.jobDescription;
+                        } else {
+                            descElem = document.createElement('p');
+                            descElem.className = 'experience-description';
+                            descElem.textContent = experience.jobDescription;
+                            existingItem.insertBefore(descElem, existingItem.querySelector('.item-actions'));
+                        }
+                    } else if (descElem) {
+                        descElem.remove();
+                    }
+                } else {
+                    // Create new item
+                    const placeholder = experienceSection.querySelector('p:not(.experience-item)');
+                    if (placeholder) {
+                        placeholder.remove(); // Remove "No experience" message if exists
+                    }
+                    
+                    // Create new element
+                    const newExperienceItem = document.createElement('div');
+                    newExperienceItem.className = 'experience-item';
+                    newExperienceItem.dataset.id = experience.workExperienceId;
+                    
+                    newExperienceItem.innerHTML = `
+                        <h5>${experience.jobTitle}</h5>
+                        <p>${experience.companyName}</p>
+                        <p>${startDateFormatted} - ${endDateFormatted}</p>
+                        ${experience.jobDescription ? `<p class="experience-description">${experience.jobDescription}</p>` : ''}
+                        <div class="item-actions">
+                            <button class="btn-edit-item" data-modal="experience-modal" data-id="${experience.workExperienceId}">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            <button class="btn-delete-item" data-type="experience" data-id="${experience.workExperienceId}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Insert before the "Add" button
+                    const addButton = experienceSection.querySelector('.btn-add-section-secondary');
+                    experienceSection.insertBefore(newExperienceItem, addButton);
+                    
+                    // Attach event listeners to the new buttons
+                    setupNewItemButtons(newExperienceItem);
+                }
+            }
+            
+            // Function to update project section
+            function updateProjectUI(project) {
+                const projectSection = document.querySelector('.profile-section.projects .section-content');
+                if (!projectSection) return;
+                
+                // Format dates for display
+                const startDateFormatted = formatDateForDisplay(project.startDate);
+                const endDateFormatted = project.endDate ? formatDateForDisplay(project.endDate) : 'Hiện tại';
+                
+                // Check if this is an edit or a new item
+                const existingItem = document.querySelector(`.project-item[data-id="${project.projectId}"]`);
+                
+                if (existingItem) {
+                    // Update existing item
+                    existingItem.querySelector('h5').textContent = project.projectName;
+                    existingItem.querySelector('p').textContent = `${startDateFormatted} - ${endDateFormatted}`;
+                    
+                    let descElem = existingItem.querySelector('.project-description');
+                    if (project.description) {
+                        if (descElem) {
+                            descElem.textContent = project.description;
+                        } else {
+                            descElem = document.createElement('p');
+                            descElem.className = 'project-description';
+                            descElem.textContent = project.description;
+                            existingItem.insertBefore(descElem, existingItem.querySelector('.item-actions'));
+                        }
+                    } else if (descElem) {
+                        descElem.remove();
+                    }
+                } else {
+                    // Create new item
+                    const placeholder = projectSection.querySelector('p:not(.project-item)');
+                    if (placeholder) {
+                        placeholder.remove(); // Remove "No projects" message if exists
+                    }
+                    
+                    // Create new element
+                    const newProjectItem = document.createElement('div');
+                    newProjectItem.className = 'project-item';
+                    newProjectItem.dataset.id = project.projectId;
+                    
+                    newProjectItem.innerHTML = `
+                        <h5>${project.projectName}</h5>
+                        <p>${startDateFormatted} - ${endDateFormatted}</p>
+                        ${project.description ? `<p class="project-description">${project.description}</p>` : ''}
+                        <div class="item-actions">
+                            <button class="btn-edit-item" data-modal="project-modal" data-id="${project.projectId}">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            <button class="btn-delete-item" data-type="project" data-id="${project.projectId}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Insert before the "Add" button
+                    const addButton = projectSection.querySelector('.btn-add-section-secondary');
+                    projectSection.insertBefore(newProjectItem, addButton);
+                    
+                    // Attach event listeners to the new buttons
+                    setupNewItemButtons(newProjectItem);
+                }
+            }
+            
+            // Function to update skills section
+            function updateSkillsUI(skills) {
+                const skillsContainer = document.querySelector('.skills-container');
+                const skillsSection = document.querySelector('.profile-section.skills .section-content');
+                
+                if (!skillsSection) return;
+                
+                // Clear current skills
+                if (skillsContainer) {
+                    skillsContainer.innerHTML = '';
+                } else {
+                    // If no skills container exists, create one
+                    const newSkillsContainer = document.createElement('div');
+                    newSkillsContainer.className = 'skills-container';
+                    
+                    // Remove placeholder text if exists
+                    const placeholder = skillsSection.querySelector('p');
+                    if (placeholder) {
+                        skillsSection.replaceChild(newSkillsContainer, placeholder);
+                    } else {
+                        const addButton = skillsSection.querySelector('.btn-add-section-secondary');
+                        skillsSection.insertBefore(newSkillsContainer, addButton);
+                    }
+                }
+                
+                // Add new skills
+                if (skills && skills.length > 0) {
+                    const skillsArray = skills.split(',');
+                    const container = skillsContainer || skillsSection.querySelector('.skills-container');
+                    
+                    skillsArray.forEach(skill => {
+                        if (skill.trim()) {
+                            const skillTag = document.createElement('span');
+                            skillTag.className = 'skill-tag';
+                            skillTag.textContent = skill.trim();
+                            container.appendChild(skillTag);
+                        }
+                    });
+                }
+            }
+            
+            // Helper function to format date for display (MM/yyyy)
+            function formatDateForDisplay(dateString) {
+                const date = new Date(dateString);
+                return `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+            }
+            
+            // Function to attach event listeners to new buttons
+            function setupNewItemButtons(itemElement) {
+                // Set up edit button
+                const editBtn = itemElement.querySelector('.btn-edit-item');
+                if (editBtn) {
+                    editBtn.addEventListener('click', function() {
+                        const modalId = this.dataset.modal;
+                        const itemId = this.dataset.id;
+                        
+                        // Reset the modal form and populate it with item data
+                        const modal = document.getElementById(modalId);
+                        if (modal) {
+                            // Update modal title
+                            switch(modalId) {
+                                case 'education-modal':
+                                    modal.querySelector('.modal-title').textContent = 'Chỉnh sửa thông tin học vấn';
+                                    break;
+                                case 'experience-modal':
+                                    modal.querySelector('.modal-title').textContent = 'Chỉnh sửa kinh nghiệm làm việc';
+                                    break;
+                                case 'project-modal':
+                                    modal.querySelector('.modal-title').textContent = 'Chỉnh sửa dự án/thành tựu';
+                                    break;
+                            }
+                            
+                            // Populate form with data
+                            populateModalForm(modalId, parseInt(itemId));
+                            openModal(modalId);
+                        }
+                    });
+                }
+                
+                // Set up delete button
+                const deleteBtn = itemElement.querySelector('.btn-delete-item');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function() {
+                        const itemId = this.dataset.id;
+                        const itemType = this.dataset.type;
+                        
+                        // Set values in the confirmation modal
+                        document.getElementById('delete-item-id').value = itemId;
+                        document.getElementById('delete-item-type').value = itemType;
+                        
+                        // Show confirmation modal
+                        openModal('confirm-delete-modal');
+                    });
+                }
+            }
+
+            // Gọi hàm setup ngay sau khi DOM load
+            setupModalForms();
+
+            // Open modal buttons - đã cập nhật phần này
+            document.querySelectorAll('[data-modal]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const modalId = this.dataset.modal;
+                    const modal = document.getElementById(modalId);
+
+                    // Đặt lại title theo mặc định cho mỗi loại modal
+                    switch(modalId) {
+                        case 'education-modal':
+                            modal.querySelector('.modal-title').textContent = 'Thông tin học vấn';
+                            break;
+                        case 'experience-modal':
+                            modal.querySelector('.modal-title').textContent = 'Kinh nghiệm làm việc';
+                            break;
+                        case 'project-modal':
+                            modal.querySelector('.modal-title').textContent = 'Dự án/Thành tựu';
+                            break;
+                        // Thêm case cho các modal khác nếu cần
+                    }
+
+                    // Reset form if no ID is provided (adding new item)
+                    if (!this.dataset.id) {
+                        resetModalForm(modalId);
+
+                        // Cập nhật tiêu đề modal cho trường hợp thêm mới
+                        switch(modalId) {
+                            case 'education-modal':
+                                modal.querySelector('.modal-title').textContent = 'Thêm thông tin học vấn';
+                                break;
+                            case 'experience-modal':
+                                modal.querySelector('.modal-title').textContent = 'Thêm kinh nghiệm làm việc';
+                                break;
+                            case 'project-modal':
+                                modal.querySelector('.modal-title').textContent = 'Thêm dự án/thành tựu';
+                                break;
+                            case 'basic-info-modal':
+                                // Khi mở modal chỉnh sửa thông tin cơ bản, điền thông tin từ DOM vào form
+                                populateBasicInfoForm(modal.querySelector('form'));
+                                modal.querySelector('.modal-title').textContent = 'Chỉnh sửa thông tin cơ bản';
+                                break;
+                            // Thêm case cho các modal khác nếu cần
+                        }
+                    } else {
+                        // Find the item data and populate the form for editing
+                        const itemId = parseInt(this.dataset.id);
+                        populateModalForm(modalId, itemId);
+
+                        // Cập nhật tiêu đề modal cho trường hợp chỉnh sửa
+                        switch(modalId) {
+                            case 'education-modal':
+                                modal.querySelector('.modal-title').textContent = 'Chỉnh sửa thông tin học vấn';
+                                break;
+                            case 'experience-modal':
+                                modal.querySelector('.modal-title').textContent = 'Chỉnh sửa kinh nghiệm làm việc';
+                                break;
+                            case 'project-modal':
+                                modal.querySelector('.modal-title').textContent = 'Chỉnh sửa dự án/thành tựu';
+                                break;
+                            // Thêm case cho các modal khác nếu cần
+                        }
+                    }
+
+                    openModal(modalId);
+                });
+            });
+
+            // Function to populate modal form with existing data
+            function populateModalForm(modalId, itemId) {
+                const form = document.querySelector(`#${modalId} form`);
+                if (!form) return;
+
+                // Reset form first
+                form.reset();
+
+                // Handle different form types
+                switch (modalId) {
+                    case 'education-modal':
+                        populateEducationForm(form, itemId);
+                        break;
+                    case 'experience-modal':
+                        populateExperienceForm(form, itemId);
+                        break;
+                    case 'project-modal':
+                        populateProjectForm(form, itemId);
+                        break;
+                    // Add cases for other modal types as needed
+                }
+            }
+
+            // Function to populate education form
+            function populateEducationForm(form, educationId) {
+                const educationItem = document.querySelector(`.education-item[data-id="${educationId}"]`);
+                if (!educationItem) return;
+
+                form.querySelector('[name="EducationId"]').value = educationId;
+                form.querySelector('[name="SchoolName"]').value = educationItem.querySelector('h5').textContent;
+
+                const degreeAndMajor = educationItem.querySelector('p').textContent.split(' - ');
+                form.querySelector('[name="Degree"]').value = degreeAndMajor[0];
+                form.querySelector('[name="Major"]').value = degreeAndMajor[1];
+
+                const dates = educationItem.querySelectorAll('p')[1].textContent.split(' - ');
+                const startDate = parseDisplayDate(dates[0]);
+                form.querySelector('[name="StartDate"]').value = formatDateForInput(startDate);
+
+                if (dates[1] !== "Hiện tại") {
+                    const endDate = parseDisplayDate(dates[1]);
+                    form.querySelector('[name="EndDate"]').value = formatDateForInput(endDate);
+                    form.querySelector('#current-education').checked = false;
+                    form.querySelector('[name="EndDate"]').disabled = false;
+                } else {
+                    form.querySelector('[name="EndDate"]').value = '';
+                    form.querySelector('#current-education').checked = true;
+                    form.querySelector('[name="EndDate"]').disabled = true;
+                }
+
+                // Lấy và điền thông tin mô tả
+                const descriptionParagraph = educationItem.querySelectorAll('p')[2]; // lấy phần tử p thứ 3 (index 2)
+                if (descriptionParagraph) {
+                    form.querySelector('[name="Description"]').value = descriptionParagraph.textContent;
+                }
+            }
+
+            // Function to populate experience form
+            function populateExperienceForm(form, experienceId) {
+                const experienceItem = document.querySelector(`.experience-item[data-id="${experienceId}"]`);
+                if (!experienceItem) return;
+
+                form.querySelector('[name="WorkExperienceId"]').value = experienceId;
+                form.querySelector('[name="JobTitle"]').value = experienceItem.querySelector('h5').textContent;
+                form.querySelector('[name="CompanyName"]').value = experienceItem.querySelector('p').textContent;
+
+                const dates = experienceItem.querySelectorAll('p')[1].textContent.split(' - ');
+                const startDate = parseDisplayDate(dates[0]);
+                form.querySelector('[name="StartDate"]').value = formatDateForInput(startDate);
+
+                if (dates[1] !== "Hiện tại") {
+                    const endDate = parseDisplayDate(dates[1]);
+                    form.querySelector('[name="EndDate"]').value = formatDateForInput(endDate);
+                    form.querySelector('#current-job').checked = false;
+                    form.querySelector('[name="EndDate"]').disabled = false;
+                } else {
+                    form.querySelector('[name="EndDate"]').value = '';
+                    form.querySelector('#current-job').checked = true;
+                    form.querySelector('[name="EndDate"]').disabled = true;
+                }
+
+                const descriptionElem = experienceItem.querySelector('.experience-description');
+                form.querySelector('[name="JobDescription"]').value = descriptionElem ? descriptionElem.textContent : '';
+            }
+
+            // Function to populate project form
+            function populateProjectForm(form, projectId) {
+                const projectItem = document.querySelector(`.project-item[data-id="${projectId}"]`);
+                if (!projectItem) return;
+
+                form.querySelector('[name="ProjectId"]').value = projectId;
+                form.querySelector('[name="ProjectName"]').value = projectItem.querySelector('h5').textContent;
+
+                const dates = projectItem.querySelector('p').textContent.split(' - ');
+                const startDate = parseDisplayDate(dates[0]);
+                form.querySelector('[name="StartDate"]').value = formatDateForInput(startDate);
+
+                if (dates[1] !== "Hiện tại") {
+                    const endDate = parseDisplayDate(dates[1]);
+                    form.querySelector('[name="EndDate"]').value = formatDateForInput(endDate);
+                    form.querySelector('#current-project').checked = false;
+                    form.querySelector('[name="EndDate"]').disabled = false;
+                } else {
+                    form.querySelector('[name="EndDate"]').value = '';
+                    form.querySelector('#current-project').checked = true;
+                    form.querySelector('[name="EndDate"]').disabled = true;
+                }
+
+                const descriptionElem = projectItem.querySelector('.project-description');
+                form.querySelector('[name="Description"]').value = descriptionElem ? descriptionElem.textContent : '';
+            }
+
+            // Function to populate basic info form with current data from the DOM
+            function populateBasicInfoForm(form) {
+                if (!form) return;
+                
+                // Lấy thông tin tên người dùng từ header
+                const interpreterNameElem = document.querySelector('.profile-name');
+                if (interpreterNameElem) {
+                    form.querySelector('[name="InterpreterName"]').value = interpreterNameElem.textContent.trim();
+                }
+                
+                // Lấy thông tin giới tính từ profile-details
+                const profileDetailsElem = document.querySelector('.profile-details');
+                if (profileDetailsElem) {
+                    const detailsText = profileDetailsElem.textContent.trim();
+                    const genderMatch = detailsText.match(/Giới tính: ([^-]+)/);
+                    if (genderMatch && genderMatch[1]) {
+                        const gender = genderMatch[1].trim();
+                        const genderSelect = form.querySelector('[name="Gender"]');
+                        if (genderSelect) {
+                            // Tìm option phù hợp và đặt selected
+                            Array.from(genderSelect.options).forEach(option => {
+                                if (option.value === gender) {
+                                    option.selected = true;
+                                }
+                            });
+                        }
+                    }
+                }
+                
+                // Lấy thông tin lĩnh vực, kinh nghiệm, địa chỉ từ section thông tin cơ bản
+                const detailItems = document.querySelectorAll('.name-section .details-list .detail-item');
+                if (detailItems && detailItems.length >= 3) {
+                    // Lấy lĩnh vực
+                    const fieldText = detailItems[0].querySelector('span').textContent.trim();
+                    const fieldMatch = fieldText.match(/Lĩnh vực: (.+)/);
+                    if (fieldMatch && fieldMatch[1] && fieldMatch[1] !== 'Không có thông tin') {
+                        form.querySelector('[name="Field"]').value = fieldMatch[1].trim();
+                    }
+                    
+                    // Lấy kinh nghiệm
+                    const experienceText = detailItems[1].querySelector('span').textContent.trim();
+                    const experienceMatch = experienceText.match(/Kinh nghiệm: (.+)/);
+                    if (experienceMatch && experienceMatch[1]) {
+                        const experience = experienceMatch[1].trim();
+                        const experienceSelect = form.querySelector('[name="YearsOfExperience"]');
+                        if (experienceSelect) {
+                            // Map text experience to value
+                            let experienceValue;
+                            switch(experience) {
+                                case 'Dưới 1 năm': experienceValue = '0'; break;
+                                case '1 năm': experienceValue = '1'; break;
+                                case '2 năm': experienceValue = '2'; break;
+                                case '3 năm': experienceValue = '3'; break;
+                                case '4 năm': experienceValue = '4'; break;
+                                case '5 năm': experienceValue = '5'; break;
+                                case 'Hơn 5 năm': experienceValue = '6'; break;
+                                default: experienceValue = '0';
+                            }
+                            
+                            // Tìm option phù hợp và đặt selected
+                            Array.from(experienceSelect.options).forEach(option => {
+                                if (option.value == experienceValue) {
+                                    option.selected = true;
+                                }
+                            });
+                        }
+                    }
+                    
+                    // Lấy địa chỉ làm việc
+                    const locationText = detailItems[2].querySelector('span').textContent.trim();
+                    const locationMatch = locationText.match(/Địa chỉ làm việc: (.+)/);
+                    if (locationMatch && locationMatch[1] && locationMatch[1] !== 'Không có thông tin') {
+                        form.querySelector('[name="WorkLocation"]').value = locationMatch[1].trim();
+                    }
+                }
+                
+                console.log('Đã điền thông tin cơ bản vào form');
+            }
+
+            // Helper function to parse display date (MM/yyyy)
+            function parseDisplayDate(displayDate) {
+                const parts = displayDate.trim().split('/');
+                if (parts.length === 2) {
+                    const month = parseInt(parts[0]);
+                    const year = parseInt(parts[1]);
+                    return new Date(year, month - 1, 1);
+                }
+                return new Date();
+            }
+
+            // Helper function to format date for input fields (yyyy-MM-dd)
+            function formatDateForInput(date) {
+                return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-01`;
+            }
+
+            // Function to reset modal form - đã cập nhật
+            function resetModalForm(modalId) {
+                const form = document.querySelector(`#${modalId} form`);
+                if (!form) return;
+
+                form.reset();
+
+                // Ensure the InterpreterId is maintained for new items
+                const interpreterIdInput = form.querySelector('[name$="InterpreterId"]');
+                if (interpreterIdInput && interpreterIdInput.value === '0') {
+                    // If InterpreterId is 0, we need to get the current interpreter ID
+                    // This can be added as a data attribute to the body or other element
+                    const currentInterpreterId = document.body.dataset.interpreterId;
+                    if (currentInterpreterId) {
+                        interpreterIdInput.value = currentInterpreterId;
+                    }
+                }
+
+                // Reset ID fields
+                switch(modalId) {
+                    case 'education-modal':
+                        form.querySelector('[name="EducationId"]').value = '0';
+                        // Enable end date by default when adding new
+                        form.querySelector('#current-education').checked = false;
+                        form.querySelector('[name="EndDate"]').disabled = false;
+                        break;
+                    case 'experience-modal':
+                        form.querySelector('[name="WorkExperienceId"]').value = '0';
+                        // Enable end date by default when adding new
+                        form.querySelector('#current-job').checked = false;
+                        form.querySelector('[name="EndDate"]').disabled = false;
+                        break;
+                    case 'project-modal':
+                        form.querySelector('[name="ProjectId"]').value = '0';
+                        // Enable end date by default when adding new
+                        const currentProjectCheckbox = form.querySelector('#current-project');
+                        if (currentProjectCheckbox) {
+                            currentProjectCheckbox.checked = false;
+                            form.querySelector('[name="EndDate"]').disabled = false;
+                        }
+                        break;
+                    // Add cases for other modal types
+                }
+            }
+
+            // Delete item functionality
+            document.querySelectorAll('.btn-delete-item').forEach(button => {
+                button.addEventListener('click', function() {
+                    const itemId = this.dataset.id;
+                    const itemType = this.dataset.type;
+
+                    // Set values in the confirmation modal
+                    document.getElementById('delete-item-id').value = itemId;
+                    document.getElementById('delete-item-type').value = itemType;
+
+                    // Show confirmation modal
+                    openModal('confirm-delete-modal');
+                });
+            });
+
+            // Handle cancel delete
+            document.getElementById('cancel-delete-btn').addEventListener('click', function() {
+                closeModal('confirm-delete-modal');
+            });
+
+            // Handle confirm delete
+            document.getElementById('confirm-delete-btn').addEventListener('click', function() {
+                const itemId = document.getElementById('delete-item-id').value;
+                const itemType = document.getElementById('delete-item-type').value;
+
+                // Disable delete button to prevent multiple clicks
+                this.disabled = true;
+                this.textContent = 'Đang xóa...';
+
+                // Create the appropriate URL based on item type
+                let deleteUrl;
+                switch (itemType) {
+                    case 'education':
+                        deleteUrl = `/Interpreters/DeleteEducation/${itemId}`;
+                        break;
+                    case 'experience':
+                        deleteUrl = `/Interpreters/DeleteWorkExperience/${itemId}`;
+                        break;
+                    case 'project':
+                        deleteUrl = `/Interpreters/DeleteProject/${itemId}`;
+                        break;
+                    default:
+                        closeModal('confirm-delete-modal');
+                        return;
+                }
+
+                // Use fetch API for AJAX deletion
+                fetch(deleteUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `__RequestVerificationToken=${document.querySelector('input[name="__RequestVerificationToken"]').value}`
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Show success notification
+                        showNotification('success', data.message || 'Xóa thành công');
+                        
+                        // Remove the item from the UI
+                        const itemToRemove = document.querySelector(`.${itemType}-item[data-id="${itemId}"]`);
+                        if (itemToRemove) {
+                            itemToRemove.remove();
+                        }
+
+                        // Check if this was the last item in its section
+                        const sectionContent = document.querySelector(`.profile-section.${itemType === 'experience' ? 'experience' : itemType === 'education' ? 'education' : 'projects'} .section-content`);
+                        if (sectionContent) {
+                            const remainingItems = sectionContent.querySelectorAll(`.${itemType}-item`);
+                            if (remainingItems.length === 0) {
+                                // Add a placeholder text if no items left
+                                const placeholder = document.createElement('p');
+                                switch (itemType) {
+                                    case 'education':
+                                        placeholder.textContent = 'Bạn chưa thêm thông tin học vấn. Hãy thêm để hoàn thiện hồ sơ.';
+                                        break;
+                                    case 'experience':
+                                        placeholder.textContent = 'Bạn chưa thêm kinh nghiệm làm việc. Hãy thêm để hoàn thiện hồ sơ.';
+                                        break;
+                                    case 'project':
+                                        placeholder.textContent = 'Bạn chưa thêm dự án hoặc thành tựu. Hãy thêm để hoàn thiện hồ sơ.';
+                                        break;
+                                }
+                                
+                                // Insert before the "Add" button
+                                const addButton = sectionContent.querySelector('.btn-add-section-secondary');
+                                sectionContent.insertBefore(placeholder, addButton);
+                            }
+                        }
+                    } else {
+                        // Show error notification
+                        showNotification('error', data.message || 'Có lỗi xảy ra khi xóa');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('error', 'Có lỗi xảy ra khi xóa');
+                })
+                .finally(() => {
+                    // Close modal and reset button
+                    closeModal('confirm-delete-modal');
+                    this.disabled = false;
+                    this.textContent = 'Xóa';
+                });
+            });
+
+            // Handle other action buttons
+            document.getElementById('download-pdf-btn')?.addEventListener('click', function() {
+                window.location.href = '/Interpreters/DownloadProfilePdf';
+            });
+
+            document.getElementById('share-profile-btn')?.addEventListener('click', function() {
+                alert('Tính năng đang phát triển');
+            });
+
+            document.getElementById('add-section-btn')?.addEventListener('click', function() {
+                alert('Tính năng đang phát triển');
+            });
+        });
+
+
+    </script>
+}
+

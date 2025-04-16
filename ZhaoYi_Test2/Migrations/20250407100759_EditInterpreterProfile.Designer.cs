@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ZhaoYi_Test2.Data;
 
@@ -11,9 +12,11 @@ using ZhaoYi_Test2.Data;
 namespace ZhaoYi_Test2.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250407100759_EditInterpreterProfile")]
+    partial class EditInterpreterProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -263,7 +266,7 @@ namespace ZhaoYi_Test2.Migrations
 
                     b.HasIndex("InterpreterId");
 
-                    b.ToTable("InterpreterEducations", (string)null);
+                    b.ToTable("Educations");
                 });
 
             modelBuilder.Entity("ZhaoYi_Test2.Models.Interpreter", b =>
@@ -285,10 +288,6 @@ namespace ZhaoYi_Test2.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("Field")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Gender")
                         .IsRequired()
@@ -478,7 +477,7 @@ namespace ZhaoYi_Test2.Migrations
 
                     b.HasIndex("InterpreterId");
 
-                    b.ToTable("InterpreterProjects", (string)null);
+                    b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("ZhaoYi_Test2.Models.Recruiter", b =>
@@ -554,7 +553,7 @@ namespace ZhaoYi_Test2.Migrations
 
                     b.HasIndex("InterpreterId");
 
-                    b.ToTable("InterpreterWorkExperiences", (string)null);
+                    b.ToTable("WorkExperiences");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

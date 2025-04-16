@@ -1,0 +1,203 @@
+﻿@model ZhaoYi_Test2.Models.Recruiter
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Hồ sơ Nhà tuyển dụng"; // Đổi Title
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+    ViewData["UserRole"] = "Recruiter";
+    ViewData["ShowBottomNav"] = false;
+
+    // Lấy đường dẫn avatar hiện tại từ Model để hiển thị ban đầu
+    var currentAvatarUrl = !string.IsNullOrEmpty(Model.AvatarPath) ? Url.Content($"~/uploads/avatars/{Model.AvatarPath}") : Url.Content("~/images/user.png");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/job-creation.css" asp-append-version="true" />
+    <style>
+        .mobile-screen {
+            padding-bottom: 0 !important;
+        }
+
+        .field-validation-error {
+            color: #dc3545;
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .input-validation-error {
+            border-color: #dc3545 !important;
+        }
+
+        .validation-summary-errors ul {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        .validation-summary-errors li {
+            color: #dc3545;
+            margin-bottom: 5px;
+        }
+
+
+
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px solid #eee;
+            margin-bottom: 10px;
+            object-fit: cover;
+            cursor: pointer;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .avatar-upload-label {
+            display: block;
+            text-align: center;
+            color: #ff8c00;
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+
+        #AvatarInput {
+            display: none;
+        }
+        /* Thêm style cho checkbox remove avatar */
+        .remove-avatar-check {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+
+            .remove-avatar-check input {
+                margin-right: 5px;
+                width: auto; /* Reset width */
+            }
+
+            .remove-avatar-check label {
+                margin-bottom: 0; /* Override default label margin */
+            }
+    </style>
+}
+
+<div class="mobile-screen job-creation-page">
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1 class="page-title">Chỉnh sửa Hồ sơ</h1>
+    </header>
+
+    <!-- Form Area -->
+    <div class="form-area">
+        <form method="post" asp-action="EditProfile" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger validation-summary-errors"></div>
+            @Html.AntiForgeryToken()
+            @* Input ẩn quan trọng để xác định đúng record cần update *@
+            <input type="hidden" asp-for="RecruiterId" />
+            <input type="hidden" asp-for="UserId" />
+            @* Input ẩn để giữ lại AvatarPath nếu không thay đổi/xóa *@
+            <input type="hidden" asp-for="AvatarPath" id="CurrentAvatarPathInput" />
+
+
+            <div class="form-section">
+                <h2 class="section-title">Thông tin Nhà tuyển dụng</h2>
+
+                @* Phần upload/xóa Avatar *@
+                <div class="form-group text-center">
+                    @* Hiển thị avatar hiện tại *@
+                    <img id="AvatarPreview" src="@currentAvatarUrl" alt="Ảnh đại diện" class="avatar-preview" onclick="document.getElementById('AvatarInput').click();" />
+                    <label for="AvatarInput" class="avatar-upload-label">Nhấn vào ảnh để thay đổi</label>
+                    <input type="file" id="AvatarInput" name="avatarFile" accept="image/*" class="form-control" style="display:none;" onchange="previewAvatar(event)" />
+                    @* Checkbox để xóa avatar *@
+                    <div class="remove-avatar-check">
+                        <input type="checkbox" id="removeAvatar" name="removeAvatar" value="true">
+                        <label for="removeAvatar">Xóa ảnh đại diện hiện tại</label>
+                    </div>
+                    <span asp-validation-for="AvatarPath" class="text-danger"></span>
+                    <span class="field-validation-valid text-danger" data-valmsg-for="avatarFile"></span> @* Hiển thị lỗi từ avatarFile *@
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="RecruiterName" class="form-label"></label>
+                    <input asp-for="RecruiterName" class="form-control" placeholder="Nhập tên công ty hoặc tên nhà tuyển dụng">
+                    <span asp-validation-for="RecruiterName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="WorkLocation" class="form-label"></label>
+                    <input asp-for="WorkLocation" class="form-control" placeholder="Ví dụ: Hà Nội, TP. Hồ Chí Minh">
+                    <span asp-validation-for="WorkLocation" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="DetailedAddress" class="form-label"></label>
+                    <textarea asp-for="DetailedAddress" class="form-control" rows="3" placeholder="Nhập địa chỉ chi tiết"></textarea>
+                    <span asp-validation-for="DetailedAddress" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-navigation">
+                @* Nút quay lại trang Profile chính *@
+                <a asp-controller="Recruiters" asp-action="Profile" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Hủy
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    Lưu thay đổi <i class="fas fa-save"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Script để preview ảnh avatar (giống CreateProfile)
+        function previewAvatar(event) {
+            const reader = new FileReader();
+            const output = document.getElementById('AvatarPreview');
+            const currentPathInput = document.getElementById('CurrentAvatarPathInput'); // Input ẩn giữ path cũ
+
+            reader.onload = function(){
+                output.src = reader.result;
+                 // Khi chọn file mới, xóa giá trị path cũ trong input ẩn nếu có
+                 // if(currentPathInput) currentPathInput.value = ''; // Không cần thiết nữa vì controller xử lý
+            };
+
+            if (event.target.files[0]) {
+                 reader.readAsDataURL(event.target.files[0]);
+                 // Bỏ check xóa nếu người dùng chọn ảnh mới
+                 document.getElementById('removeAvatar').checked = false;
+            } else {
+                 // Reset về ảnh mặc định nếu hủy chọn file
+                 // Giữ lại ảnh cũ nếu có, hoặc ảnh mặc định nếu chưa có avatar
+                 const originalAvatar = '@currentAvatarUrl'; // Lấy path gốc từ C#
+                 output.src = originalAvatar || '/images/user.png';
+            }
+        }
+
+         // Xử lý khi check/uncheck xóa avatar
+         const removeCheckbox = document.getElementById('removeAvatar');
+         if (removeCheckbox) {
+             removeCheckbox.addEventListener('change', function() {
+                 if (this.checked) {
+                     // Nếu check xóa, reset preview về ảnh mặc định và xóa file đã chọn (nếu có)
+                     document.getElementById('AvatarPreview').src = '/images/user.png';
+                     document.getElementById('AvatarInput').value = null; // Xóa file đã chọn
+                 } else {
+                      // Nếu bỏ check xóa, quay lại ảnh gốc (nếu có)
+                      const originalAvatar = '@currentAvatarUrl';
+                      document.getElementById('AvatarPreview').src = originalAvatar || '/images/user.png';
+                 }
+             });
+         }
+    </script>
+}

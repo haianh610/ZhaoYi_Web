@@ -1,0 +1,452 @@
+@model ZhaoYi_Test2.Models.Recruiter
+@using ZhaoYi_Test2.Models
+
+@{
+    ViewData["Title"] = "Hồ sơ Nhà tuyển dụng";
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+    ViewData["UserRole"] = "Recruiter";
+    ViewData["ShowBottomNav"] = true;
+
+    // Lấy dữ liệu từ Model và ViewBag
+    var recruiterName = Model.RecruiterName ?? "Chưa cập nhật tên";
+    var recruiterIdDisplay = Model.RecruiterId > 0 ? $"Mã NTD: {Model.RecruiterId}" : "Chưa có mã";
+    var avatarUrl = !string.IsNullOrEmpty(Model.AvatarPath) ? Url.Content($"~/uploads/avatars/{Model.AvatarPath}") : Url.Content("~/images/user.png"); // Default avatar
+    var followingCount = ViewBag.FollowingCount ?? 0;
+    var followersCount = ViewBag.FollowersCount ?? 0;
+    var rank = ViewBag.Rank ?? "Đồng"; // Lấy từ ViewBag
+
+    // Lấy danh sách bài đăng và ứng tuyển từ ViewBag
+    var jobPostings = ViewBag.JobPostings as List<JobPosting> ?? new List<JobPosting>();
+    var applications = ViewBag.Applications as List<JobApplication> ?? new List<JobApplication>();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/recruiter-profile.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/shared-nav.css" asp-append-version="true" />
+    <style>
+    .mobile-screen{
+        padding-bottom: 0;
+        margin-bottom: 60px;
+    }
+        /* Thêm CSS để ẩn/hiện tab content */
+        .tab-pane {
+            display: none;
+        }
+
+            .tab-pane.active {
+                display: block;
+            }
+
+        /* CSS cho thẻ bài đăng */
+        .job-posting-card {
+            background-color: #fff;
+            border-radius: 8px; /* Giảm bo góc một chút */
+            padding: 12px 15px; /* Điều chỉnh padding */
+            margin-bottom: 12px; /* Giảm khoảng cách */
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06); /* Bóng đổ nhẹ hơn */
+            border-left: 5px solid #ffc107; /* Đường line vàng/cam bên trái - Giống tag Gấp */
+            position: relative;
+            display: block; /* Đảm bảo thẻ <a> hoạt động như block */
+            text-decoration: none; /* Bỏ gạch chân link */
+            color: inherit; /* Kế thừa màu chữ */
+        }
+
+            .job-posting-card.status-active {
+                border-left-color: #4caf50;
+            }
+            /* Màu xanh lá cho Active */
+            .job-posting-card.status-pending {
+                border-left-color: #ff9800;
+            }
+            /* Màu cam cho Pending */
+            .job-posting-card.status-expired {
+                border-left-color: #f44336;
+            }
+            /* Màu đỏ cho Expired */
+            .job-posting-card.status-cancelled {
+                border-left-color: #9e9e9e;
+            }
+            /* Màu xám cho Cancelled */
+            .job-posting-card.status-completed {
+                border-left-color: #2196f3;
+            }
+            /* Màu xanh dương cho Completed */
+            .job-posting-card.status-inprogress {
+                border-left-color: #009688;
+            }
+        /* Màu Teal cho InProgress */
+
+
+        .job-posting-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; /* Căn lên trên */
+            margin-bottom: 8px;
+        }
+
+        .job-posting-title {
+            font-size: 1rem; /* 16px */
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+            /* Giới hạn số dòng nếu cần */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Giới hạn 2 dòng */
+            -webkit-box-orient: vertical;
+            line-height: 1.3; /* Điều chỉnh chiều cao dòng */
+            padding-right: 50px; /* Khoảng trống cho tag trạng thái */
+        }
+
+        .job-posting-urgent-tag {
+            background-color: #FFF9C4; /* Màu vàng nhạt cho tag Gấp */
+            color: #F57F17; /* Màu cam đậm chữ */
+            font-size: 0.7rem; /* 11.2px */
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600; /* Đậm hơn */
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            border: 1px solid #FFECB3; /* Viền vàng nhạt hơn */
+        }
+
+        .job-posting-info {
+            font-size: 0.8rem; /* 12.8px */
+            color: #666;
+            margin-bottom: 4px;
+            display: flex; /* Căn icon và text */
+            align-items: center; /* Căn giữa icon và text theo chiều dọc */
+        }
+
+            .job-posting-info i {
+                margin-right: 6px;
+                color: #999;
+                width: 14px;
+                text-align: center;
+                flex-shrink: 0; /* Không co icon */
+            }
+
+            .job-posting-info span {
+                /* Cho phép text xuống dòng nếu quá dài */
+                white-space: normal;
+            }
+
+        /* Bỏ style cũ của job-posting-status */
+        .job-posting-status {
+            display: none;
+        }
+        /* Ẩn status cũ đi */
+
+        /* CSS cho thẻ CV */
+        .cv-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center; /* Căn giữa theo chiều dọc */
+            gap: 1rem;
+        }
+
+        .cv-applicant-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .cv-info {
+            flex-grow: 1;
+        }
+
+            .cv-info h4 {
+                font-size: 1rem;
+                font-weight: 600; /* Đậm hơn */
+                color: #333;
+                margin-bottom: 0.2rem;
+            }
+
+            .cv-info p {
+                font-size: 0.85rem;
+                color: #777;
+                margin: 0;
+            }
+
+        .cv-actions {
+            display: flex;
+            flex-direction: column; /* Xếp nút dọc */
+            gap: 0.5rem;
+            align-items: flex-end; /* Căn phải */
+            flex-shrink: 0;
+        }
+
+        .btn-action {
+            background-color: #f0f0f0;
+            color: #555;
+            border: 1px solid #ddd;
+            padding: 0.4rem 0.8rem; /* Nhỏ hơn */
+            border-radius: 6px;
+            font-size: 0.75rem; /* Nhỏ hơn */
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            min-width: 80px; /* Đảm bảo nút không quá nhỏ */
+            text-align: center;
+        }
+
+            .btn-action:hover {
+                background-color: #e0e0e0;
+            }
+
+            .btn-action.btn-view-cv {
+                background-color: #ffecd9;
+                border-color: #ffc799;
+                color: #d97700;
+            }
+
+                .btn-action.btn-view-cv:hover {
+                    background-color: #ffddb3;
+                    border-color: #ffb77a;
+                }
+
+            .btn-action.btn-contact { /* Style mới cho nút liên hệ */
+                background-color: #e3f2fd;
+                border-color: #bbdefb;
+                color: #1e88e5;
+            }
+
+                .btn-action.btn-contact:hover {
+                    background-color: #cce6ff;
+                    border-color: #a1cfff;
+                }
+
+    </style>
+}
+
+<div class="recruiter-profile-page">
+
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="header-background"></div>
+        <div class="header-title-bar">
+            <span class="page-title">Hồ sơ</span>
+            @* Nút chỉnh sửa hồ sơ *@
+            <a asp-action="EditProfile" class="options-btn" style="color:white; text-decoration:none;" title="Chỉnh sửa hồ sơ">
+                <i class="fas fa-edit"></i>
+            </a>
+        </div>
+        <div class="profile-info-container">
+            <div class="profile-img-wrapper">
+                <img src="@avatarUrl" alt="Profile Picture" class="profile-pic">
+            </div>
+            <div class="profile-name">@recruiterName</div>
+            <div class="profile-recruiter-id">@recruiterIdDisplay</div>
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-number">@followingCount</div>
+                    <div class="stat-label">Following</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">@followersCount</div>
+                    <div class="stat-label">Followers</div>
+                </div>
+            </div>
+            <div class="profile-rank-info">
+                <span>Hạng: <strong>@rank</strong></span>
+                <i class="fas fa-coins rank-icon"></i>
+                <a href="#" class="service-link">Mua dịch vụ</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-tabs">
+        <div class="tab-item active" data-tab="recruitment">TIN TUYỂN DỤNG</div>
+        <div class="tab-item" data-tab="cv">QUẢN LÝ CV</div>
+        <div class="tab-item" data-tab="services">DỊCH VỤ</div>
+    </div>
+
+
+    <!-- Main Content Area with Tabs -->
+    <div class="main-content-area">
+
+        <!-- Tab Content Panes -->
+        <div class="tab-content">
+            <!-- Recruitment Tab -->
+            <div class="tab-pane active" id="recruitment-content">
+                @if (!jobPostings.Any())
+                {
+                    <div class="empty-state">
+                        <img src="~/images/ic_build.png" alt="Illustration" class="empty-state-image">
+                        <p class="empty-state-text">Bạn chưa có tin tuyển dụng nào</p>
+                        <a asp-action="CreateJob" class="btn-primary">Đăng tin ngay</a>
+                    </div>
+                }
+                else
+                {
+                    <h3 class="section-subtitle">Tin đã đăng (@jobPostings.Count)</h3>
+                    @foreach (var job in jobPostings)
+                    {
+                        var statusClass = job.Status.ToString().ToLower();
+                        // Xác định có gấp không (ví dụ: hết hạn trong 2 ngày tới)
+                        bool isUrgent = job.Status == JobStatus.Active && job.ExpiryDate <= DateTime.Now.AddDays(2);
+
+                        <a asp-action="JobDetails" asp-route-id="@job.JobPostingId" class="job-posting-card status-@statusClass">
+                            <div class="job-posting-header">
+                                <span class="job-posting-title">@job.Title</span>
+                                @if (isUrgent)
+                                {
+                                    <span class="job-posting-urgent-tag">Gấp</span>
+                                }
+                                @* Có thể thêm tag trạng thái khác nếu cần *@
+                                @*<span class="job-posting-urgent-tag" style="background-color: #e8f5e9; color: #4caf50; border-color:#c8e6c9">Đang tuyển</span>*@
+                            </div>
+                            <div>
+                                <p class="job-posting-info"><i class="far fa-calendar-alt"></i><span>Đăng ngày: @job.PostedDate.ToString("dd/MM/yyyy")</span></p>
+                                <p class="job-posting-info"><i class="far fa-calendar-times"></i><span>Hết hạn: @job.ExpiryDate.ToString("dd/MM/yyyy")</span></p>
+                                <p class="job-posting-info"><i class="fas fa-map-marker-alt"></i><span>Địa điểm: @job.WorkLocation</span></p>
+                                @if (job.HiringCount.HasValue && job.HiringCount > 0)
+                                {
+                                    <p class="job-posting-info"><i class="fas fa-users"></i><span>Tuyển: @job.HiringCount người</span></p>
+                                }
+                            </div>
+                        </a>
+                    }
+                    <div style="text-align:center; margin-top: 20px;">
+                        <a asp-action="CreateJob" class="btn-primary" style="display:inline-block; width:auto;">Đăng tin mới</a>
+                    </div>
+                }
+            </div>
+
+            <!-- CV Management Tab -->
+            <div class="tab-pane" id="cv-content">
+                <h3 class="section-subtitle">CV đã nhận gần đây (@applications.Count)</h3>
+                @if (!applications.Any())
+                {
+                    <div class="empty-state" style="padding-top: 1rem;">
+                        <p class="empty-state-text">Chưa có ứng viên nào nộp CV.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var app in applications)
+                    {
+                        var interpreterAvatar = !string.IsNullOrEmpty(app.Interpreter?.AvatarPath) ? Url.Content($"~/uploads/avatars/{app.Interpreter.AvatarPath}") : Url.Content("~/images/user.png");
+                        <div class="cv-card">
+                            <img src="@interpreterAvatar" alt="Avatar của @app.InterpreterName" class="cv-applicant-avatar">
+                            <div class="cv-info">
+                                <h4>@app.InterpreterName</h4>
+                                <p>Ứng tuyển: @app.JobPosting?.Title</p>
+                                <p>Ngày nộp: @app.ApplicationDate.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                            <div class="cv-actions">
+                                @if (!string.IsNullOrEmpty(app.CVFilePath))
+                                {
+                                    <a href="@Url.Content($"~/uploads/cv/{app.CVFilePath}")" target="_blank" class="btn-action btn-view-cv">Xem CV</a>
+                                }
+                                else
+                                {
+                                    @* Có thể link đến profile online của interpreter nếu không có file CV *@
+                                    <a asp-controller="Recruiters" asp-action="InterpreterDetails" asp-route-id="@app.InterpreterId" class="btn-action btn-view-cv">Xem Hồ sơ</a>
+                                }
+                                @* Nút liên hệ cần logic phức tạp hơn (ví dụ: mở chat) *@
+                                <button class="btn-action btn-contact" onclick="alert('Chức năng liên hệ đang phát triển')">Liên hệ</button>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- Services Tab -->
+            <div class="tab-pane" id="services-content">
+                <h3 class="section-subtitle">Mua dịch vụ</h3>
+                <!-- Service Package Card - Silver -->
+                <div class="service-card silver">
+                    <div class="service-icon-wrapper">
+                        <i class="fas fa-medal"></i>
+                    </div>
+                    <div class="service-details">
+                        <h4>Gói Bạc</h4>
+                        <p>Nổi bật tin, đăng tin tuyển dụng hiệu quả với vị trí nổi bật trong mục tìm kiếm...</p>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-icon"></i>
+                </div>
+
+                <!-- Service Package Card - Gold -->
+                <div class="service-card gold">
+                    <div class="service-icon-wrapper">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="service-details">
+                        <h4>Gói Vàng</h4>
+                        <p>Đăng tin tuyển dụng hiệu quả nhất với vị trí nổi bật trong mục tìm kiếm mới nhất...</p>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-icon"></i>
+                </div>
+                <!-- Add more service cards here -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bottom Navigation (Rendered by Layout) -->
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.tab-item');
+            const panes = document.querySelectorAll('.tab-pane');
+
+            // Load active tab from localStorage or default to the first one
+            const activeTabId = localStorage.getItem('recruiterProfileActiveTab') || tabs[0]?.getAttribute('data-tab');
+
+            function activateTab(tabId) {
+                 if (!tabId) return; // Exit if no tabId
+
+                 tabs.forEach(t => {
+                    t.classList.remove('active');
+                    if(t.getAttribute('data-tab') === tabId) {
+                        t.classList.add('active');
+                    }
+                });
+                panes.forEach(p => {
+                    p.classList.remove('active');
+                    if(p.id === tabId + '-content') {
+                        p.classList.add('active');
+                    }
+                });
+                 localStorage.setItem('recruiterProfileActiveTab', tabId); // Save active tab
+            }
+
+            // Activate the initial tab
+            activateTab(activeTabId);
+
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTabId = tab.getAttribute('data-tab');
+                    activateTab(targetTabId);
+                });
+            });
+
+             // --- Thêm logic xử lý nút Edit Profile ---
+            const editProfileBtn = document.querySelector('.options-btn'); // Assuming this is the edit button now
+            if (editProfileBtn) {
+                // You might want to redirect to a dedicated Edit Profile page
+                // Or open a modal for editing basic info
+                // For now, let's just log a message
+                editProfileBtn.addEventListener('click', () => {
+                    // Redirect to an Edit Profile action if you create one
+                    // window.location.href = '@Url.Action("EditProfile", "Recruiters")';
+                });
+            }
+
+
+        });
+    </script>
+}

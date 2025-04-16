@@ -1,0 +1,212 @@
+/* ZhaoYi Global Mobile Styles */
+
+/* Reset CSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+/* Hide scrollbar but keep scroll functionality */
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* FZ Poppins Font Definitions */
+@font-face {
+    font-family: 'FZ Poppins';
+    src: url('../font/FzPoppins/FZ Poppins-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'FZ Poppins';
+    src: url('../font/FzPoppins/FZ Poppins-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'FZ Poppins';
+    src: url('../font/FzPoppins/FZ Poppins-Italic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'FZ Poppins';
+    src: url('../font/FzPoppins/FZ Poppins-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'FZ Poppins';
+    src: url('../font/FzPoppins/FZ Poppins-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'FZ Poppins';
+    src: url('../font/FzPoppins/FZ Poppins-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'FZ Poppins';
+    src: url('../font/FzPoppins/FZ Poppins-Black.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+/* Base Layout */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'FZ Poppins';
+    background-color: #f0f0f0; /* Keep background for the area outside mobile screen */
+    /* display: flex; */ /* Keep flex for centering */
+    /* justify-content: center; */ /* Keep horizontal centering */
+    /* align-items: center; */ /* Remove or change this */
+    /* overflow: hidden; */ /* Maybe remove this too if it causes issues */
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+/* Apply flex centering directly to body to center the .mobile-screen */
+body {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: flex-start; /* Align to the top instead of center vertically */
+    min-height: 100vh; /* Ensure body takes at least full viewport height */
+    /* margin-bottom: 60px; */ /* Usually not needed with this structure */
+}
+
+/* Focus states */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+.mobile-screen {
+    width: 375px;
+    /* height: 812px; */ /* Nên để chiều cao tự động hoặc max-height: 100vh */
+    max-height: 100vh;
+    height: 100vh; /* Hoặc giữ nếu bạn muốn cố định */
+    border: 1px solid #ccc;
+    border-radius: 10px; /* Figma có vẻ bo tròn ít hơn? Có thể giảm xuống 5px nếu muốn */
+    position: relative;
+    background-color: #f7f7f7; /* Đổi thành màu nền chính của Figma nếu #f7f7f7 chưa đúng */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.main-content,
+[class*="content"] {
+    flex: 1; /* Cho phép nội dung chiếm không gian còn lại */
+    overflow-y: auto; /* CHỈ scroll phần nội dung này */
+    padding: 16px; /* Giữ padding cho nội dung */
+    position: relative; /* Hoặc xóa nếu không cần */
+}
+
+/* Status Bar */
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 16px; /* Slightly more padding */
+    background-color: #ff8c00;
+    color: #fff;
+    z-index: 100;
+    position: sticky; /* Make it stick to the top */
+    top: 0;
+    left: 0;
+    right: 0;
+    border-top-left-radius: 20px; /* Match container radius */
+    border-top-right-radius: 20px;
+}
+
+    .status-bar .time {
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .status-bar .indicators {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+/* Bottom Navigation */
+.bottom-nav {
+    /* XÓA các thuộc tính position: fixed */
+    /* position: fixed; */
+    /* bottom: 0; */
+    /* left: 50%; */
+    /* transform: translateX(-50%); */
+    /* width: 100%; */ /* Sẽ tự động lấy chiều rộng của .mobile-screen */
+    /* max-width: 400px; */ /* Không cần nữa */
+    /* z-index: 50; */ /* Có thể không cần hoặc điều chỉnh */
+    /* Giữ lại các style hiển thị */
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: #fff;
+    border-top: 1px solid #eee;
+    padding: 5px 0;
+    height: 65px; /* Chiều cao cố định */
+    flex-shrink: 0; /* Ngăn không cho nav bị co lại */
+    border-bottom-left-radius: 20px; /* Khớp với container */
+    border-bottom-right-radius: 20px;
+    /* margin-top: auto; */ /* Có thể dùng thay thế, nhưng flex:1 ở content tốt hơn */
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #aaa;
+    font-size: 10px;
+    padding: 5px 10px;
+    flex-grow: 1;
+    height: 100%;
+}
+
+    .nav-item i {
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
+
+    .nav-item .nav-label {
+        margin-top: 2px;
+    }
+
+    .nav-item.active {
+        color: #ff8c00;
+    }
+
+        .nav-item.active .nav-label {
+            font-weight: 500;
+        }

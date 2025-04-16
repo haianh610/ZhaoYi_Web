@@ -1,0 +1,244 @@
+/* Basic Reset & Font */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'FZ Poppins';
+    background-color: #f4f4f4; /* Fallback background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Mobile Screen Simulation */
+.mobile-screen {
+    width: 400px; /* Typical iPhone width */
+    height: 100vh; /* Typical iPhone X/11 height */
+    border: 1px solid #ccc;
+    border-radius: 10px; /* Reduced border-radius */
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(180deg, #FFF9F2 0%, #FFFFFF 100%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Status Bar */
+.status-bar {
+    padding: 15px 20px 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.5); /* Slight transparency */
+    font-size: 13px;
+    font-weight: 500;
+    color: #000; /* Black status bar icons */
+}
+
+.status-bar .time {
+    font-weight: 600;
+}
+
+.status-bar .indicators {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-bar .indicators svg {
+    display: block; /* Prevent extra space below SVGs */
+}
+
+
+/* Content Area */
+.content-wrapper {
+    flex-grow: 1;
+    padding: 25px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center items horizontally */
+    overflow-y: auto; /* Allow scrolling if content exceeds height */
+}
+
+/* Title */
+.register-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 5px;
+    width: 100%; /* Take full width for left alignment */
+    text-align: left;
+}
+
+.title-underline {
+    width: 50px;
+    height: 4px;
+    background-color: #ff7f00; /* Orange underline */
+    border-radius: 2px;
+    margin-bottom: 25px;
+    align-self: flex-start; /* Align underline to the left */
+}
+
+/* Subtitle */
+.subtitle {
+    font-size: 15px;
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.5;
+    width: 100%; /* Take full width for left alignment */
+    text-align: left;
+}
+
+/* Form & Input Groups */
+form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.input-group {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px; /* More rounded corners */
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.input-group i {
+    color: #aaa;
+    margin-right: 12px;
+    width: 18px; /* Fixed width for icons */
+    text-align: center;
+}
+
+.input-group input {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    background-color: transparent;
+    color: #333;
+}
+
+.input-group input::placeholder {
+    color: #bbb;
+}
+
+.input-group .icon-right {
+    margin-left: 10px;
+    margin-right: 0; /* Reset margin */
+    cursor: pointer;
+    color: #aaa;
+}
+
+/* Primary Button */
+.btn-primary {
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(90deg, #ff8c00, #ffae42); /* Orange gradient */
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    margin-top: 15px; /* Space above button */
+    margin-bottom: 30px; /* Space below button */
+    box-shadow: 0 4px 10px rgba(255, 140, 0, 0.3);
+    transition: background 0.3s ease;
+}
+
+.btn-primary:hover {
+     background: linear-gradient(90deg, #e67e00, #f39c12); /* Darker gradient on hover */
+}
+
+
+/* Social Login Separator */
+.social-separator {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Social Login Buttons */
+.btn-social {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center content inside button */
+    cursor: pointer;
+    font-size: 15px;
+    color: #555;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.3s ease;
+}
+
+.btn-social:hover {
+    background-color: #f9f9f9;
+}
+
+.btn-social i,
+.btn-social img {
+    margin-right: 10px;
+    font-size: 20px;
+    width: 20px; /* Icon width */
+    text-align: center;
+}
+
+/* Specific Social Button Colors (optional, for icons) */
+/* .btn-social.google i { color: #DB4437; } */ /* Commented out as we're using an image now */
+.btn-social.facebook i { color: #4267B2; }
+.btn-social.wechat i { color: #7BB32E; }
+
+
+/* Login Link */
+.login-link {
+    margin-top: 25px;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+}
+
+.login-link a {
+    color: #ff7f00; /* Orange link */
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+/* Hide scrollbar but keep scroll functionality */
+/* For Webkit browsers (Chrome, Safari) */
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* For Firefox */
+* {
+    scrollbar-width: none;
+}
+
+/* For IE/Edge */
+* {
+    -ms-overflow-style: none;
+} 

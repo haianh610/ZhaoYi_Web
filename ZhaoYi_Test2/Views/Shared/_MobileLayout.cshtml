@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>@ViewData["Title"] - ZhaoYi</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="~/css/global-mobile.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/shared-nav.css" asp-append-version="true" /> 
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"> @* Nếu dùng icon Bootstrap *@
+
+    <!-- Page-specific CSS -->
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="mobile-screen"> @* Bỏ thẻ này nếu RenderBody đã là nội dung chính *@
+    <!-- Page Content -->
+    @RenderBody()
+
+    <!-- Bottom Navigation -->
+    @if (ViewData["ShowBottomNav"] as bool? != false)
+    {
+        // Get the user role from ViewData or a default value
+        var userRole = ViewData["UserRole"] as string ?? "Default";
+
+        @switch (userRole)
+        {
+            case "Interpreter":
+                @await Html.PartialAsync("_InterpreterNavigation")
+                break;
+            case "Recruiter":
+                @await Html.PartialAsync("_RecruiterNavigation")
+                // Gọi partial mới
+                break;
+            default:
+                <!-- Default navigation for users without a role or unknown -->
+                <nav class="bottom-nav">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a asp-controller="Role" asp-action="ChooseRole" class="nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "ChooseRole" ? "active" : "")">
+                            <i class="fas fa-user-plus"></i>
+                            <span class="nav-label">Chọn vai trò</span>
+                        </a>
+                        <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                            <button type="submit" class="nav-item" style="background:none; border:none; color:#aaa; font-size:10px; padding:5px 10px;">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span class="nav-label">Đăng xuất</span>
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-area="Identity" asp-page="/Account/Login"
+                            class="nav-item @((ViewContext.RouteData.Values["page"]?.ToString() == "/Account/Login" && ViewContext.RouteData.Values["area"]?.ToString() == "Identity") ? "active" : "")">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="nav-label">Đăng nhập</span>
+                        </a>
+                    }
+                </nav>
+                break;
+        }
+    }
+    @*</div>*@
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    @* Nếu dùng Bootstrap JS *@
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

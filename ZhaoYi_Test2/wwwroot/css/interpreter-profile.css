@@ -1,0 +1,823 @@
+/* wwwroot/css/interpreter-profile.css */
+
+/* --- Base Styles (Assuming mobile-first, similar to other pages) --- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+    height: 100%;
+    font-family: 'FZ Poppins'; /* Changed from Roboto to FZ Poppins */
+    display: flex; /* Use flexbox on body */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    background-color: #e9ecef; /* Add a background color to the body */
+}
+
+/* Hide scrollbar */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; -ms-overflow-style: none; }
+
+/*.mobile-screen {
+    width: 400px;*/ /* iPhone X width */
+    /*height: 100vh;*/ /* iPhone X height */
+    /*border: 1px solid #ccc;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    background-color: #F4F6F8;*/ /* Light grey page background */
+    /*display: flex;
+    flex-direction: column;
+    margin: auto;*/ /* Center screen for viewing */
+    /*box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}*/
+
+/* --- Status Bar --- */
+.status-bar {
+    padding: 15px 20px 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #2E7DF6; /* Blue background like image */
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+    z-index: 10;
+}
+.status-bar .time { font-weight: 600; }
+.status-bar .indicators { display: flex; align-items: center; gap: 5px; }
+.status-bar .indicators i { font-size: 14px; }
+
+/* --- Profile Header --- */
+.profile-header {
+    /* background: linear-gradient(180deg, #2E7DF6 60%, #5DA1F8); */ /* Removed gradient */
+    background-image: url('../images/background_profile.png'); /* Use the image */
+    background-size: cover; /* Cover the entire header area */
+    background-position: center; /* Center the background image */
+    padding: 15px 20px 20px 20px;
+    color: #fff;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.header-title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.page-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.options-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px; /* Adjust size of ellipsis icon */
+    cursor: pointer;
+    padding: 5px; /* Increase clickable area */
+}
+
+.profile-summary {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.profile-pic-large {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid #fff; /* White border around picture */
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-name {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.profile-details {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* --- Main Content Area --- */
+.profile-content {
+    flex-grow: 1; /* Take remaining height */
+    background-color: #F4F6F8; /* Light grey */
+    border-top-left-radius: 30px; /* Curve transition from header */
+    border-top-right-radius: 30px;
+    margin-top: -35px; /* Overlap the header */
+    padding: 25px 15px 80px 15px; /* Top padding, side padding, bottom padding for nav */
+    position: relative;
+    z-index: 1; /* Ensure content is above header background but below tabs if sticky */
+    overflow-y: auto; /* Enable scrolling for content */
+}
+
+/* --- Tabs --- */
+.profile-tabs {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #e0e0e0;
+    /* Optional: Make tabs sticky */
+    position: sticky;
+    top: -25px; /* Adjust overlap based on .profile-content padding-top */
+    background-color: #F4F6F8; /* Match content background for seamless look */
+    padding-top: 15px; /* Space above tabs when sticky */
+    z-index: 2; /* Keep tabs above scrolling content */
+}
+
+.tab-item {
+    padding: 10px 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: #666; /* Inactive tab color */
+    cursor: pointer;
+    border-bottom: 3px solid transparent; /* Placeholder for active indicator */
+    text-align: center;
+    flex-grow: 1;
+    transition: color 0.3s, border-bottom-color 0.3s;
+}
+
+.tab-item.active {
+    color: #2E7DF6; /* Active tab color - blue */
+    border-bottom-color: #2E7DF6; /* Active indicator */
+}
+
+/* --- Tab Panes --- */
+.tab-pane {
+    display: none; /* Hide inactive panes */
+}
+
+.tab-pane.active {
+    display: block; /* Show active pane */
+}
+
+/* --- Filter Section --- */
+.filter-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Align label and dropdown */
+    margin-bottom: 20px;
+}
+
+.filter-label {
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+}
+
+.filter-dropdown {
+    padding: 8px 30px 8px 12px; /* Right padding for arrow */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    font-size: 14px;
+    color: #333;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+/* --- Applied Job Card --- */
+.applied-job-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.job-status {
+    display: inline-block;
+    background-color: #E4F3FF; /* Light blue background for status */
+    color: #2E7DF6; /* Blue text for status */
+    padding: 4px 10px;
+    border-radius: 15px; /* Pill shape */
+    font-size: 11px;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.job-title { /* Shared between applied and suggested */
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.company-name { /* Shared between applied and suggested */
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+.application-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns */
+    gap: 10px 15px; /* Row gap, Column gap */
+    margin-bottom: 15px;
+    font-size: 13px;
+}
+
+.detail-label {
+    color: #888;
+}
+
+.detail-value {
+    color: #333;
+    font-weight: 500;
+}
+
+.cv-link {
+    color: #E74C3C; /* Reddish color for CV link */
+    font-weight: 500;
+    text-decoration: none;
+}
+.cv-link:hover {
+    text-decoration: underline;
+}
+
+.feedback-section {
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+    margin-top: 15px;
+}
+
+.feedback-label {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+.feedback-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.feedback-tag {
+    background-color: #f0f0f0;
+    color: #777;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+}
+/* Example: .feedback-tag.positive { background-color: #E0F7E0; color: #34A853; } */
+
+/* --- Section Heading (for 'Việc làm gợi ý') --- */
+.section-heading {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+    margin-top: 30px; /* Space above suggestion section */
+}
+
+/* --- Job Suggestion Card --- */
+.job-suggestion-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    gap: 15px;
+    position: relative;
+}
+
+.job-suggestion-card .company-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border: 1px solid #eee;
+    align-self: flex-start; /* Align logo to the top */
+}
+
+.job-suggestion-card .job-info {
+    flex-grow: 1;
+}
+
+.job-suggestion-card .job-details-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.job-suggestion-card .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #555;
+}
+
+.job-suggestion-card .detail-item i {
+    color: #888; /* Icon color */
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.job-suggestion-card .bookmark-icon {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #ccc; /* Default bookmark color */
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px;
+}
+.job-suggestion-card .bookmark-icon.saved {
+    color: #2E7DF6; /* Saved state color - blue */
+}
+.job-suggestion-card .bookmark-icon i {
+    color: inherit; /* Make the icon inherit the button's color */
+}
+
+/* Floating Action Button (FAB) for adding things */
+.fab {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(to right, #ff8c00, #ffae42);
+    color: white;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
+    border: none;
+    cursor: pointer;
+    z-index: 100;
+}
+
+/* Styles for the placeholder profile tab content */
+#profile-content p {
+    color: #555;
+    font-size: 14px;
+    text-align: center;
+    margin-top: 30px;
+}
+
+#profile-content .btn-primary {
+    background-color: #2E7DF6;
+    border-color: #2E7DF6;
+    display: block;
+    width: fit-content;
+    margin: 20px auto 0 auto;
+    font-size: 14px;
+    padding: 8px 20px;
+}
+
+/* --- Styles for "Hồ sơ của bạn" Tab --- */
+
+.profile-section {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.section-subtitle {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* Name Section */
+.details-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.detail-item-editable {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+    color: #555;
+}
+.detail-item-editable:last-child {
+    border-bottom: none;
+}
+
+.detail-icon-orange {
+    color: #ff8c00;
+    margin-right: 12px;
+    width: 18px; /* Ensure alignment */
+    text-align: center;
+}
+
+.detail-item-editable span {
+    flex-grow: 1; /* Push button to the right */
+}
+
+.edit-btn {
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 5px;
+}
+.edit-btn:hover {
+    color: #555;
+}
+
+/* Action Buttons Section */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap; /* Allow buttons to wrap on small adjustments */
+}
+
+.action-buttons .btn {
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid;
+    text-align: center;
+}
+
+.btn-add-section {
+    background-color: #ff8c00;
+    color: #fff;
+    border-color: #ff8c00;
+    display: flex; /* Align icon and text */
+    align-items: center;
+    gap: 5px; /* Space between icon and text */
+}
+.btn-add-section i {
+    font-size: 12px;
+}
+
+.btn-secondary {
+    background-color: #fff;
+    color: #ff8c00;
+    border-color: #ff8c00;
+}
+.btn-secondary:hover {
+    background-color: #fff8f0; /* Light orange background on hover */
+}
+
+/* Completion Section */
+.completion-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+.completion-header .section-subtitle {
+    margin-bottom: 0; /* Remove bottom margin */
+    flex-grow: 1; /* Push icons to the right */
+}
+
+.completion-icon {
+    color: #a0a0a0; /* Grey checkmark */
+    font-size: 18px;
+}
+.completion-icon.completed { /* Add this class via JS if complete */
+    color: #2ecc71; /* Green checkmark */
+}
+
+.star-icon {
+    color: #ffc107; /* Yellow star */
+    font-size: 18px;
+}
+
+.progress-bar-container {
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.progress-bar {
+    background-color: #2ecc71; /* Green progress */
+    height: 100%;
+    border-radius: 5px;
+}
+
+.update-prompt-card {
+    background-color: #f0f8ff; /* Light blue background */
+    border-radius: 10px;
+    padding: 15px;
+    display: grid;
+    grid-template-columns: auto 1fr auto; /* Icon, Text, Buttons */
+    grid-template-rows: auto auto; /* Row 1: Content, Row 2: Button */
+    gap: 10px 15px; /* Row gap, Column gap */
+    align-items: center;
+}
+
+.update-prompt-card img {
+    width: 40px;
+    height: 40px;
+    grid-row: 1 / 3; /* Span both rows */
+}
+
+.prompt-text {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+}
+.prompt-text h5 {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    margin: 0 0 3px 0;
+}
+.prompt-text span {
+    font-size: 12px;
+    color: #555;
+}
+
+.prompt-nav {
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+    display: flex;
+    gap: 5px;
+}
+
+.nav-arrow {
+    background: none;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    color: #888;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+}
+.nav-arrow:hover {
+    background-color: #eee;
+}
+
+.btn-update-now {
+    grid-column: 2 / 4; /* Span text and nav columns */
+    grid-row: 2 / 3;
+    background-color: #ff8c00;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 15px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    justify-self: end; /* Align button to the right */
+}
+
+/* Stats Section */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.stat-box {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 15px 10px;
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff8c00;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #666;
+}
+
+/* Dynamic Sections (Học vấn, Kinh nghiệm, etc.) */
+.dynamic-section {
+
+}
+
+.section-image {
+    width: 60px; /* Adjust size as needed */
+    height: auto;
+    flex-shrink: 0;
+    margin-top: 5px; /* Align slightly lower than title */
+}
+
+.section-content {
+    padding: 0;
+}
+
+.section-content .section-subtitle {
+    margin-bottom: 8px;
+}
+
+.section-content p {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.btn-add-section-secondary {
+    background-color: #fff;
+    color: #ff8c00;
+    border: 1px solid #ff8c00;
+    border-radius: 20px;
+    padding: 6px 15px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+.btn-add-section-secondary:hover {
+    background-color: #fff8f0;
+}
+
+
+#profile-content p { /* Override general placeholder p style if needed */
+    text-align: left; /* Reset text alignment for section descriptions */
+    margin-top: 0;
+}
+
+#profile-content .btn-primary { /* Remove old placeholder button style */
+   display: none;
+}
+
+/* Styles for Education, Experience, and Project items */
+.education-item,
+.experience-item,
+.project-item {
+    padding: 12px 15px 15px 15px; /* Tăng padding bottom */
+    border-radius: 10px;
+    background-color: #f8f9fa;
+    margin-bottom: 15px;
+    position: relative; /* Giữ nguyên để tương thích với hover effect */
+}
+
+    .education-item h5,
+    .experience-item h5,
+    .project-item h5 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 5px 0;
+    }
+
+    .education-item p,
+    .experience-item p,
+    .project-item p {
+        margin: 0 0 5px 0;
+        font-size: 13px;
+        color: #666;
+        line-height: 1.4;
+    }
+
+        .education-item p:nth-child(2),
+        .experience-item p:nth-child(2) {
+            color: #4a6da7; /* Màu xanh đậm cho chuyên ngành/tên công ty */
+        }
+
+        .education-item p:nth-child(3),
+        .experience-item p:nth-child(3),
+        .project-item p:nth-child(2) {
+            color: #888; /* Màu xám cho khoảng thời gian */
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .education-item p:nth-child(4),
+        .experience-description,
+        .project-description {
+            background-color: rgba(0, 0, 0, 0.02);
+            padding: 8px 10px;
+            border-radius: 6px;
+            border-left: 3px solid #ff8c00;
+            margin-top: 8px !important;
+            margin-bottom: 5px !important; /* Giảm margin bottom */
+            font-style: italic;
+            color: #555 !important;
+            line-height: 1.5 !important;
+        }
+
+.item-actions {
+    display: flex;
+    justify-content: flex-end; /* Căn phải */
+    gap: 8px;
+    margin-top: 10px; /* Tạo khoảng cách với nội dung phía trên */
+    position: static; /* Bỏ vị trí tuyệt đối */
+}
+
+.btn-edit-item,
+.btn-delete-item {
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.btn-edit-item {
+    color: #4a6da7; /* Xanh dương */
+}
+
+.btn-delete-item {
+    color: #e74c3c; /* Đỏ */
+}
+
+    .btn-edit-item:hover,
+    .btn-delete-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-edit-item i,
+    .btn-delete-item i {
+        font-size: 14px;
+    }
+
+/* Animation cho các item khi được thêm mới */
+@keyframes itemFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.education-item,
+.experience-item,
+.project-item {
+    animation: itemFadeIn 0.3s ease-out;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 360px) {
+    .education-item,
+    .experience-item,
+    .project-item {
+        padding: 10px 12px 12px 12px; /* Tăng padding bottom */
+    }
+
+    .item-actions {
+        margin-top: 8px; /* Giảm margin top cho màn hình nhỏ */
+        gap: 5px;
+    }
+}
+
+/* Hover state styling */
+.education-item:hover,
+.experience-item:hover,
+.project-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background-color: #fff;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}

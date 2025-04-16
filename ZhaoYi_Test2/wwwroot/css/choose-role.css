@@ -1,0 +1,141 @@
+/* Basic Reset & Font */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'FZ Poppins';
+    background-color: #f4f4f4; /* Fallback background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Mobile Screen Simulation */
+.mobile-screen {
+    width: 400px; /* Typical iPhone width */
+    height: 100vh; /* Typical iPhone X/11 height */
+    border: 1px solid #ccc;
+    border-radius: 40px; /* Rounded corners for phone look */
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(180deg, #ffffff 0%, #fff8f0 70%, #ffeeda 100%); /* Soft gradient background */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Status Bar */
+.status-bar {
+    padding: 15px 20px 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.5); /* Slight transparency */
+    font-size: 13px;
+    font-weight: 500;
+    color: #000; /* Black status bar icons */
+}
+
+.status-bar .time {
+    font-weight: 600;
+}
+
+.status-bar .indicators {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-bar .indicators svg {
+    display: block; /* Prevent extra space below SVGs */
+}
+
+/* Content Area */
+.content-wrapper {
+    flex-grow: 1;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center items horizontally */
+    justify-content: center; /* Center items vertically */
+}
+
+/* Logo */
+.logo-img {
+    width: 150px; /* Adjust size as needed */
+    height: auto;
+    margin-bottom: 60px; /* Space below logo */
+}
+
+/* Role Question */
+.role-question {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+/* Role Buttons */
+.btn-role {
+    width: 100%;
+    padding: 18px 20px;
+    background: linear-gradient(90deg, #ff4400, #ffae42);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(255, 140, 0, 0.3);
+    margin-bottom: 20px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none; /* Remove underline from links */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-role:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255, 140, 0, 0.4);
+}
+
+.btn-role:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(255, 140, 0, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-height: 700px) {
+    .logo-img {
+        width: 120px;
+        margin-bottom: 40px;
+    }
+    
+    .role-question {
+        margin-bottom: 30px;
+    }
+}
+
+/* Style for links and other elements if needed */
+
+/* Hide scrollbar but keep scroll functionality */
+/* For Webkit browsers (Chrome, Safari) */
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* For Firefox */
+* {
+    scrollbar-width: none;
+}
+
+/* For IE/Edge */
+* {
+    -ms-overflow-style: none;
+} 

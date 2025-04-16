@@ -1,0 +1,375 @@
+@model List<ZhaoYi_Test2.Models.JobPosting>
+@{
+    ViewData["Title"] = "Trang chủ Phiên dịch viên";
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+    ViewData["UserRole"] = "Interpreter"; // or "Recruiter" or any other value
+    ViewData["ShowBottomNav"] = true;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/interpreter-dashboard.css" />
+    <link rel="stylesheet" href="~/css/shared-nav.css" />
+}
+
+<!-- Header -->
+<div class="top-header">
+    <div class="header-controls">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Tìm kiếm..." />
+        </div>
+        <button class="filter-btn">
+            <span class="filter-icon"><span></span><span></span><span></span></span> <!-- Simple icon -->
+            Bộ lọc
+        </button>
+        <button class="notification-btn">
+            <i class="fas fa-bell"></i>
+            <span class="badge"></span> <!-- Notification dot -->
+        </button>
+    </div>
+    <!-- Urgent Banner (Positioned absolutely) -->
+    <div class="urgent-banner" id="openUrgentSearchBtn">
+        <i class="fas fa-bolt"></i>
+        <span>TÌM VIỆC PHIÊN DỊCH VIÊN CẤP TỐC</span>
+    </div>
+</div>
+
+<!-- Main Scrollable Content -->
+<div class="main-content">
+
+    <!-- Urgent Jobs Section -->
+    <div class="job-section">
+
+        <div class="urgent-job-section-wrapper">
+            <h2 class="section-title"><i class="fas fa-fire"></i>Bài đăng tuyển dụng gấp</h2>
+
+            <div class="urgent-job-container">
+                @{
+                    var urgentJobs = ViewBag.UrgentJobs as List<ZhaoYi_Test2.Models.JobPosting> ?? new List<ZhaoYi_Test2.Models.JobPosting>();
+
+                    if (urgentJobs.Any())
+                    {
+                        foreach (var job in urgentJobs)
+                        {
+                            var timeLeft = job.ExpiryDate - DateTime.Now;
+                            var timeDisplay = timeLeft.TotalHours < 24
+                            ? $"Còn {Math.Max(1, (int)timeLeft.TotalHours)}h"
+                            : $"Còn {(int)timeLeft.TotalDays}d";
+
+                            <div class="job-card urgent">
+                                <a asp-controller="JobApply" asp-action="Details" asp-route-id="@job.JobPostingId" style="text-decoration: none; color: inherit;">
+                                    <div class="job-card-content">
+                                        @if (job.Recruiter != null && !string.IsNullOrEmpty(job.Recruiter.AvatarPath))
+                                        {
+                                            <img src="~/uploads/avatars/@job.Recruiter.AvatarPath" alt="Company Logo" class="logo">
+                                        }
+                                        else
+                                        {
+                                            <img src="~/images/logo-zhaoyi.png" alt="Default Logo" class="logo">
+                                        }
+                                        <div class="job-details">
+                                            <h3 class="job-title">@job.Title <i class="fas fa-fire"></i></h3>
+                                            <p class="company-name">@(job.Recruiter?.RecruiterName ?? "Công ty ZhaoYi")</p>
+                                            <div class="info-line">
+                                                <i class="fas fa-briefcase"></i>
+                                                <span>Lĩnh vực dịch: <span class="highlight">@(string.IsNullOrEmpty(job.Field) ? "Chung" : job.Field)</span></span>
+                                            </div>
+                                            <div class="info-line">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                <span>@job.WorkLocation</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="job-card-footer">
+                                        <div class="time-left">
+                                            <i class="far fa-clock"></i>
+                                            <span>@timeDisplay</span>
+                                        </div>
+                                        <button class="bookmark-btn"><i class="far fa-bookmark"></i></button>
+                                    </div>
+                                </a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        // Fallback to example data when no urgent jobs passed
+                        <div class="job-card urgent">
+                            <a asp-controller="JobApply" asp-action="Details" asp-route-id="1" style="text-decoration: none; color: inherit;">
+                                <div class="job-card-content">
+                                    <img src="~/images/logo-zhaoyi.png" alt="Company Logo" class="logo">
+                                    <div class="job-details">
+                                        <h3 class="job-title">Phiên dịch viên tiếng Trung <i class="fas fa-fire"></i></h3>
+                                        <p class="company-name">Công ty Cổ phần Tập đoàn ZhaoYi</p>
+                                        <div class="info-line">
+                                            <i class="fas fa-briefcase"></i>
+                                            <span>Lĩnh vực dịch: <span class="highlight">Thương mại</span></span>
+                                        </div>
+                                        <div class="info-line">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>Hoàng Mai, Hà Nội</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="job-card-footer">
+                                    <div class="time-left">
+                                        <i class="far fa-clock"></i>
+                                        <span>Còn 5h</span>
+                                    </div>
+                                    <button class="bookmark-btn"><i class="far fa-bookmark"></i></button>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        <div class="scroll-indicator"></div>
+    </div> <!-- <<===== KẾT THÚC urgent-job-section-wrapper -->
+    <!-- Recommended Jobs Section -->
+    <div class="job-section">
+        <h2 class="section-title">Bài đăng dành cho bạn</h2>
+
+        @{
+            var recommendedJobs = ViewBag.RecommendedJobs as List<ZhaoYi_Test2.Models.JobPosting> ?? new List<ZhaoYi_Test2.Models.JobPosting>();
+
+            if (recommendedJobs.Any())
+            {
+                foreach (var job in recommendedJobs)
+                {
+                    var timeLeft = job.ExpiryDate - DateTime.Now;
+                    var timeDisplay = timeLeft.TotalHours < 24
+                    ? $"Còn {Math.Max(1, (int)timeLeft.TotalHours)}h"
+                    : $"Còn {(int)timeLeft.TotalDays}d";
+
+                    <div class="job-card">
+                        <a asp-controller="JobApply" asp-action="Details" asp-route-id="@job.JobPostingId" style="text-decoration: none; color: inherit;">
+                            <div class="job-card-content">
+                                @if (job.Recruiter != null && !string.IsNullOrEmpty(job.Recruiter.AvatarPath))
+                                {
+                                    <img src="~/uploads/avatars/@job.Recruiter.AvatarPath" alt="Company Logo" class="logo">
+                                }
+                                else
+                                {
+                                    <img src="~/images/logo-zhaoyi.png" alt="Default Logo" class="logo">
+                                }
+                                <div class="job-details">
+                                    <h3 class="job-title">@job.Title</h3>
+                                    <p class="company-name">@(job.Recruiter?.RecruiterName ?? "Công ty ZhaoYi")</p>
+                                    <div class="info-line">
+                                        <i class="fas fa-briefcase"></i>
+                                        <span>Lĩnh vực dịch: <span class="highlight">@(string.IsNullOrEmpty(job.Field) ? "Chung" : job.Field)</span></span>
+                                    </div>
+                                    <div class="info-line">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>@job.WorkLocation</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="job-card-footer">
+                                <div class="time-left">
+                                    <i class="far fa-clock"></i>
+                                    <span>@timeDisplay</span>
+                                </div>
+                                <button class="bookmark-btn"><i class="far fa-bookmark"></i></button>
+                            </div>
+                        </a>
+                    </div>
+                }
+            }
+            else
+            {
+                // Fallback to example data when no recommended jobs available
+                <div class="job-card">
+                    <a asp-controller="JobApply" asp-action="Details" asp-route-id="2" style="text-decoration: none; color: inherit;">
+                        <div class="job-card-content">
+                            <img src="~/images/logo-zhaoyi.png" alt="Company Logo" class="logo">
+                            <div class="job-details">
+                                <h3 class="job-title">Phiên dịch viên tiếng Anh</h3>
+                                <p class="company-name">Công ty TNHH ABC Solutions</p>
+                                <div class="info-line">
+                                    <i class="fas fa-briefcase"></i>
+                                    <span>Lĩnh vực dịch: <span class="highlight">Công nghệ thông tin</span></span>
+                                </div>
+                                <div class="info-line">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Cầu Giấy, Hà Nội</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="job-card-footer">
+                            <div class="time-left">
+                                <i class="far fa-clock"></i>
+                                <span>Còn 23h</span>
+                            </div>
+                            <button class="bookmark-btn saved"><i class="fas fa-bookmark"></i></button> <!-- Example saved -->
+                        </div>
+                    </a>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<!-- Floating Action Button -->
+<button class="fab">
+    <i class="fas fa-plus"></i>
+</button>
+
+<!-- Modal cho tìm việc cấp tốc -->
+<div class="modal-overlay" id="urgentSearchModal">
+    <div class="modal-content">
+        <div class="modal-header-banner">
+            <i class="fas fa-bolt"></i>
+            <span>TÌM VIỆC PHIÊN DỊCH VIÊN CẤP TỐC</span>
+        </div>
+        <div class="modal-body">
+            <p class="modal-description">
+                Tính năng AI "Tìm việc phiên dịch viên cấp tốc" giúp bạn nhanh chóng tìm kiếm công việc phiên dịch phù hợp nhất dựa trên vị trí địa lý và hồ sơ cá nhân trên mọi nguồn tìm việc ở mọi nền tảng.
+            </p>
+
+            <h4 class="modal-section-title">Địa điểm</h4>
+            <div class="location-box">
+                <span class="location-icon-bg">
+                    <i class="fas fa-map-marker-alt"></i>
+                </span>
+                <span class="location-text">@ViewBag.UserLocation</span>
+            </div>
+
+            <a href="#" class="filter-link">
+                Điều chỉnh thêm về bộ lọc <i class="fas fa-chevron-right"></i>
+            </a>
+
+            <div class="cost-info">
+                Chi phí: <span class="highlight-points">2 Điểm</span>
+            </div>
+            <div class="balance-info">
+                Số dư hiện tại của bạn: <span class="highlight-points">@ViewBag.UserPoints Điểm</span>
+            </div>
+            <a href="#" class="buy-more-link">Số dư Điểm của bạn không đủ? Mua thêm</a>
+
+        </div>
+        <div class="modal-footer">
+            <button class="btn-confirm" id="confirmUrgentSearchBtn">XÁC NHẬN</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add JS for interactions like bookmarking, filtering, notifications etc.
+        document.querySelectorAll('.bookmark-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault(); // Prevent link navigation if inside <a>
+                event.stopPropagation(); // Stop click from bubbling to the card link
+                button.classList.toggle('saved');
+                const icon = button.querySelector('i');
+                icon.classList.toggle('far'); // Toggle between regular
+                icon.classList.toggle('fas'); // and solid bookmark icon
+                // Add AJAX call here to save/unsave bookmark state
+                console.log('Bookmark toggled');
+            });
+        });
+
+        // Enable horizontal scrolling with mouse wheel for urgent job container
+        const urgentJobContainer = document.querySelector('.urgent-job-container');
+        if (urgentJobContainer) {
+            urgentJobContainer.addEventListener('wheel', (event) => {
+                // Prevent the default vertical scroll
+                event.preventDefault();
+
+                // Scroll horizontally instead of vertically
+                urgentJobContainer.scrollLeft += event.deltaY;
+            }, { passive: false });
+
+            // Make job cards draggable for touch and mouse
+            let isDragging = false;
+            let startPosition = 0;
+            let scrollLeft = 0;
+
+            urgentJobContainer.addEventListener('mousedown', (event) => {
+                isDragging = true;
+                startPosition = event.pageX - urgentJobContainer.offsetLeft;
+                scrollLeft = urgentJobContainer.scrollLeft;
+                urgentJobContainer.style.cursor = 'grabbing';
+            });
+
+            urgentJobContainer.addEventListener('mouseleave', () => {
+                isDragging = false;
+                urgentJobContainer.style.cursor = 'grab';
+            });
+
+            urgentJobContainer.addEventListener('mouseup', () => {
+                isDragging = false;
+                urgentJobContainer.style.cursor = 'grab';
+            });
+
+            urgentJobContainer.addEventListener('mousemove', (event) => {
+                if (!isDragging) return;
+                event.preventDefault();
+                const x = event.pageX - urgentJobContainer.offsetLeft;
+                const walk = (x - startPosition) * 2; // Scroll speed multiplier
+                urgentJobContainer.scrollLeft = scrollLeft - walk;
+            });
+
+            // Set initial cursor style
+            urgentJobContainer.style.cursor = 'grab';
+        }
+
+        // JS cho Modal tìm việc cấp tốc
+        const openModalButton = document.getElementById('openUrgentSearchBtn');
+        const urgentSearchModal = document.getElementById('urgentSearchModal');
+        const confirmButton = document.getElementById('confirmUrgentSearchBtn');
+
+        if (openModalButton && urgentSearchModal) {
+            // Hàm để mở modal
+            const openModal = () => {
+                urgentSearchModal.classList.add('active');
+            };
+
+            // Hàm để đóng modal
+            const closeModal = () => {
+                urgentSearchModal.classList.remove('active');
+            };
+
+            // Sự kiện để mở modal
+            openModalButton.addEventListener('click', openModal);
+
+            // Sự kiện để đóng modal khi nhấn vào overlay (bên ngoài content)
+            urgentSearchModal.addEventListener('click', (event) => {
+                // Kiểm tra xem click có phải vào overlay
+                if (event.target === urgentSearchModal) {
+                    closeModal();
+                }
+            });
+
+            // Sự kiện khi nhấn nút xác nhận
+            if (confirmButton) {
+                confirmButton.addEventListener('click', () => {
+                    console.log("Đã nhấn nút xác nhận - xử lý hành động và đóng modal");
+                    // Thêm AJAX call hoặc xử lý logic xác nhận ở đây
+                    closeModal();
+                });
+            }
+
+            // Đóng modal bằng phím Escape
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && urgentSearchModal.classList.contains('active')) {
+                    closeModal();
+                }
+            });
+        }
+
+        // Update current time in status bar
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.querySelector('.status-bar .time').textContent = `${hours}:${minutes}`;
+        }
+
+        // Update time every minute
+        updateTime();
+        setInterval(updateTime, 60000);
+    </script>
+}

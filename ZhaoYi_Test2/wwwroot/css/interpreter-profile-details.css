@@ -1,0 +1,347 @@
+﻿/* ~/css/interpreter-profile-details.css */
+
+/* === BASE AND FONT (Copied/Adapted from settings.css & provided example) === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'FZ Poppins';
+    background-color: #f8f9fa; /* Match existing bg */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Hide scrollbar but keep scroll functionality (Copied from settings.css) */
+::-webkit-scrollbar {
+    display: none;
+}
+
+* {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: disc;
+    padding-left: 20px;
+    margin-top: 8px;
+}
+
+li {
+    margin-bottom: 5px;
+    line-height: 1.5;
+}
+
+h1, h2, h3, h4 {
+    font-weight: 500;
+}
+
+h1 {
+    font-size: 20px;
+}
+
+h2 {
+    font-size: 16px;
+}
+
+h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+/* Section title */
+h4 {
+    font-size: 14px;
+}
+
+/* === MOBILE SCREEN STRUCTURE (Copied/Adapted from settings.css) === */
+.mobile-screen {
+    width: 400px;
+    height: 100vh;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    background-color: #f4f6f8; /* Match existing base */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.status-bar { /* Copied - Orange background */
+    padding: 15px 20px 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #FF9F43;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+    z-index: 10;
+    position: relative;
+}
+
+    .status-bar .time {
+        font-weight: 600;
+    }
+
+    .status-bar .indicators {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        filter: brightness(0) invert(1);
+    }
+
+        .status-bar .indicators svg path {
+            fill: #fff !important;
+        }
+
+        .status-bar .indicators svg rect {
+            stroke: #fff !important;
+            fill: #fff !important;
+        }
+
+/* === PROFILE DETAIL STYLES (Adapted from provided job detail CSS) === */
+
+/* --- Header --- */
+.profile-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #f4f6f8; /* Match screen background */
+    flex-shrink: 0; /* Don't shrink */
+    position: sticky; /* Stick to top */
+    top: 0;
+    z-index: 90; /* Below status bar */
+    border-bottom: 1px solid #eee; /* Faint line */
+    height: 50px; /* Standard height */
+}
+
+.back-button, .action-button {
+    color: #555;
+    font-size: 18px;
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+.header-actions a:not(:last-child) {
+    margin-right: 15px;
+}
+
+/* --- Main Content --- */
+.profile-detail-content {
+    flex-grow: 1; /* Take remaining space */
+    overflow-y: auto; /* Allow vertical scrolling */
+    padding-bottom: 75px; /* Space for the sticky footer button */
+    background-color: #f4f6f8; /* Match screen background */
+}
+
+/* --- Interpreter Info Block --- */
+.interpreter-info-block {
+    display: flex;
+    align-items: center;
+    padding: 20px 15px;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+    position: relative; /* For bookmark */
+}
+
+.profile-pic {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%; /* Circular image */
+    margin-right: 15px;
+    object-fit: cover;
+    border: 2px solid #eee;
+    flex-shrink: 0;
+}
+
+.interpreter-details {
+    flex-grow: 1;
+}
+
+    .interpreter-details h2 { /* Name */
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: #f7300b; /* Darker, more readable orange */
+    }
+
+    .interpreter-details .specialty {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 6px;
+    }
+
+    .interpreter-details .demographics {
+        font-size: 13px;
+        color: #777;
+    }
+
+.bookmark-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 20px;
+    color: #ccc; /* Default color */
+    padding: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+    .bookmark-button.saved {
+        color: #E67E22; /* Match darker orange */
+    }
+
+/* --- Profile Highlights --- */
+.profile-highlights-block {
+    display: flex;
+    flex-wrap: wrap;
+    background-color: #FFF7EC; /* Slightly lighter, softer orange background */
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    gap: 12px 15px; /* Vertical horizontal gap */
+}
+
+.highlight-item {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: #5D4037; /* Darker brown text for better contrast */
+    width: calc(50% - 8px); /* Approx 2 columns */
+}
+
+    .highlight-item .icon {
+        margin-right: 8px;
+        color: #F57C00; /* Slightly darker/richer orange for icons */
+        font-size: 15px;
+        width: 18px;
+        text-align: center;
+    }
+
+/* --- Detail Sections (e.g., Experience, Skills, About) --- */
+.profile-details-sections {
+    background-color: #fff;
+    margin-top: 10px;
+    border-top-left-radius: 20px; /* Match dashboard curve maybe? */
+    border-top-right-radius: 20px;
+}
+
+.detail-section {
+    padding: 20px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+    .detail-section:last-child {
+        border-bottom: none;
+    }
+
+    .detail-section h3 {
+        border-left: 3px solid #F57C00; /* Match darker icon orange */
+        padding-left: 10px;
+        margin-bottom: 15px;
+        font-size: 16px;
+        color: #333;
+    }
+
+    .detail-section ul {
+        padding-left: 5px; /* Less indent for lists */
+        list-style: none; /* Remove default bullets */
+    }
+
+    .detail-section li {
+        margin-bottom: 8px;
+        padding-left: 15px; /* Indent list items */
+        position: relative;
+        font-size: 14px;
+        color: #444;
+        line-height: 1.6;
+    }
+
+        .detail-section li::before {
+            content: "\f111"; /* FontAwesome circle icon */
+            font-family: "Font Awesome 5 Free"; /* Use correct FA family */
+            font-weight: 900; /* Solid */
+            font-size: 6px; /* Small bullet */
+            color: #F57C00; /* Match darker orange */
+            position: absolute;
+            left: 0;
+            top: 7px;
+        }
+
+    .detail-section p {
+        font-size: 14px;
+        color: #444;
+        line-height: 1.6;
+        padding: 0px 10px;
+    }
+
+/* --- Info Grid (General Info) --- */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 columns */
+    gap: 15px;
+}
+
+.grid-item {
+    font-size: 13px;
+}
+
+    .grid-item .label {
+        display: block;
+        color: #888;
+        margin-bottom: 4px;
+    }
+
+    .grid-item .value {
+        display: block;
+        font-weight: 500;
+        color: #333;
+    }
+
+/* --- Footer Contact Button --- */
+.profile-contact-footer {
+    padding: 12px 15px;
+    background-color: #fff;
+    border-top: 1px solid #eee;
+    position: sticky; /* Stick to bottom */
+    bottom: 0;
+    z-index: 90;
+    flex-shrink: 0; /* Don't shrink */
+}
+
+.contact-button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(90deg, #F57C00, #FF9800); /* Refined orange gradient */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.3s ease;
+}
+
+    .contact-button:hover {
+        background: linear-gradient(90deg, #E67E22, #FB8C00); /* Slightly darker hover gradient */
+    }
+
+/* --- Bottom Nav (Reuse from settings/dashboard CSS if needed) --- */
+/* If the nav bar is needed on this page, copy .bottom-nav and .nav-item styles here */
+/* Currently excluded as the example didn't clearly place it *within* the scroll */

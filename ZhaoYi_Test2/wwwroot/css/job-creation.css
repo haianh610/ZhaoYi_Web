@@ -1,0 +1,350 @@
+/* Job Creation Screens */
+
+html {
+    height: 100%;
+}
+
+.job-creation-page {
+    height: 100vh;
+    max-height: 100vh;
+    width: 375px;
+    max-width: 100%;
+    margin: 0 auto;
+    overflow-y: auto;
+    scrollbar-width: none; /* For Firefox */
+    -ms-overflow-style: none; /* For IE and Edge */
+    background: linear-gradient(to bottom, #ff8c00, #ff6a00);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-screen.job-creation-page::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari, and Opera */
+}
+
+/* Status Bar */
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 15px;
+    background-color: transparent;
+    height: 30px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    color: white;
+}
+
+.status-bar .time {
+    font-weight: bold;
+}
+
+.status-bar .indicators {
+    display: flex;
+    gap: 5px;
+}
+
+.status-bar .indicators i {
+    font-size: 0.9rem;
+}
+
+/* Page Header */
+.page-header {
+    padding: 15px 20px 25px;
+    text-align: center;
+    color: white;
+    background-image: url('/images/texture.png');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.page-title {
+    font-size: 24px;
+    margin: 0 0 25px 0;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Step Indicators */
+.step-indicators {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.step-indicators::before {
+    display: none; /* Hide the pseudo-element now that we have explicit step lines */
+}
+
+.step-circle {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.3);
+    border: 2px solid white;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    position: relative;
+    z-index: 2;
+    font-size: 14px;
+}
+
+.step-line {
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.5);
+    width: 50px;
+    z-index: 1;
+}
+
+.step-line.active-line {
+    background-color: white;
+}
+
+.step-circle.active {
+    background-color: white;
+    color: #ff8c00;
+}
+
+.step-circle.completed {
+    background-color: white;
+    color: #ff8c00;
+}
+
+/* Form Area */
+.form-area {
+    flex-grow: 1;
+    background-color: white;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 20px;
+    overflow-y: auto;
+    scrollbar-width: none; /* For Firefox */
+    -ms-overflow-style: none; /* For IE and Edge */
+}
+
+.form-area::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari, and Opera */
+}
+
+.form-section {
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 20px;
+    position: relative;
+    padding-left: 10px;
+}
+
+.section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background-color: #ff8c00;
+    border-radius: 2px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.95rem;
+    color: #444;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.form-control {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    font-size: 0.95rem;
+    font-weight: 500;
+    box-sizing: border-box;
+    color: #333;
+    font-family: 'SF Pro Display', 'Roboto', sans-serif;
+    box-shadow: none;
+}
+
+.form-control:focus {
+    border-color: #ff8c00;
+    outline: none;
+    box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.3);
+    background-color: #fff;
+}
+
+.form-control::placeholder {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 1em;
+    padding-right: 35px;
+}
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.4;
+}
+
+/* Navigation Buttons */
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    padding-bottom: 20px;
+}
+
+.btn {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.btn-secondary {
+    background-color: #f0f0f0;
+    color: #555;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: #ff8c00;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.btn-primary:hover {
+    background-color: #ff7b00;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn i {
+    font-size: 0.85rem;
+}
+
+/* Success Modal */
+.success-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    width: 80%;
+    max-width: 320px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    z-index: 100;
+}
+
+.modal-header {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.close-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #ff8c00;
+    color: white;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.modal-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.modal-body {
+    padding: 10px 0;
+}
+
+.success-message {
+    color: #ff8c00;
+    font-weight: 500;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.btn-continue {
+    background-color: #ff8c00;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.95rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* Fix for smaller screens */
+@media screen and (max-width: 400px) {
+    .mobile-screen.job-creation-page {
+        width: 100%;
+    }
+    
+    .step-indicators {
+        gap: 30px;
+    }
+    
+    .step-indicators::before {
+        width: 100px;
+    }
+} 
