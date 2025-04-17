@@ -9,6 +9,7 @@
 @section Styles {
     <link rel="stylesheet" href="~/css/interpreter-dashboard.css" />
     <link rel="stylesheet" href="~/css/shared-nav.css" />
+    <link rel="stylesheet" href="~/css/job-card.css" />
 }
 
 <!-- Header -->
@@ -51,75 +52,21 @@
                     {
                         foreach (var job in urgentJobs)
                         {
-                            var timeLeft = job.ExpiryDate - DateTime.Now;
-                            var timeDisplay = timeLeft.TotalHours < 24
-                            ? $"Còn {Math.Max(1, (int)timeLeft.TotalHours)}h"
-                            : $"Còn {(int)timeLeft.TotalDays}d";
-
-                            <div class="job-card urgent">
-                                <a asp-controller="JobApply" asp-action="Details" asp-route-id="@job.JobPostingId" style="text-decoration: none; color: inherit;">
-                                    <div class="job-card-content">
-                                        @if (job.Recruiter != null && !string.IsNullOrEmpty(job.Recruiter.AvatarPath))
-                                        {
-                                            <img src="~/uploads/avatars/@job.Recruiter.AvatarPath" alt="Company Logo" class="logo">
-                                        }
-                                        else
-                                        {
-                                            <img src="~/images/logo-zhaoyi.png" alt="Default Logo" class="logo">
-                                        }
-                                        <div class="job-details">
-                                            <h3 class="job-title">@job.Title <i class="fas fa-fire"></i></h3>
-                                            <p class="company-name">@(job.Recruiter?.RecruiterName ?? "Công ty ZhaoYi")</p>
-                                            <div class="info-line">
-                                                <i class="fas fa-briefcase"></i>
-                                                <span>Lĩnh vực dịch: <span class="highlight">@(string.IsNullOrEmpty(job.Field) ? "Chung" : job.Field)</span></span>
-                                            </div>
-                                            <div class="info-line">
-                                                <i class="fas fa-map-marker-alt"></i>
-                                                <span>@job.WorkLocation</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="job-card-footer">
-                                        <div class="time-left">
-                                            <i class="far fa-clock"></i>
-                                            <span>@timeDisplay</span>
-                                        </div>
-                                        <button class="bookmark-btn"><i class="far fa-bookmark"></i></button>
-                                    </div>
-                                </a>
-                            </div>
+                            <partial name="_JobCard" model="job" />
                         }
                     }
                     else
                     {
-                        // Fallback to example data when no urgent jobs passed
-                        <div class="job-card urgent">
-                            <a asp-controller="JobApply" asp-action="Details" asp-route-id="1" style="text-decoration: none; color: inherit;">
-                                <div class="job-card-content">
-                                    <img src="~/images/logo-zhaoyi.png" alt="Company Logo" class="logo">
-                                    <div class="job-details">
-                                        <h3 class="job-title">Phiên dịch viên tiếng Trung <i class="fas fa-fire"></i></h3>
-                                        <p class="company-name">Công ty Cổ phần Tập đoàn ZhaoYi</p>
-                                        <div class="info-line">
-                                            <i class="fas fa-briefcase"></i>
-                                            <span>Lĩnh vực dịch: <span class="highlight">Thương mại</span></span>
-                                        </div>
-                                        <div class="info-line">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            <span>Hoàng Mai, Hà Nội</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="job-card-footer">
-                                    <div class="time-left">
-                                        <i class="far fa-clock"></i>
-                                        <span>Còn 5h</span>
-                                    </div>
-                                    <button class="bookmark-btn"><i class="far fa-bookmark"></i></button>
-                                </div>
-                            </a>
-                        </div>
+                        var defaultJob = new ZhaoYi_Test2.Models.JobPosting
+                        {
+                            JobPostingId = 1,
+                            Title = "Phiên dịch viên tiếng Trung",
+                            Field = "Thương mại",
+                            WorkLocation = "Hoàng Mai, Hà Nội",
+                            ExpiryDate = DateTime.Now.AddHours(5),
+                            IsUrgent = true
+                        };
+                        <partial name="_JobCard" model="defaultJob" />
                     }
                 }
             </div>
@@ -137,120 +84,66 @@
             {
                 foreach (var job in recommendedJobs)
                 {
-                    var timeLeft = job.ExpiryDate - DateTime.Now;
-                    var timeDisplay = timeLeft.TotalHours < 24
-                    ? $"Còn {Math.Max(1, (int)timeLeft.TotalHours)}h"
-                    : $"Còn {(int)timeLeft.TotalDays}d";
-
-                    <div class="job-card">
-                        <a asp-controller="JobApply" asp-action="Details" asp-route-id="@job.JobPostingId" style="text-decoration: none; color: inherit;">
-                            <div class="job-card-content">
-                                @if (job.Recruiter != null && !string.IsNullOrEmpty(job.Recruiter.AvatarPath))
-                                {
-                                    <img src="~/uploads/avatars/@job.Recruiter.AvatarPath" alt="Company Logo" class="logo">
-                                }
-                                else
-                                {
-                                    <img src="~/images/logo-zhaoyi.png" alt="Default Logo" class="logo">
-                                }
-                                <div class="job-details">
-                                    <h3 class="job-title">@job.Title</h3>
-                                    <p class="company-name">@(job.Recruiter?.RecruiterName ?? "Công ty ZhaoYi")</p>
-                                    <div class="info-line">
-                                        <i class="fas fa-briefcase"></i>
-                                        <span>Lĩnh vực dịch: <span class="highlight">@(string.IsNullOrEmpty(job.Field) ? "Chung" : job.Field)</span></span>
-                                    </div>
-                                    <div class="info-line">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        <span>@job.WorkLocation</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="job-card-footer">
-                                <div class="time-left">
-                                    <i class="far fa-clock"></i>
-                                    <span>@timeDisplay</span>
-                                </div>
-                                <button class="bookmark-btn"><i class="far fa-bookmark"></i></button>
-                            </div>
-                        </a>
-                    </div>
+                    <partial name="_JobCard" model="job" />
                 }
             }
             else
             {
-                // Fallback to example data when no recommended jobs available
-                <div class="job-card">
-                    <a asp-controller="JobApply" asp-action="Details" asp-route-id="2" style="text-decoration: none; color: inherit;">
-                        <div class="job-card-content">
-                            <img src="~/images/logo-zhaoyi.png" alt="Company Logo" class="logo">
-                            <div class="job-details">
-                                <h3 class="job-title">Phiên dịch viên tiếng Anh</h3>
-                                <p class="company-name">Công ty TNHH ABC Solutions</p>
-                                <div class="info-line">
-                                    <i class="fas fa-briefcase"></i>
-                                    <span>Lĩnh vực dịch: <span class="highlight">Công nghệ thông tin</span></span>
-                                </div>
-                                <div class="info-line">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>Cầu Giấy, Hà Nội</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="job-card-footer">
-                            <div class="time-left">
-                                <i class="far fa-clock"></i>
-                                <span>Còn 23h</span>
-                            </div>
-                            <button class="bookmark-btn saved"><i class="fas fa-bookmark"></i></button> <!-- Example saved -->
-                        </div>
-                    </a>
-                </div>
+                var defaultJob = new ZhaoYi_Test2.Models.JobPosting
+                {
+                    JobPostingId = 2,
+                    Title = "Phiên dịch viên tiếng Anh",
+                    Field = "Công nghệ thông tin",
+                    WorkLocation = "Cầu Giấy, Hà Nội",
+                    ExpiryDate = DateTime.Now.AddHours(23),
+                    IsUrgent = false
+                };
+                <partial name="_JobCard" model="defaultJob" />
             }
         }
     </div>
 </div>
 
-<!-- Floating Action Button -->
-<button class="fab">
-    <i class="fas fa-plus"></i>
-</button>
+
 
 <!-- Modal cho tìm việc cấp tốc -->
 <div class="modal-overlay" id="urgentSearchModal">
     <div class="modal-content">
+        <!-- Banner thông báo tính năng đang phát triển -->
+        <div class="development-banner">
+            <i class="fas fa-tools"></i>
+            <span>TÍNH NĂNG ĐANG PHÁT TRIỂN</span>
+        </div>
+        
         <div class="modal-header-banner">
             <i class="fas fa-bolt"></i>
-            <span>TÌM VIỆC PHIÊN DỊCH VIÊN CẤP TỐC</span>
+            Tìm việc phiên dịch viên cấp tốc
         </div>
+
         <div class="modal-body">
             <p class="modal-description">
-                Tính năng AI "Tìm việc phiên dịch viên cấp tốc" giúp bạn nhanh chóng tìm kiếm công việc phiên dịch phù hợp nhất dựa trên vị trí địa lý và hồ sơ cá nhân trên mọi nguồn tìm việc ở mọi nền tảng.
+                Tìm việc phiên dịch viên ngay lập tức trong khu vực của bạn.
+                Nhận kết quả phù hợp trong vài phút!
             </p>
 
-            <h4 class="modal-section-title">Địa điểm</h4>
+            <h3 class="modal-section-title">Bạn đang ở đâu?</h3>
             <div class="location-box">
                 <span class="location-icon-bg">
                     <i class="fas fa-map-marker-alt"></i>
                 </span>
-                <span class="location-text">@ViewBag.UserLocation</span>
+                <span class="location-text">Quận Hoàng Mai, Hà Nội</span>
             </div>
+            <a href="#" class="filter-link">Thay đổi vị trí <i class="fas fa-chevron-right"></i></a>
 
-            <a href="#" class="filter-link">
-                Điều chỉnh thêm về bộ lọc <i class="fas fa-chevron-right"></i>
-            </a>
-
-            <div class="cost-info">
-                Chi phí: <span class="highlight-points">2 Điểm</span>
-            </div>
-            <div class="balance-info">
-                Số dư hiện tại của bạn: <span class="highlight-points">@ViewBag.UserPoints Điểm</span>
-            </div>
-            <a href="#" class="buy-more-link">Số dư Điểm của bạn không đủ? Mua thêm</a>
-
+            <h3 class="modal-section-title">Chi phí dịch vụ:</h3>
+            <p class="cost-info">2 <span class="highlight-points">điểm</span> cho mỗi lần sử dụng</p>
+            
+            <p class="balance-info">Số dư: <span class="highlight-points">10 điểm</span></p>
+            <a href="#" class="buy-more-link">Mua thêm điểm</a>
         </div>
+
         <div class="modal-footer">
-            <button class="btn-confirm" id="confirmUrgentSearchBtn">XÁC NHẬN</button>
+            <button class="btn-confirm" id="confirmUrgentSearchBtn">ĐÓNG</button>
         </div>
     </div>
 </div>

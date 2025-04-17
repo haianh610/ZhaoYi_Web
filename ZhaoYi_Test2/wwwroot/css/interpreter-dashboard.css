@@ -384,7 +384,6 @@ body {
 .job-title,
 .company-name,
 .info-line {
-    white-space: nowrap; /* Ngăn không cho xuống dòng */
     overflow: hidden; /* Ẩn phần bị tràn */
     text-overflow: ellipsis; /* Hiển thị dấu '...' */
     display: block; /* Đảm bảo text-overflow hoạt động đúng */
@@ -546,6 +545,55 @@ body {
     flex-direction: column;
 }
 
+/* CSS cho modal tìm việc cấp tốc */
+.modal-header-banner {
+    background: linear-gradient(135deg, #ff8c00, #ff4500);
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: bold;
+}
+
+.modal-header-banner i {
+    font-size: 1.5rem;
+}
+
+.btn-confirm {
+    background: #ff8c00;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.btn-confirm:hover {
+    background: #ff6b00;
+}
+
+/* Animation cho modal */
+.modal-overlay.active .modal-content {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 .modal-header-banner {
     /* Reuse urgent-banner styles but adjust for modal context */
     background-color: #FFEB3B;
@@ -668,4 +716,29 @@ body {
 
 .btn-confirm:hover {
      background: linear-gradient(90deg, #e67e00, #f39c12);
-} 
+}
+
+/* CSS cho banner thông báo tính năng đang phát triển */
+.development-banner {
+    background: linear-gradient(135deg, #ff8c00, #ff4500);
+    color: white;
+    padding: 0.8rem;
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.development-banner i {
+    font-size: 1.2rem;
+}
+
+.modal-content .modal-header-banner {
+    background: #fff;
+    border-radius: 0;
+    border-bottom: 1px solid #eee;
+}

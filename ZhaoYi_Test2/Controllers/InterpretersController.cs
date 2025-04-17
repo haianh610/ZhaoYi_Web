@@ -1500,7 +1500,7 @@ namespace ZhaoYi_Test2.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateBasicInfo(Interpreter interpreter)
+        public async Task<IActionResult> UpdateBasicInfo(Interpreter interpreter, IFormFile? avatarFile, bool removeAvatar = false)
         {
             // Xóa lỗi validation cho các trường không liên quan
             if (ModelState.ContainsKey("User"))
@@ -1508,10 +1508,10 @@ namespace ZhaoYi_Test2.Controllers
                 ModelState.Remove("User");
                 ModelState.Remove("UserId");
             }
-            
+
             // Kiểm tra xem yêu cầu có phải là AJAX
             bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
-            
+
             if (ModelState.IsValid)
             {
                 try
@@ -1525,11 +1525,11 @@ namespace ZhaoYi_Test2.Controllers
                         }
                         return RedirectToAction("Login", "Account");
                     }
-                    
+
                     // Lấy thông tin interpreter hiện tại
                     var existingInterpreter = await _context.Interpreters
                         .FirstOrDefaultAsync(i => i.UserId == user.Id);
-                        
+
                     if (existingInterpreter == null)
                     {
                         if (isAjax)
@@ -1538,7 +1538,89 @@ namespace ZhaoYi_Test2.Controllers
                         }
                         return NotFound("Không tìm thấy hồ sơ phiên dịch viên");
                     }
-                    
+
+                    // --- Xử lý Avatar ---
+                    string currentAvatarPath = existingInterpreter.AvatarPath;
+                    string uniqueFileName = null;
+
+                    try
+                    {
+                        var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "avatars");
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        // 1. Xử lý xóa avatar
+                        if (removeAvatar && !string.IsNullOrEmpty(currentAvatarPath))
+                        {
+                            var oldFilePath = Path.Combine(uploadsFolder, currentAvatarPath);
+                            if (System.IO.File.Exists(oldFilePath))
+                            {
+                                System.IO.File.Delete(oldFilePath);
+                            }
+                            existingInterpreter.AvatarPath = null;
+                            currentAvatarPath = null;
+                        }
+                        // 2. Xử lý upload avatar mới
+                        else if (avatarFile != null && avatarFile.Length > 0)
+                        {
+                            // Kiểm tra kích thước file
+                            if (avatarFile.Length > 2 * 1024 * 1024)
+                            {
+                                if (isAjax)
+                                {
+                                    return Json(new { success = false, message = "Kích thước file quá lớn (tối đa 2MB)" });
+                                }
+                                ModelState.AddModelError("avatarFile", "Kích thước file quá lớn (tối đa 2MB)");
+                                return View("ProfileMobile", interpreter);
+                            }
+
+                            // Kiểm tra định dạng file
+                            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                            var fileExtension = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
+                            if (!allowedExtensions.Contains(fileExtension))
+                            {
+                                if (isAjax)
+                                {
+                                    return Json(new { success = false, message = "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif)" });
+                                }
+                                ModelState.AddModelError("avatarFile", "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif)");
+                                return View("ProfileMobile", interpreter);
+                            }
+
+                            // Tạo tên file mới và lưu
+                            uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
+                            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                            using (var fileStream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await avatarFile.CopyToAsync(fileStream);
+                            }
+
+                            // Xóa avatar cũ nếu có
+                            if (!string.IsNullOrEmpty(currentAvatarPath) && currentAvatarPath != uniqueFileName)
+                            {
+                                var oldFilePath = Path.Combine(uploadsFolder, currentAvatarPath);
+                                if (System.IO.File.Exists(oldFilePath))
+                                {
+                                    try { System.IO.File.Delete(oldFilePath); } catch { }
+                                }
+                            }
+
+                            existingInterpreter.AvatarPath = uniqueFileName;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (isAjax)
+                        {
+                            return Json(new { success = false, message = $"Lỗi xử lý file: {ex.Message}" });
+                        }
+                        ModelState.AddModelError("", $"Lỗi xử lý file: {ex.Message}");
+                        return View("ProfileMobile", interpreter);
+                    }
+
                     // Cập nhật các trường thông tin cơ bản
                     existingInterpreter.InterpreterName = interpreter.InterpreterName;
                     existingInterpreter.DateOfBirth = interpreter.DateOfBirth;
@@ -1547,40 +1629,31 @@ namespace ZhaoYi_Test2.Controllers
                     existingInterpreter.WorkLocation = interpreter.WorkLocation;
                     existingInterpreter.DetailedAddress = interpreter.DetailedAddress;
                     existingInterpreter.YearsOfExperience = interpreter.YearsOfExperience;
-                    
+
                     _context.Update(existingInterpreter);
                     await _context.SaveChangesAsync();
-                    
+
                     // Tính toán mức độ hoàn thiện hồ sơ
                     var profileCompletionPercentage = CalculateProfileCompletionPercentage(existingInterpreter);
-                    
-                    // Chuyển ExperienceLevel thành văn bản 
-                    string experienceText;
-                    switch (existingInterpreter.YearsOfExperience)
-                    {
-                        case ExperienceLevel.LessThanOneYear: experienceText = "Dưới 1 năm"; break;
-                        case ExperienceLevel.OneYear: experienceText = "1 năm"; break;
-                        case ExperienceLevel.TwoYears: experienceText = "2 năm"; break;
-                        case ExperienceLevel.ThreeYears: experienceText = "3 năm"; break;
-                        case ExperienceLevel.FourYears: experienceText = "4 năm"; break;
-                        case ExperienceLevel.FiveYears: experienceText = "5 năm"; break;
-                        case ExperienceLevel.MoreThanFiveYears: experienceText = "Hơn 5 năm"; break;
-                        default: experienceText = "Không xác định"; break;
-                    }
-                    
+
+                    // Chuyển ExperienceLevel thành văn bản
+                    string experienceText = GetExperienceText(existingInterpreter.YearsOfExperience);
+
                     // Tính tuổi
                     int age = DateTime.Now.Year - existingInterpreter.DateOfBirth.Year;
                     if (DateTime.Now.DayOfYear < existingInterpreter.DateOfBirth.DayOfYear)
                     {
                         age--;
                     }
-                    
+
                     if (isAjax)
                     {
-                        return Json(new { 
-                            success = true, 
+                        return Json(new
+                        {
+                            success = true,
                             message = "Cập nhật thông tin cơ bản thành công",
-                            item = new {
+                            item = new
+                            {
                                 interpreterId = existingInterpreter.InterpreterId,
                                 interpreterName = existingInterpreter.InterpreterName,
                                 gender = existingInterpreter.Gender,
@@ -1589,26 +1662,23 @@ namespace ZhaoYi_Test2.Controllers
                                 workLocation = existingInterpreter.WorkLocation,
                                 detailedAddress = existingInterpreter.DetailedAddress,
                                 experienceText = experienceText,
-                                profileCompletionPercentage = profileCompletionPercentage
+                                profileCompletionPercentage = profileCompletionPercentage,
+                                avatarPath = existingInterpreter.AvatarPath
                             }
                         });
                     }
-                    
+
                     TempData["StatusMessage"] = "Cập nhật thông tin cơ bản thành công.";
                     return RedirectToAction(nameof(Profile));
                 }
                 catch (Exception ex)
                 {
-                    // Log lỗi để debug
-                    System.Diagnostics.Debug.WriteLine($"Error updating basic info: {ex.Message}");
-                    System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-                    
                     if (isAjax)
                     {
                         return Json(new { success = false, message = $"Không thể cập nhật thông tin cơ bản: {ex.Message}" });
                     }
-                    
-                    TempData["ErrorMessage"] = $"Không thể cập nhật thông tin cơ bản: {ex.Message}";
+
+                    ModelState.AddModelError("", $"Không thể cập nhật thông tin cơ bản: {ex.Message}");
                 }
             }
             else
@@ -1621,16 +1691,30 @@ namespace ZhaoYi_Test2.Controllers
                         System.Diagnostics.Debug.WriteLine($"ModelState Error: {error.ErrorMessage}");
                     }
                 }
-                
+
                 if (isAjax)
                 {
                     return Json(new { success = false, message = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại." });
                 }
-                
-                TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
             }
-            
+
             return RedirectToAction(nameof(Profile));
+        }
+
+        // Helper method to convert ExperienceLevel to display text
+        private string GetExperienceText(ExperienceLevel experience)
+        {
+            return experience switch
+            {
+                ExperienceLevel.LessThanOneYear => "Dưới 1 năm",
+                ExperienceLevel.OneYear => "1 năm",
+                ExperienceLevel.TwoYears => "2 năm",
+                ExperienceLevel.ThreeYears => "3 năm",
+                ExperienceLevel.FourYears => "4 năm",
+                ExperienceLevel.FiveYears => "5 năm",
+                ExperienceLevel.MoreThanFiveYears => "Hơn 5 năm",
+                _ => "Không xác định"
+            };
         }
 
         // API để tải xuống profile dưới dạng PDF

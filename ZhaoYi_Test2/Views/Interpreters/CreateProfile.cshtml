@@ -96,6 +96,15 @@
         .header-placeholder {
             width: 30px; /* Điều chỉnh width bằng với nút back + margin */
         }
+
+        /* Style cho thông báo lỗi */
+        .error-message {
+            color: #dc3545;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 5px;
+            display: none;
+        }
     </style>
 }
 
@@ -113,6 +122,14 @@
 
     <!-- Form Area -->
     <div class="form-area">
+        @* Hiển thị thông báo lỗi từ server nếu có *@
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
         <form method="post" asp-action="CreateProfile" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger validation-summary-errors"></div>
             @Html.AntiForgeryToken()
@@ -123,9 +140,11 @@
 
                 @* Phần upload Avatar *@
                 <div class="form-group text-center">
-                    <img id="AvatarPreview" src="~/images/user.png" alt="Ảnh đại diện" class="avatar-preview" onclick="document.getElementById('AvatarInput').click();" />
+                    <img id="AvatarPreview" src="~/images/default-avatar.png" alt="Ảnh đại diện" class="avatar-preview" onclick="document.getElementById('AvatarInput').click();" />
                     <label for="AvatarInput" class="avatar-upload-label">Chọn ảnh đại diện (không bắt buộc)</label>
-                    <input type="file" id="AvatarInput" name="avatarFile" accept="image/*" class="form-control" style="display:none;" onchange="previewAvatar(event)" />
+                    <input type="file" id="AvatarInput" name="avatarFile" accept="image/*" class="form-control" style="display:none;" onchange="validateAndPreviewAvatar(event)" />
+                    <!-- Thêm div để hiển thị lỗi từ client -->
+                    <div id="avatarError" class="error-message"></div>
                     <span asp-validation-for="AvatarPath" class="text-danger"></span>
                     <span class="field-validation-valid text-danger" data-valmsg-for="avatarFile"></span>
                 </div>
@@ -210,17 +229,46 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        // Script để preview ảnh avatar (giống CreateProfile Recruiter)
-        function previewAvatar(event) {
-            const reader = new FileReader();
-            reader.onload = function(){
-                const output = document.getElementById('AvatarPreview');
-                output.src = reader.result;
-            };
-            if (event.target.files[0]) {
-                 reader.readAsDataURL(event.target.files[0]);
+        // Hàm kiểm tra và hiển thị ảnh avatar
+        function validateAndPreviewAvatar(event) {
+            const file = event.target.files[0];
+            const maxSize = 2 * 1024 * 1024; // 2MB
+            const errorDiv = document.getElementById('avatarError');
+            const preview = document.getElementById('AvatarPreview');
+
+            // Reset error message
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+
+            if (file) {
+                // Kiểm tra kích thước
+                if (file.size > maxSize) {
+                    errorDiv.textContent = 'Kích thước file quá lớn (tối đa 2MB)';
+                    errorDiv.style.display = 'block';
+                    event.target.value = ''; // Clear file input
+                    preview.src = '/images/default-avatar.png';
+                    return;
+                }
+
+                // Kiểm tra loại file
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    errorDiv.textContent = 'Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif)';
+                    errorDiv.style.display = 'block';
+                    event.target.value = ''; // Clear file input
+                    preview.src = '/images/default-avatar.png';
+                    return;
+                }
+
+                // Nếu file hợp lệ, hiển thị preview
+                const reader = new FileReader();
+                reader.onload = function() {
+                    preview.src = reader.result;
+                };
+                reader.readAsDataURL(file);
             } else {
-                 document.getElementById('AvatarPreview').src = '/images/user.png';
+                // Reset về ảnh mặc định nếu không chọn file
+                preview.src = '/images/default-avatar.png';
             }
         }
     </script>

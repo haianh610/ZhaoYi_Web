@@ -374,34 +374,34 @@ namespace ZhaoYi_Test2.Controllers
 
         // GET: Recruiters/CreateProfile
         [HttpGet]
-public async Task<IActionResult> CreateProfile()
-{
-    var user = await _userManager.GetUserAsync(User);
-    if (user == null || user.Role != 2)
-    {
-        // Không phải Recruiter hoặc chưa đăng nhập, chuyển về trang chủ hoặc login
-        return RedirectToAction("Index", "Home");
-    }
+        public async Task<IActionResult> CreateProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || user.Role != 2)
+            {
+                // Không phải Recruiter hoặc chưa đăng nhập, chuyển về trang chủ hoặc login
+                return RedirectToAction("Index", "Home");
+            }
 
-    // Kiểm tra xem đã có hồ sơ chưa, nếu có rồi thì chuyển về trang Profile
-    var existingRecruiter = await _context.Recruiters.FirstOrDefaultAsync(r => r.UserId == user.Id);
-    if (existingRecruiter != null)
-    {
-        return RedirectToAction(nameof(Profile));
-    }
+            // Kiểm tra xem đã có hồ sơ chưa, nếu có rồi thì chuyển về trang Profile
+            var existingRecruiter = await _context.Recruiters.FirstOrDefaultAsync(r => r.UserId == user.Id);
+            if (existingRecruiter != null)
+            {
+                return RedirectToAction(nameof(Profile));
+            }
 
-    // Khởi tạo model trống để View sử dụng
-    var recruiter = new Recruiter
-    {
-        UserId = user.Id // Gán sẵn UserId
-    };
+            // Khởi tạo model trống để View sử dụng
+            var recruiter = new Recruiter
+            {
+                UserId = user.Id // Gán sẵn UserId
+            };
 
-    ViewData["Title"] = "Hoàn thiện Hồ sơ Nhà tuyển dụng";
-    ViewData["UserRole"] = "Recruiter";
-    ViewData["ShowBottomNav"] = false; // Không hiển thị nav khi tạo profile
+            ViewData["Title"] = "Hoàn thiện Hồ sơ Nhà tuyển dụng";
+            ViewData["UserRole"] = "Recruiter";
+            ViewData["ShowBottomNav"] = false; // Không hiển thị nav khi tạo profile
 
-    return View("CreateProfile", recruiter); // Trả về View CreateProfile.cshtml
-}
+            return View("CreateProfile", recruiter); // Trả về View CreateProfile.cshtml
+        }
 
         // POST: Recruiters/CreateProfile
         [HttpPost]
@@ -430,52 +430,67 @@ public async Task<IActionResult> CreateProfile()
             // Xóa validation properties không cần thiết trước khi kiểm tra ModelState
             ModelState.Remove("User");
             ModelState.Remove("UserId"); // Đã gán lại từ server
-            if(avatarFile == null || avatarFile.Length == 0)
+            ModelState.Remove("avatarFile"); // Không bắt buộc avatar khi tạo
+
+            // Xử lý upload Avatar
+            if (avatarFile != null && avatarFile.Length > 0)
             {
-                 ModelState.Remove("avatarFile"); // Không bắt buộc avatar khi tạo
+                // Kiểm tra kích thước file
+                if (avatarFile.Length > 2 * 1024 * 1024) // 2MB
+                {
+                    ModelState.AddModelError("avatarFile", "Kích thước file quá lớn (tối đa 2MB).");
+                    TempData["ErrorMessage"] = "Kích thước file quá lớn (tối đa 2MB).";
+                    ViewData["Title"] = "Hoàn thiện Hồ sơ Nhà tuyển dụng";
+                    ViewData["UserRole"] = "Recruiter";
+                    ViewData["ShowBottomNav"] = false;
+                    return View(recruiter);
+                }
+
+                // Kiểm tra định dạng file
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                var fileExtension = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    ModelState.AddModelError("avatarFile", "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif).");
+                    TempData["ErrorMessage"] = "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif).";
+                    ViewData["Title"] = "Hoàn thiện Hồ sơ Nhà tuyển dụng";
+                    ViewData["UserRole"] = "Recruiter";
+                    ViewData["ShowBottomNav"] = false;
+                    return View(recruiter);
+                }
+
+                try
+                {
+                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "avatars");
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    // Tạo tên file duy nhất và lưu
+                    var uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await avatarFile.CopyToAsync(fileStream);
+                    }
+                    recruiter.AvatarPath = uniqueFileName;
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("avatarFile", $"Lỗi khi xử lý file: {ex.Message}");
+                    TempData["ErrorMessage"] = $"Lỗi khi xử lý file: {ex.Message}";
+                    ViewData["Title"] = "Hoàn thiện Hồ sơ Nhà tuyển dụng";
+                    ViewData["UserRole"] = "Recruiter";
+                    ViewData["ShowBottomNav"] = false;
+                    return View(recruiter);
+                }
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Xử lý upload Avatar (tương tự như trong action POST Profile)
-                    if (avatarFile != null && avatarFile.Length > 0)
-                    {
-                        var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "avatars");
-                         if (!Directory.Exists(uploadsFolder))
-                         {
-                             Directory.CreateDirectory(uploadsFolder);
-                         }
-
-                         // Kiểm tra kích thước, loại file
-                         if (avatarFile.Length > 2 * 1024 * 1024) {
-                             ModelState.AddModelError("avatarFile", "Kích thước file quá lớn (tối đa 2MB).");
-                             ViewData["Title"] = "Hoàn thiện Hồ sơ Nhà tuyển dụng"; ViewData["UserRole"] = "Recruiter"; ViewData["ShowBottomNav"] = false;
-                             return View("CreateProfile", recruiter);
-                         }
-                         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                         var fileExtension = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
-                         if (!allowedExtensions.Contains(fileExtension)) {
-                             ModelState.AddModelError("avatarFile", "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif).");
-                             ViewData["Title"] = "Hoàn thiện Hồ sơ Nhà tuyển dụng"; ViewData["UserRole"] = "Recruiter"; ViewData["ShowBottomNav"] = false;
-                             return View("CreateProfile", recruiter);
-                         }
-
-                         // Tạo tên file duy nhất và lưu
-                         var uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
-                         var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                         using (var fileStream = new FileStream(filePath, FileMode.Create)) {
-                             await avatarFile.CopyToAsync(fileStream);
-                         }
-                         recruiter.AvatarPath = uniqueFileName; // Cập nhật đường dẫn ảnh
-                    }
-                     else
-                     {
-                         recruiter.AvatarPath = null; // Không có avatar
-                     }
-
-
                     _context.Recruiters.Add(recruiter);
                     await _context.SaveChangesAsync();
 
@@ -532,126 +547,201 @@ public async Task<IActionResult> CreateProfile()
         public async Task<IActionResult> EditProfile(Recruiter recruiter, IFormFile avatarFile, bool removeAvatar = false)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null || user.Role != 2)
+            if (user == null || user.Role != 2) // Đảm bảo là Recruiter và đã đăng nhập
             {
-                return Unauthorized(); // Hoặc redirect phù hợp
+                if (user == null) return RedirectToAction("Login", "Account", new { area = "Identity" });
+                return RedirectToAction("Index", "Home");
             }
 
-            // --- Lấy bản ghi Recruiter hiện có từ DB để cập nhật ---
+            // Kiểm tra file ảnh trước khi xử lý
+            if (avatarFile != null)
+            {
+                // Kiểm tra kích thước
+                if (avatarFile.Length > 2 * 1024 * 1024) // 2MB
+                {
+                    TempData["ErrorMessage"] = "Kích thước file quá lớn (tối đa 2MB).";
+                    return RedirectToAction(nameof(EditProfile));
+                }
+
+                // Kiểm tra loại file
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                var fileExtension = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    TempData["ErrorMessage"] = "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif).";
+                    return RedirectToAction(nameof(EditProfile));
+                }
+            }
+
+            // --- Lấy hồ sơ hiện có từ DB để cập nhật ---
             var existingRecruiter = await _context.Recruiters.FirstOrDefaultAsync(r => r.UserId == user.Id);
+
+            // Nếu không tìm thấy hồ sơ hiện có để cập nhật
             if (existingRecruiter == null)
             {
-                // Không tìm thấy hồ sơ để cập nhật
-                TempData["ErrorMessage"] = "Không tìm thấy hồ sơ để cập nhật.";
-                return RedirectToAction(nameof(CreateProfile));
+                TempData["ErrorMessage"] = "Không tìm thấy hồ sơ nhà tuyển dụng để cập nhật. Vui lòng tạo hồ sơ trước.";
+                return RedirectToAction(nameof(CreateProfile)); // Chuyển hướng đến trang tạo mới
             }
 
-            // --- QUAN TRỌNG: Gán ID và UserId từ bản ghi hiện có vào model từ form ---
+            // --- QUAN TRỌNG: Gán lại ID và UserId từ bản ghi hiện có ---
+            // Ngăn chặn việc cố gắng thay đổi ID qua form
             recruiter.RecruiterId = existingRecruiter.RecruiterId;
             recruiter.UserId = existingRecruiter.UserId;
 
-            // --- Xử lý Avatar (tương tự như action Profile POST đã sửa) ---
-            string currentAvatarPath = existingRecruiter.AvatarPath;
-            string uniqueFileName = null;
+            // --- Xử lý Avatar ---
+            string currentAvatarPath = existingRecruiter.AvatarPath; // Lấy đường dẫn avatar hiện tại
+            string uniqueFileName = null; // Tên file mới (nếu có)
 
-            try
+            try // Bọc xử lý file trong try-catch để xử lý lỗi I/O
             {
                 var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "avatars");
-                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
 
+                // 1. Xử lý xóa avatar
                 if (removeAvatar && !string.IsNullOrEmpty(currentAvatarPath))
                 {
                     var oldFilePath = Path.Combine(uploadsFolder, currentAvatarPath);
                     if (System.IO.File.Exists(oldFilePath))
                     {
                         System.IO.File.Delete(oldFilePath);
+                        System.Diagnostics.Debug.WriteLine($"Deleted avatar for remove request: {oldFilePath}");
                     }
-                    recruiter.AvatarPath = null; // Cập nhật model
-                    currentAvatarPath = null; // Cập nhật biến tạm
+                    recruiter.AvatarPath = null; // Đặt AvatarPath thành null cho model sẽ validate
+                    currentAvatarPath = null; // Cập nhật biến tạm để không giữ lại path cũ ở bước sau
                 }
+                // 2. Xử lý upload avatar mới
                 else if (avatarFile != null && avatarFile.Length > 0)
                 {
-                    // Kiểm tra size/type
-                    if (avatarFile.Length > 2 * 1024 * 1024) { ModelState.AddModelError("avatarFile", "Kích thước file quá lớn (tối đa 2MB)."); }
+                    // Kiểm tra kích thước và loại file (giống CreateProfile)
+                    if (avatarFile.Length > 2 * 1024 * 1024)
+                    {
+                        ModelState.AddModelError("avatarFile", "Kích thước file quá lớn (tối đa 2MB).");
+                    }
                     else
                     {
                         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
                         var fileExtension = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
-                        if (!allowedExtensions.Contains(fileExtension)) { ModelState.AddModelError("avatarFile", "Chỉ chấp nhận file ảnh."); }
+                        if (!allowedExtensions.Contains(fileExtension))
+                        {
+                            ModelState.AddModelError("avatarFile", "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif).");
+                        }
                         else
                         {
-                            // Lưu file mới
+                            // Tạo tên file và lưu
                             uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
                             var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                            using (var fileStream = new FileStream(filePath, FileMode.Create)) { await avatarFile.CopyToAsync(fileStream); }
-                            recruiter.AvatarPath = uniqueFileName; // Cập nhật model
+                            using (var fileStream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await avatarFile.CopyToAsync(fileStream);
+                            }
+                            recruiter.AvatarPath = uniqueFileName; // Gán path mới cho model sẽ validate
 
-                            // Xóa file cũ nếu có và khác file mới
+                            // Xóa avatar cũ nếu có và khác avatar mới
                             if (!string.IsNullOrEmpty(currentAvatarPath) && currentAvatarPath != uniqueFileName)
                             {
                                 var oldFilePath = Path.Combine(uploadsFolder, currentAvatarPath);
-                                if (System.IO.File.Exists(oldFilePath)) { try { System.IO.File.Delete(oldFilePath); } catch { /* Log error */ } }
+                                if (System.IO.File.Exists(oldFilePath))
+                                {
+                                    try { System.IO.File.Delete(oldFilePath); } catch (IOException ioEx) { System.Diagnostics.Debug.WriteLine($"IO Error deleting old avatar: {ioEx.Message}"); }
+                                }
                             }
                             currentAvatarPath = uniqueFileName; // Cập nhật biến tạm
                         }
                     }
                 }
+                // 3. Giữ avatar cũ (nếu không xóa và không upload mới)
                 else if (!removeAvatar)
                 {
-                    recruiter.AvatarPath = currentAvatarPath; // Giữ lại path cũ nếu không làm gì
+                    recruiter.AvatarPath = currentAvatarPath; // Gán lại path cũ cho model sẽ validate
                 }
+
+            }
+            catch (IOException ioEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"IO Error during avatar processing: {ioEx.Message}");
+                ModelState.AddModelError("avatarFile", "Đã xảy ra lỗi khi xử lý ảnh đại diện.");
+                // Không dừng ở đây, vẫn tiếp tục kiểm tra ModelState chung
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error processing avatar during edit: {ex.Message}");
-                ModelState.AddModelError("avatarFile", "Đã xảy ra lỗi khi xử lý ảnh đại diện.");
+                System.Diagnostics.Debug.WriteLine($"General Error during avatar processing: {ex.Message}");
+                ModelState.AddModelError("", "Đã xảy ra lỗi không mong muốn khi xử lý ảnh.");
+                // Không dừng ở đây, vẫn tiếp tục kiểm tra ModelState chung
             }
 
-            // --- Kiểm tra ModelState ---
+
+            // --- Chuẩn bị và Kiểm tra ModelState ---
             ModelState.Remove("User"); // Bỏ qua validation cho navigation property
             if (avatarFile == null || avatarFile.Length == 0)
             {
                 ModelState.Remove("avatarFile"); // Không yêu cầu avatar khi cập nhật
             }
 
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // --- Cập nhật các thuộc tính của existingRecruiter ---
+                    // --- Cập nhật các trường của bản ghi hiện có ---
                     existingRecruiter.RecruiterName = recruiter.RecruiterName;
                     existingRecruiter.WorkLocation = recruiter.WorkLocation;
                     existingRecruiter.DetailedAddress = recruiter.DetailedAddress;
-                    existingRecruiter.AvatarPath = recruiter.AvatarPath; // Gán AvatarPath đã được xử lý
+                    // Cập nhật AvatarPath từ model 'recruiter' đã được xử lý ở trên
+                    existingRecruiter.AvatarPath = recruiter.AvatarPath;
 
-                    _context.Update(existingRecruiter); // Đánh dấu cập nhật
-                    await _context.SaveChangesAsync(); // Lưu vào DB
+                    _context.Update(existingRecruiter); // Đánh dấu bản ghi là đã thay đổi
+                    await _context.SaveChangesAsync(); // Lưu thay đổi vào DB
 
                     TempData["StatusMessage"] = "Hồ sơ nhà tuyển dụng đã được cập nhật thành công.";
-                    return RedirectToAction(nameof(Profile)); // Quay lại trang Profile chính
+                    System.Diagnostics.Debug.WriteLine("Recruiter Profile updated successfully.");
+                    return RedirectToAction(nameof(Profile)); // Quay lại trang Profile sau khi cập nhật thành công
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    ModelState.AddModelError("", "Lỗi xung đột dữ liệu. Vui lòng thử lại.");
-                    // Có thể load lại dữ liệu mới nhất để hiển thị
+                    ModelState.AddModelError("", "Lỗi xung đột dữ liệu. Hồ sơ có thể đã bị thay đổi bởi người khác.");
+                    // Load lại dữ liệu mới nhất để hiển thị nếu muốn
                     // existingRecruiter = await _context.Recruiters.AsNoTracking().FirstOrDefaultAsync(r => r.UserId == user.Id);
-                    // if (existingRecruiter != null) recruiter = existingRecruiter;
+                    // if (existingRecruiter != null) recruiter = existingRecruiter; // Hiển thị dữ liệu mới nhất
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error updating recruiter profile DB: {ex.Message}\n{ex.StackTrace}");
+                    System.Diagnostics.Debug.WriteLine($"Error updating recruiter profile in DB: {ex.Message}\n{ex.StackTrace}");
                     ModelState.AddModelError("", $"Không thể cập nhật hồ sơ: {ex.Message}");
                 }
             }
+            else
+            {
+                // Log lỗi validation nếu cần
+                foreach (var modelState in ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"ModelState Error on Update: {error.ErrorMessage}");
+                    }
+                }
+            }
 
-            // --- Nếu ModelState không hợp lệ hoặc có lỗi khi lưu DB, quay lại View EditProfile ---
-            ViewData["Title"] = "Chỉnh sửa Hồ sơ Nhà tuyển dụng";
+            // --- Nếu ModelState không hợp lệ hoặc có lỗi khi lưu DB, quay lại View Profile ---
+            // Cần truyền lại các ViewBag cần thiết cho trang Profile (giống action GET)
+            ViewBag.HasProfile = true; // Chắc chắn đã có profile vì đang ở action Update
+                                       // Lấy lại job postings và applications cho view
+            var jobPostings = await _context.JobPostings.Where(jp => jp.RecruiterId == existingRecruiter.RecruiterId).OrderByDescending(jp => jp.PostedDate).ToListAsync();
+            ViewBag.JobPostings = jobPostings;
+            var recentApplications = await _context.JobApplications.Where(a => a.JobPosting.RecruiterId == existingRecruiter.RecruiterId).Include(a => a.Interpreter).Include(a => a.JobPosting).OrderByDescending(a => a.ApplicationDate).Take(5).ToListAsync();
+            ViewBag.Applications = recentApplications;
+            // Lấy các giá trị ViewBag khác (ví dụ: stats, rank)
+            ViewBag.FollowingCount = 150; // Placeholder
+            ViewBag.FollowersCount = 280; // Placeholder
+            ViewBag.Rank = "Bạc"; // Placeholder
+
             ViewData["UserRole"] = "Recruiter";
-            ViewData["ShowBottomNav"] = false;
+            ViewData["ShowBottomNav"] = true;
             // Truyền lại model 'recruiter' (chứa dữ liệu lỗi từ form) để hiển thị validation errors
-            return View("EditProfile", recruiter);
+            return View("RecruiterProfileMobile", recruiter);
         }
-
 
         // GET: Recruiters/CreateJob
         [HttpGet] // Thêm HttpGet để rõ ràng hơn

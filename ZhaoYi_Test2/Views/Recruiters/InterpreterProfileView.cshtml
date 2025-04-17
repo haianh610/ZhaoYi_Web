@@ -8,7 +8,7 @@
     ViewData["UserRole"] = "Recruiter";
     ViewData["ShowBottomNav"] = false; // Ẩn bottom nav trên trang chi tiết
 
-    var avatarUrl = !string.IsNullOrEmpty(Model.AvatarPath) ? Url.Content($"~/uploads/avatars/{Model.AvatarPath}") : Url.Content("~/images/user.png");
+    var avatarUrl = !string.IsNullOrEmpty(Model.AvatarPath) ? Url.Content($"~/uploads/avatars/{Model.AvatarPath}") : Url.Content("~/images/default-avatar.png");
     var age = DateTime.Today.Year - Model.DateOfBirth.Year;
     if (Model.DateOfBirth.Date > DateTime.Today.AddYears(-age)) age--; // Correct age calculation
     var demographics = $"{Model.Gender}, {age} tuổi";

@@ -39,7 +39,7 @@ else
                     <th>@Html.DisplayNameFor(model => model.PostedDate)</th>
                     <th>@Html.DisplayNameFor(model => model.ExpiryDate)</th>
                     <th>@Html.DisplayNameFor(model => model.Status)</th>
-                    <th>@Html.DisplayNameFor(model => model.Salary)</th>
+                    <th>@Html.DisplayNameFor(model => model.MinSalary)</th>
                     <th>@Html.DisplayNameFor(model => model.ViewCount)</th>
                     <th>Thao tác</th>
                 </tr>
@@ -56,7 +56,7 @@ else
                                 @Html.DisplayFor(modelItem => item.Status)
                             </span>
                         </td>
-                        <td>@item.Salary.ToString("N0") VND</td>
+                        <td>@item.MinSalary.ToString("N0") VND</td>
                         <td>@Html.DisplayFor(modelItem => item.ViewCount)</td>
                         <td>
                             <div class="btn-group">

@@ -4,7 +4,7 @@
 
     // Lấy thông tin người dùng từ ViewData được truyền từ controller
     var userName = ViewData["UserName"] as string ?? "Tên người dùng";
-    var userAvatar = ViewData["UserAvatar"] as string ?? "/images/user.png";
+    var userAvatar = ViewData["UserAvatar"] as string ?? "/images/default-avatar.png";
     var followingCount = ViewData["FollowingCount"] as int? ?? 0;
     var followersCount = ViewData["FollowersCount"] as int? ?? 0;
     var userRole = ViewData["UserRole"] as string ?? "User";

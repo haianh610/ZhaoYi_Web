@@ -50,6 +50,8 @@
 }
 
 @section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"> @* Nếu dùng icon Bootstrap *@
     <link rel="stylesheet" href="~/css/recruiter-job-details.css" asp-append-version="true" />
     <style>
         .mobile-screen {
@@ -124,7 +126,7 @@
             <div class="detail-item">
                 <i class="fas fa-dollar-sign icon"></i>
                 <span class="detail-label">Mức lương:</span>
-                <span class="detail-value salary">@Model.Salary.ToString("N0") VND</span>
+                <span class="detail-value MinSalary">("N0") VND</span>
             </div>
             <div class="detail-item">
                 <i class="fas fa-map-marker-alt icon"></i>
@@ -226,7 +228,7 @@
             {
                 @foreach (var app in applications)
                 {
-                    var interpreterAvatar = !string.IsNullOrEmpty(app.Interpreter?.AvatarPath) ? Url.Content($"~/uploads/avatars/{app.Interpreter.AvatarPath}") : Url.Content("~/images/user.png");
+                    var interpreterAvatar = !string.IsNullOrEmpty(app.Interpreter?.AvatarPath) ? Url.Content($"~/uploads/avatars/{app.Interpreter.AvatarPath}") : Url.Content("~/images/default-avatar.png");
                     var appStatusClass = GetAppStatusClass(app.Status);
                     var appStatusText = GetAppStatusDisplayName(app.Status);
 
@@ -274,7 +276,7 @@
 @* Modal chi tiết ứng viên *@
 @foreach (var app in applications)
 {
-    var interpreterAvatarModal = !string.IsNullOrEmpty(app.Interpreter?.AvatarPath) ? Url.Content($"~/uploads/avatars/{app.Interpreter.AvatarPath}") : Url.Content("~/images/user.png");
+    var interpreterAvatarModal = !string.IsNullOrEmpty(app.Interpreter?.AvatarPath) ? Url.Content($"~/uploads/avatars/{app.Interpreter.AvatarPath}") : Url.Content("~/images/default-avatar.png");
     var appStatusClassModal = GetAppStatusClass(app.Status);
     var appStatusTextModal = GetAppStatusDisplayName(app.Status);
 

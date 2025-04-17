@@ -1,0 +1,50 @@
+@model ZhaoYi_Test2.Models.JobPosting
+
+<div class="job-card @(Model.IsUrgent ? "urgent" : "")">
+    <a asp-controller="JobApply" asp-action="Details" asp-route-id="@Model.JobPostingId" style="text-decoration: none; color: inherit;">
+        <div class="job-card-header">
+            <div class="job-title-wrapper">
+                <h3 class="job-title">@Model.Title</h3>
+                @if(Model.IsUrgent)
+                {
+                    <i class="fas fa-fire" style="color: #ff8c00;"></i>
+                }
+            </div>
+        </div>
+        <div class="job-card-content">
+            @if (Model.Recruiter != null && !string.IsNullOrEmpty(Model.Recruiter.AvatarPath))
+            {
+                <img src="~/uploads/avatars/@Model.Recruiter.AvatarPath" alt="Company Logo" class="logo">
+            }
+            else
+            {
+                <img src="~/images/default-avatar.png" alt="Default Logo" class="logo">
+            }
+            <div class="job-details">
+                <p class="company-name">@(Model.Recruiter?.RecruiterName ?? "Công ty ZhaoYi")</p>
+                <div class="salary-range">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>@Model.MinSalary.ToString("N0") - @Model.MaxSalary.ToString("N0") VNĐ</span>
+                </div>
+                <div class="info-line">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Lĩnh vực: <span class="highlight">@(string.IsNullOrEmpty(Model.Field) ? "Chung" : Model.Field)</span></span>
+                </div>
+                <div class="info-line">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>@Model.WorkLocation</span>
+                </div>
+                <div class="time-left">
+                    <i class="far fa-clock"></i>
+                    @{
+                        var timeLeft = Model.ExpiryDate - DateTime.Now;
+                        var timeDisplay = timeLeft.TotalHours < 24
+                            ? $"Còn {Math.Max(1, (int)timeLeft.TotalHours)}h"
+                            : $"Còn {(int)timeLeft.TotalDays}d";
+                    }
+                    <span>@timeDisplay</span>
+                </div>
+            </div>
+        </div>
+    </a>
+</div>

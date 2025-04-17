@@ -278,7 +278,8 @@ namespace ZhaoYi_Test2.Controllers
                     // Cập nhật các trường có thể chỉnh sửa
                     existingJob.Title = jobPosting.Title;
                     existingJob.JobDescription = jobPosting.JobDescription;
-                    existingJob.Salary = jobPosting.Salary;
+                    existingJob.MinSalary = jobPosting.MinSalary;
+                    existingJob.MaxSalary = jobPosting.MaxSalary;
                     existingJob.WorkLocation = jobPosting.WorkLocation;
                     existingJob.Field = jobPosting.Field;
                     existingJob.RequiredExperience = jobPosting.RequiredExperience;

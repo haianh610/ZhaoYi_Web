@@ -37,3 +37,4 @@ namespace ZhaoYi_Test2.ViewModels
         public string ConfirmPassword { get; set; }
     }
 }
+ 

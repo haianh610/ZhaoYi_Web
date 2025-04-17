@@ -1,4 +1,7 @@
 @model ZhaoYi_Test2.Models.Interpreter
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+
 @{
     ViewData["Title"] = "Hồ sơ";
     Layout = "~/Views/Shared/_MobileLayout.cshtml";
@@ -13,7 +16,18 @@
                     (DateTime.Now.Year - Model.DateOfBirth.Year) : 22;
     var profileDetails = $"Giới tính: {gender} - Tuổi: {age}";
     var profileImageUrl = !string.IsNullOrEmpty(Model?.AvatarPath) ?
-                         $"/uploads/avatars/{Model.AvatarPath}" : "/images/user.png";
+                         $"/uploads/avatars/{Model.AvatarPath}" : "/images/default-avatar.png";
+
+
+    // Helper function để lấy Display Name của Enum
+    Func<Enum, string> GetEnumDisplayName = (enumValue) =>
+    {
+        if (enumValue == null) return "Chưa cập nhật";
+        var field = enumValue.GetType().GetField(enumValue.ToString());
+        if (field == null) return enumValue.ToString();
+        var displayAttribute = field.GetCustomAttribute<DisplayAttribute>();
+        return displayAttribute?.GetName() ?? enumValue.ToString();
+    };
 }
 
 @section Styles {
@@ -199,9 +213,9 @@
                 </li>
                 <li class="detail-item">
                     <i class="fas fa-star detail-icon-orange"></i>
-                    <span>Kinh nghiệm: @(Model?.YearsOfExperience.ToString() ?? "Không có thông tin")</span>
+                    <span>Kinh nghiệm: @(GetEnumDisplayName(Model.YearsOfExperience) ?? "Không có thông tin")</span>
                 </li>
-                <li class="detail-item">
+                <li class="detail-item">    
                     <i class="fas fa-map-marker-alt detail-icon-orange"></i>
                     <span>Địa chỉ làm việc: @(Model?.WorkLocation ?? "Không có thông tin")</span>
                 </li>
@@ -214,11 +228,11 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="action-buttons">
+        @* <div class="action-buttons">
             <button class="btn btn-add-section" id="add-section-btn"><i class="fas fa-plus"></i> Thêm mục</button>
             <button class="btn btn-secondary" id="download-pdf-btn">Tải xuống PDF</button>
             <button class="btn btn-secondary" id="share-profile-btn">Chia sẻ Profile</button>
-        </div>
+        </div> *@
 
         <!-- Profile Completion Section -->
         <div class="profile-section completion-section">
@@ -791,6 +805,12 @@
                     }
                 }
                 
+                // Cập nhật avatar ở header
+                const profilePic = document.querySelector('.profile-pic-large');
+                if (profilePic) {
+                    profilePic.src = basicInfo.avatarPath ? `/uploads/avatars/${basicInfo.avatarPath}` : '/images/default-avatar.png';
+                }
+
                 console.log('Đã cập nhật thông tin cơ bản:', basicInfo);
             }
             
@@ -1524,9 +1544,150 @@
             document.getElementById('add-section-btn')?.addEventListener('click', function() {
                 alert('Tính năng đang phát triển');
             });
+
+            // Thêm sự kiện click cho avatar ở header
+            const profilePic = document.querySelector('.profile-pic-large');
+            if (profilePic) {
+                profilePic.addEventListener('click', function() {
+                    openModal('basic-info-modal');
+                });
+            }
+
+            // Xử lý preview ảnh trong modal
+            function validateAndPreviewModalAvatar(event) {
+                const file = event.target.files[0];
+                const maxSize = 2 * 1024 * 1024; // 2MB
+                const errorDiv = document.getElementById('avatarErrorModal');
+                const preview = document.getElementById('AvatarPreviewModal');
+                const removeAvatarCheck = document.getElementById('removeAvatarModal');
+                const originalAvatar = preview.src;
+
+                // Reset error message
+                errorDiv.style.display = 'none';
+                errorDiv.textContent = '';
+
+                if (file) {
+                    // Kiểm tra kích thước
+                    if (file.size > maxSize) {
+                        errorDiv.textContent = 'Kích thước file quá lớn (tối đa 2MB)';
+                        errorDiv.style.display = 'block';
+                        event.target.value = ''; // Clear file input
+                        preview.src = originalAvatar;
+                        return;
+                    }
+
+                    // Kiểm tra loại file
+                    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                    if (!allowedTypes.includes(file.type)) {
+                        errorDiv.textContent = 'Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif)';
+                        errorDiv.style.display = 'block';
+                        event.target.value = ''; // Clear file input
+                        preview.src = originalAvatar;
+                        return;
+                    }
+
+                    // Nếu file hợp lệ, hiển thị preview
+                    const reader = new FileReader();
+                    reader.onload = function() {
+                        preview.src = reader.result;
+                    };
+                    reader.readAsDataURL(file);
+
+                    // Bỏ check xóa avatar nếu người dùng chọn ảnh mới
+                    if (removeAvatarCheck) removeAvatarCheck.checked = false;
+                } else {
+                    // Reset về ảnh gốc nếu không chọn file
+                    preview.src = originalAvatar;
+                }
+            }
+
+            // Xử lý khi check/uncheck xóa avatar
+            const removeAvatarCheck = document.getElementById('removeAvatarModal');
+            if (removeAvatarCheck) {
+                removeAvatarCheck.addEventListener('change', function() {
+                    const preview = document.getElementById('AvatarPreviewModal');
+                    const fileInput = document.getElementById('AvatarInputModal');
+                    const errorDiv = document.getElementById('avatarErrorModal');
+
+                    // Reset error message
+                    errorDiv.style.display = 'none';
+                    errorDiv.textContent = '';
+
+                    if (this.checked) {
+                        // Nếu check xóa, reset preview về ảnh mặc định và xóa file đã chọn
+                        preview.src = '/images/default-avatar.png';
+                        fileInput.value = null;
+                    } else {
+                        // Nếu bỏ check xóa, quay lại ảnh gốc (nếu có)
+                        preview.src = '@(!string.IsNullOrEmpty(Model?.AvatarPath) ? $"/uploads/avatars/{Model.AvatarPath}" : "/images/default-avatar.png")';
+                    }
+                });
+            }
+
+            // Cập nhật updateBasicInfoUI để xử lý cập nhật avatar
+            function updateBasicInfoUI(basicInfo) {
+                if (!basicInfo) return;
+
+                // Cập nhật avatar ở header
+                const profilePic = document.querySelector('.profile-pic-large');
+                if (profilePic) {
+                    profilePic.src = basicInfo.avatarPath ? `/uploads/avatars/${basicInfo.avatarPath}` : '/images/default-avatar.png';
+                }
+
+                // ...existing updateBasicInfoUI code...
+            }
+
+            // Thêm event listener cho input avatar trong modal
+            const avatarInput = document.getElementById('AvatarInputModal');
+            if (avatarInput) {
+                avatarInput.addEventListener('change', function(event) {
+                    const file = event.target.files[0];
+                    const maxSize = 2 * 1024 * 1024; // 2MB
+                    const errorDiv = document.getElementById('avatarErrorModal');
+                    const preview = document.getElementById('AvatarPreviewModal');
+                    const removeAvatarCheck = document.getElementById('removeAvatarModal');
+                    const originalAvatar = preview.src;
+
+                    // Reset error message
+                    errorDiv.style.display = 'none';
+                    errorDiv.textContent = '';
+
+                    if (file) {
+                        // Kiểm tra kích thước
+                        if (file.size > maxSize) {
+                            errorDiv.textContent = 'Kích thước file quá lớn (tối đa 2MB)';
+                            errorDiv.style.display = 'block';
+                            event.target.value = ''; // Clear file input
+                            preview.src = originalAvatar;
+                            return;
+                        }
+
+                        // Kiểm tra loại file
+                        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                        if (!allowedTypes.includes(file.type)) {
+                            errorDiv.textContent = 'Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif)';
+                            errorDiv.style.display = 'block';
+                            event.target.value = ''; // Clear file input
+                            preview.src = originalAvatar;
+                            return;
+                        }
+
+                        // Nếu file hợp lệ, hiển thị preview
+                        const reader = new FileReader();
+                        reader.onload = function() {
+                            preview.src = reader.result;
+                        };
+                        reader.readAsDataURL(file);
+
+                        // Bỏ check xóa avatar nếu người dùng chọn ảnh mới
+                        if (removeAvatarCheck) removeAvatarCheck.checked = false;
+                    } else {
+                        // Reset về ảnh gốc nếu không chọn file
+                        preview.src = originalAvatar;
+                    }
+                });
+            }
         });
-
-
     </script>
 }
 

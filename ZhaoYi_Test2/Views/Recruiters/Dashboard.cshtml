@@ -66,7 +66,7 @@
         {
             @foreach (var interpreter in Model)
             {
-                var avatarUrl = !string.IsNullOrEmpty(interpreter.AvatarPath) ? Url.Content($"~/uploads/avatars/{interpreter.AvatarPath}") : Url.Content("~/images/user.png");
+                var avatarUrl = !string.IsNullOrEmpty(interpreter.AvatarPath) ? Url.Content($"~/uploads/avatars/{interpreter.AvatarPath}") : Url.Content("~/images/default-avatar.png");
                 var age = DateTime.Today.Year - interpreter.DateOfBirth.Year;
                 if (interpreter.DateOfBirth.Date > DateTime.Today.AddYears(-age)) age--; // Correct age calculation
                 var isBookmarked = bookmarkedIds.Contains(interpreter.InterpreterId);

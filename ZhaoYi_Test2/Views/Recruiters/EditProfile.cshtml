@@ -7,7 +7,7 @@
     ViewData["ShowBottomNav"] = false;
 
     // Lấy đường dẫn avatar hiện tại từ Model để hiển thị ban đầu
-    var currentAvatarUrl = !string.IsNullOrEmpty(Model.AvatarPath) ? Url.Content($"~/uploads/avatars/{Model.AvatarPath}") : Url.Content("~/images/user.png");
+    var currentAvatarUrl = !string.IsNullOrEmpty(Model.AvatarPath) ? Url.Content($"~/uploads/avatars/{Model.AvatarPath}") : Url.Content("~/images/default-avatar.png");
 }
 
 @section Styles {
@@ -39,8 +39,6 @@
             margin-bottom: 5px;
         }
 
-
-
         .avatar-preview {
             width: 100px;
             height: 100px;
@@ -66,6 +64,16 @@
         #AvatarInput {
             display: none;
         }
+
+        /* Thêm style cho thông báo lỗi */
+        .error-message {
+            color: #dc3545;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 5px;
+            display: none;
+        }
+
         /* Thêm style cho checkbox remove avatar */
         .remove-avatar-check {
             display: flex;
@@ -93,6 +101,14 @@
         <h1 class="page-title">Chỉnh sửa Hồ sơ</h1>
     </header>
 
+    <!-- Thêm thông báo lỗi từ TempData nếu có -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
     <!-- Form Area -->
     <div class="form-area">
         <form method="post" asp-action="EditProfile" enctype="multipart/form-data">
@@ -113,7 +129,9 @@
                     @* Hiển thị avatar hiện tại *@
                     <img id="AvatarPreview" src="@currentAvatarUrl" alt="Ảnh đại diện" class="avatar-preview" onclick="document.getElementById('AvatarInput').click();" />
                     <label for="AvatarInput" class="avatar-upload-label">Nhấn vào ảnh để thay đổi</label>
-                    <input type="file" id="AvatarInput" name="avatarFile" accept="image/*" class="form-control" style="display:none;" onchange="previewAvatar(event)" />
+                    <input type="file" id="AvatarInput" name="avatarFile" accept="image/*" class="form-control" style="display:none;" onchange="validateAndPreviewAvatar(event)" />
+                    <!-- Thêm div để hiển thị lỗi từ client -->
+                    <div id="avatarError" class="error-message"></div>
                     @* Checkbox để xóa avatar *@
                     <div class="remove-avatar-check">
                         <input type="checkbox" id="removeAvatar" name="removeAvatar" value="true">
@@ -160,44 +178,77 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        // Script để preview ảnh avatar (giống CreateProfile)
-        function previewAvatar(event) {
-            const reader = new FileReader();
-            const output = document.getElementById('AvatarPreview');
-            const currentPathInput = document.getElementById('CurrentAvatarPathInput'); // Input ẩn giữ path cũ
+        // Hàm kiểm tra và hiển thị ảnh avatar
+        function validateAndPreviewAvatar(event) {
+            const file = event.target.files[0];
+            const maxSize = 2 * 1024 * 1024; // 2MB
+            const errorDiv = document.getElementById('avatarError');
+            const preview = document.getElementById('AvatarPreview');
+            const removeCheckbox = document.getElementById('removeAvatar');
+            const currentPathInput = document.getElementById('CurrentAvatarPathInput');
+            const originalAvatar = '@currentAvatarUrl';
 
-            reader.onload = function(){
-                output.src = reader.result;
-                 // Khi chọn file mới, xóa giá trị path cũ trong input ẩn nếu có
-                 // if(currentPathInput) currentPathInput.value = ''; // Không cần thiết nữa vì controller xử lý
-            };
+            // Reset error message
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
 
-            if (event.target.files[0]) {
-                 reader.readAsDataURL(event.target.files[0]);
-                 // Bỏ check xóa nếu người dùng chọn ảnh mới
-                 document.getElementById('removeAvatar').checked = false;
+            if (file) {
+                // Kiểm tra kích thước
+                if (file.size > maxSize) {
+                    errorDiv.textContent = 'Kích thước file quá lớn (tối đa 2MB)';
+                    errorDiv.style.display = 'block';
+                    event.target.value = ''; // Clear file input
+                    preview.src = originalAvatar || '/images/default-avatar.png';
+                    return;
+                }
+
+                // Kiểm tra loại file
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    errorDiv.textContent = 'Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif)';
+                    errorDiv.style.display = 'block';
+                    event.target.value = ''; // Clear file input
+                    preview.src = originalAvatar || '/images/default-avatar.png';
+                    return;
+                }
+
+                // Nếu file hợp lệ, hiển thị preview
+                const reader = new FileReader();
+                reader.onload = function() {
+                    preview.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+
+                // Bỏ check xóa nếu người dùng chọn ảnh mới
+                if (removeCheckbox) removeCheckbox.checked = false;
             } else {
-                 // Reset về ảnh mặc định nếu hủy chọn file
-                 // Giữ lại ảnh cũ nếu có, hoặc ảnh mặc định nếu chưa có avatar
-                 const originalAvatar = '@currentAvatarUrl'; // Lấy path gốc từ C#
-                 output.src = originalAvatar || '/images/user.png';
+                // Reset về ảnh gốc nếu hủy chọn file
+                preview.src = originalAvatar || '/images/default-avatar.png';
             }
         }
 
-         // Xử lý khi check/uncheck xóa avatar
-         const removeCheckbox = document.getElementById('removeAvatar');
-         if (removeCheckbox) {
-             removeCheckbox.addEventListener('change', function() {
-                 if (this.checked) {
-                     // Nếu check xóa, reset preview về ảnh mặc định và xóa file đã chọn (nếu có)
-                     document.getElementById('AvatarPreview').src = '/images/user.png';
-                     document.getElementById('AvatarInput').value = null; // Xóa file đã chọn
-                 } else {
-                      // Nếu bỏ check xóa, quay lại ảnh gốc (nếu có)
-                      const originalAvatar = '@currentAvatarUrl';
-                      document.getElementById('AvatarPreview').src = originalAvatar || '/images/user.png';
-                 }
-             });
-         }
+        // Xử lý khi check/uncheck xóa avatar
+        const removeCheckbox = document.getElementById('removeAvatar');
+        if (removeCheckbox) {
+            removeCheckbox.addEventListener('change', function() {
+                const preview = document.getElementById('AvatarPreview');
+                const fileInput = document.getElementById('AvatarInput');
+                const errorDiv = document.getElementById('avatarError');
+
+                // Reset error message
+                errorDiv.style.display = 'none';
+                errorDiv.textContent = '';
+
+                if (this.checked) {
+                    // Nếu check xóa, reset preview về ảnh mặc định và xóa file đã chọn
+                    preview.src = '/images/default-avatar.png';
+                    fileInput.value = null;
+                } else {
+                    // Nếu bỏ check xóa, quay lại ảnh gốc (nếu có)
+                    const originalAvatar = '@currentAvatarUrl';
+                    preview.src = originalAvatar || '/images/default-avatar.png';
+                }
+            });
+        }
     </script>
 }

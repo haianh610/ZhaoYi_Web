@@ -76,10 +76,16 @@ namespace ZhaoYi_Test2.Models
         public string Field { get; set; }
 
         [Required]
-        [Display(Name = "Lương")]
+        [Display(Name = "Mức lương tối thiểu")]
         [DataType(DataType.Currency)]
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal Salary { get; set; }
+        public decimal MinSalary { get; set; }
+
+        [Required]
+        [Display(Name = "Mức lương tối đa")]
+        [DataType(DataType.Currency)]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal MaxSalary { get; set; }
 
         [Display(Name = "Yêu cầu kinh nghiệm")]
         public ExperienceLevel? RequiredExperience { get; set; }
@@ -87,6 +93,10 @@ namespace ZhaoYi_Test2.Models
         [Required]
         [Display(Name = "Mô tả công việc")]
         public string JobDescription { get; set; }
+
+        [Required]
+        [Display(Name = "Yêu cầu công việc")]
+        public string JobRequirements { get; set; }
 
         [Display(Name = "Số lượt xem")]
         public int ViewCount { get; set; } = 0;
@@ -110,5 +120,8 @@ namespace ZhaoYi_Test2.Models
         [Display(Name = "Ngày hết hạn")]
         [DataType(DataType.Date)]
         public DateTime ExpiryDate { get; set; }
+
+        [Display(Name = "Tuyển gấp")]
+        public bool IsUrgent { get; set; } = false;
     }
 }

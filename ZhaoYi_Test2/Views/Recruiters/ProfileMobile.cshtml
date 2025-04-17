@@ -10,7 +10,7 @@
     // Lấy dữ liệu từ Model và ViewBag
     var recruiterName = Model.RecruiterName ?? "Chưa cập nhật tên";
     var recruiterIdDisplay = Model.RecruiterId > 0 ? $"Mã NTD: {Model.RecruiterId}" : "Chưa có mã";
-    var avatarUrl = !string.IsNullOrEmpty(Model.AvatarPath) ? Url.Content($"~/uploads/avatars/{Model.AvatarPath}") : Url.Content("~/images/user.png"); // Default avatar
+    var avatarUrl = !string.IsNullOrEmpty(Model.AvatarPath) ? Url.Content($"~/uploads/avatars/{Model.AvatarPath}") : Url.Content("~/images/default-avatar.png"); // Default avatar
     var followingCount = ViewBag.FollowingCount ?? 0;
     var followersCount = ViewBag.FollowersCount ?? 0;
     var rank = ViewBag.Rank ?? "Đồng"; // Lấy từ ViewBag
@@ -335,7 +335,7 @@
                 {
                     @foreach (var app in applications)
                     {
-                        var interpreterAvatar = !string.IsNullOrEmpty(app.Interpreter?.AvatarPath) ? Url.Content($"~/uploads/avatars/{app.Interpreter.AvatarPath}") : Url.Content("~/images/user.png");
+                        var interpreterAvatar = !string.IsNullOrEmpty(app.Interpreter?.AvatarPath) ? Url.Content($"~/uploads/avatars/{app.Interpreter.AvatarPath}") : Url.Content("~/images/default-avatar.png");
                         <div class="cv-card">
                             <img src="@interpreterAvatar" alt="Avatar của @app.InterpreterName" class="cv-applicant-avatar">
                             <div class="cv-info">

@@ -10,6 +10,19 @@
         <form id="basic-info-form" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
 
+            <!-- Thêm phần Avatar -->
+            <div class="modal-form-group text-center">
+                <img id="AvatarPreviewModal" src="@(!string.IsNullOrEmpty(Model?.AvatarPath) ? $"/uploads/avatars/{Model.AvatarPath}" : "/images/default-avatar.png")" 
+                     alt="Ảnh đại diện" class="avatar-preview" onclick="document.getElementById('AvatarInputModal').click();" />
+                <label for="AvatarInputModal" class="avatar-upload-label">Nhấn vào ảnh để thay đổi</label>
+                <input type="file" id="AvatarInputModal" name="avatarFile" accept="image/*" class="form-control" style="display:none;" />
+                <div id="avatarErrorModal" class="error-message"></div>
+                <div class="remove-avatar-check">
+                    <input type="checkbox" id="removeAvatarModal" name="removeAvatar" value="true">
+                    <label for="removeAvatarModal">Xóa ảnh đại diện hiện tại</label>
+                </div>
+            </div>
+
             <div class="modal-form-group">
                 <label asp-for="InterpreterName">Họ và tên</label>
                 <input asp-for="InterpreterName" required />
@@ -64,3 +77,52 @@
         </form>
     </div>
 </div>
+
+<style>
+    .avatar-preview {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 2px solid #eee;
+        margin-bottom: 10px;
+        object-fit: cover;
+        cursor: pointer;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .avatar-upload-label {
+        display: block;
+        text-align: center;
+        color: #ff8c00;
+        font-size: 0.85rem;
+        cursor: pointer;
+        margin-bottom: 5px;
+    }
+
+    .remove-avatar-check {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        font-size: 0.85rem;
+    }
+
+    .remove-avatar-check input {
+        margin-right: 5px;
+        width: auto;
+    }
+
+    .remove-avatar-check label {
+        margin-bottom: 0;
+    }
+
+    .error-message {
+        color: #dc3545;
+        font-size: 0.85rem;
+        text-align: center;
+        margin-top: 5px;
+        display: none;
+    }
+</style>
