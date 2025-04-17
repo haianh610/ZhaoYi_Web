@@ -1,0 +1,227 @@
+﻿@model ZhaoYi_Test2.Models.Interpreter
+@using ZhaoYi_Test2.Models
+
+@{
+    ViewData["Title"] = "Hoàn thiện Hồ sơ Phiên dịch viên";
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+    ViewData["UserRole"] = "Interpreter";
+    ViewData["ShowBottomNav"] = false;
+}
+
+@section Styles {
+    @* Sử dụng lại CSS của trang tạo job hoặc tạo CSS riêng *@
+    <link rel="stylesheet" href="~/css/job-creation.css" asp-append-version="true" />
+    <style>
+        .mobile-screen {
+            padding-bottom: 0 !important;
+        }
+        /* Copy style validation */
+        .field-validation-error {
+            color: #dc3545;
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .input-validation-error {
+            border-color: #dc3545 !important;
+        }
+
+        .validation-summary-errors ul {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        .validation-summary-errors li {
+            color: #dc3545;
+            margin-bottom: 5px;
+        }
+
+        /* Style cho preview ảnh */
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px solid #eee;
+            margin-bottom: 10px;
+            object-fit: cover;
+            cursor: pointer;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .avatar-upload-label {
+            display: block;
+            text-align: center;
+            color: #ff8c00;
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        #AvatarInput {
+            display: none;
+        }
+
+        /* --- CSS MỚI CHO HEADER --- */
+        .page-header {
+            display: flex;
+            align-items: center; /* Căn giữa theo chiều dọc */
+            padding: 15px 15px 25px 15px; /* Điều chỉnh padding */
+            text-align: center;
+            color: white;
+            background-image: url('/images/texture.png');
+            background-size: cover;
+            background-position: center;
+            position: relative; /* Giữ relative nếu cần cho các phần tử con */
+        }
+
+        .header-back-button {
+            color: white;
+            font-size: 1.1rem;
+            text-decoration: none;
+            padding: 5px 10px 5px 0; /* Thêm padding phải */
+            margin-right: 10px; /* Khoảng cách với title */
+        }
+
+        .page-header .page-title {
+            flex-grow: 1; /* Cho title chiếm không gian còn lại */
+            margin: 0; /* Reset margin */
+            padding: 0 10px; /* Thêm padding để không dính vào nút */
+            font-size: 1.2rem; /* Điều chỉnh cỡ chữ nếu cần */
+        }
+        /* Placeholder để cân bằng nút back (nếu cần) */
+        .header-placeholder {
+            width: 30px; /* Điều chỉnh width bằng với nút back + margin */
+        }
+    </style>
+}
+
+<div class="mobile-screen job-creation-page">
+
+    <!-- Page Header -->
+    <header class="page-header">
+        @* --- THÊM NÚT BACK Ở ĐÂY --- *@
+        <a href="javascript:history.back()" class="header-back-button">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+        <h1 class="page-title">Hoàn thiện Hồ sơ</h1>
+        <div class="header-placeholder"></div> @* Có thể thêm placeholder nếu muốn title căn giữa tuyệt đối *@
+    </header>
+
+    <!-- Form Area -->
+    <div class="form-area">
+        <form method="post" asp-action="CreateProfile" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger validation-summary-errors"></div>
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="UserId" />
+
+            <div class="form-section">
+                <h2 class="section-title">Thông tin cá nhân</h2>
+
+                @* Phần upload Avatar *@
+                <div class="form-group text-center">
+                    <img id="AvatarPreview" src="~/images/user.png" alt="Ảnh đại diện" class="avatar-preview" onclick="document.getElementById('AvatarInput').click();" />
+                    <label for="AvatarInput" class="avatar-upload-label">Chọn ảnh đại diện (không bắt buộc)</label>
+                    <input type="file" id="AvatarInput" name="avatarFile" accept="image/*" class="form-control" style="display:none;" onchange="previewAvatar(event)" />
+                    <span asp-validation-for="AvatarPath" class="text-danger"></span>
+                    <span class="field-validation-valid text-danger" data-valmsg-for="avatarFile"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="InterpreterName" class="form-label"></label>
+                    <input asp-for="InterpreterName" class="form-control" placeholder="Nhập họ và tên đầy đủ">
+                    <span asp-validation-for="InterpreterName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="DateOfBirth" class="form-label"></label>
+                    <input asp-for="DateOfBirth" type="date" class="form-control">
+                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Gender" class="form-label"></label>
+                    <select asp-for="Gender" class="form-control">
+                        <option value="">-- Chọn giới tính --</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                    <span asp-validation-for="Gender" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="WorkLocation" class="form-label"></label>
+                    <input asp-for="WorkLocation" class="form-control" placeholder="Ví dụ: Hà Nội, TP. Hồ Chí Minh">
+                    <span asp-validation-for="WorkLocation" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="DetailedAddress" class="form-label"></label>
+                    <textarea asp-for="DetailedAddress" class="form-control" rows="3" placeholder="Nhập địa chỉ chi tiết"></textarea>
+                    <span asp-validation-for="DetailedAddress" class="text-danger"></span>
+                </div>
+
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">Thông tin chuyên môn</h2>
+
+                <div class="form-group">
+                    <label asp-for="YearsOfExperience" class="form-label"></label>
+                    <select asp-for="YearsOfExperience" asp-items="Html.GetEnumSelectList<ExperienceLevel>()" class="form-control">
+                        <option value="">-- Chọn mức kinh nghiệm --</option>
+                    </select>
+                    <span asp-validation-for="YearsOfExperience" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Field" class="form-label"></label>
+                    <input asp-for="Field" class="form-control" placeholder="Ví dụ: Y tế, Kinh tế, Pháp luật...">
+                    <span asp-validation-for="Field" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Skills" class="form-label"></label>
+                    <textarea asp-for="Skills" class="form-control" rows="4" placeholder="Nhập các kỹ năng, cách nhau bởi dấu phẩy (,)"></textarea>
+                    <span asp-validation-for="Skills" class="text-danger"></span>
+                </div>
+
+            </div>
+
+            <div class="form-navigation">
+                @* --- THAY ĐỔI NÚT QUAY LẠI --- *@
+                <button type="button" class="btn btn-secondary" onclick="history.back()">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Hoàn thành <i class="fas fa-check"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Script để preview ảnh avatar (giống CreateProfile Recruiter)
+        function previewAvatar(event) {
+            const reader = new FileReader();
+            reader.onload = function(){
+                const output = document.getElementById('AvatarPreview');
+                output.src = reader.result;
+            };
+            if (event.target.files[0]) {
+                 reader.readAsDataURL(event.target.files[0]);
+            } else {
+                 document.getElementById('AvatarPreview').src = '/images/user.png';
+            }
+        }
+    </script>
+}

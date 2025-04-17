@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ZhaoYi_Test2.Data;
 using ZhaoYi_Test2.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ZhaoYi_Test2.Controllers
 {
@@ -39,23 +40,12 @@ namespace ZhaoYi_Test2.Controllers
                 else if (user != null && user.Role == 2)
                 {
                     // Chuyển hướng đến trang chủ riêng cho nhà tuyển dụng
-                    return RedirectToAction("Index", "JobPostings");
+                    return RedirectToAction("Dashboard", "Recruiters");
                 }
             }
 
-            // Trang chủ chung cho người chưa đăng nhập
-            var featuredJobs = await _context.JobPostings
-                .Where(jp => jp.Status == JobStatus.Active && jp.ExpiryDate >= DateTime.Now)
-                .OrderByDescending(jp => jp.PostedDate)
-                .Take(6)
-                .ToListAsync();
-
-            return View(featuredJobs);
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
+            // Trả về trang splash screen cho người chưa đăng nhập
+            return View("Splash");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

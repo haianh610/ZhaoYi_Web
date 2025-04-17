@@ -21,14 +21,14 @@ namespace ZhaoYi_Test2.Controllers
         // GET: /Role/ChooseRole
         public IActionResult ChooseRole()
         {
-            // Ki?m tra xem ng??i dùng ?ã có vai trò ch?a
+            // Kiểm tra xem người dùng đã có vai trò chưa
             if (User.Identity.IsAuthenticated)
             {
-                //var user = _userManager.GetUserAsync(User).Result;
-                //if (user.Role != 0) // ?ã có vai trò
-                //{
-                //    return RedirectToAction("Index", "Home");
-                //}
+                var user = _userManager.GetUserAsync(User).Result;
+                if (user.Role != 0) // Đã có vai trò
+                {
+                   return RedirectToAction("Index", "Home");
+                }
             }
             else
             {
@@ -54,14 +54,14 @@ namespace ZhaoYi_Test2.Controllers
                 return NotFound();
             }
 
-            // Ki?m tra giá tr? selectedRole h?p l? (1: Phiên d?ch viên, 2: Nhà tuy?n d?ng)
+            // Kiểm tra giá trị selectedRole hợp lệ (1: Phiên dịch viên, 2: Nhà tuyển dụng)
             if (selectedRole != 1 && selectedRole != 2)
             {
-                ModelState.AddModelError("", "Vui lòng ch?n vai trò h?p l?.");
+                ModelState.AddModelError("", "Vui lòng chọn vai trò hợp lệ.");
                 return View();
             }
 
-            // C?p nh?t vai trò ng??i dùng
+            // Cập nhật vai trò người dùng
             user.Role = selectedRole;
             var result = await _userManager.UpdateAsync(user);
 
@@ -74,12 +74,12 @@ namespace ZhaoYi_Test2.Controllers
                     TempData["StatusMessage"] = "Bạn đã chọn vai trò Phiên dịch viên. Hãy cập nhật hồ sơ của bạn.";
                     // Nếu Interpreter chưa có profile, cũng nên redirect đến trang tạo profile Interpreter
                     // (Logic này cần kiểm tra và thêm vào InterpreterController)
-                    return RedirectToAction("Profile", "Interpreters");
+                    return RedirectToAction("CreateProfile", "Interpreters");
                 }
                 else // Recruiter (selectedRole == 2)
                 {
                     TempData["StatusMessage"] = "Bạn đã chọn vai trò Nhà tuyển dụng. Vui lòng hoàn thiện hồ sơ.";
-                    // *** THAY ĐỔI Ở ĐÂY: Chuyển đến trang tạo profile Recruiter ***
+                    // Chuyển đến trang tạo profile Recruiter
                     return RedirectToAction("CreateProfile", "Recruiters");
                 }
             }

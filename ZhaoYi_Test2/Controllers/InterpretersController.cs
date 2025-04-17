@@ -6,6 +6,8 @@ using ZhaoYi_Test2.Models;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 
 namespace ZhaoYi_Test2.Controllers
 {
@@ -75,7 +77,7 @@ namespace ZhaoYi_Test2.Controllers
             return View("HomeMobile", activeJobs);
         }
 
-        // Hiển thị trang hồ sơ phiên dịch viên
+        // GET: Interpreters/Profile
         public async Task<IActionResult> Profile()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -83,10 +85,9 @@ namespace ZhaoYi_Test2.Controllers
             {
                 return RedirectToAction("Login", "Account", new { area = "Identity" });
             }
-
-            // Chỉ cho phép người dùng có vai trò phiên dịch viên (Role = 1) truy cập trang này
-            if (user.Role != 1)
+            if (user.Role != 1) // Chỉ cho Interpreter
             {
+                if (user.Role == 0) return RedirectToAction("ChooseRole", "Role");
                 return RedirectToAction("Index", "Home");
             }
 
@@ -97,54 +98,64 @@ namespace ZhaoYi_Test2.Controllers
                 .Include(i => i.Projects)
                 .FirstOrDefaultAsync(m => m.UserId == user.Id);
 
+            // *** THAY ĐỔI Ở ĐÂY: Nếu chưa có profile, chuyển đến trang tạo ***
             if (interpreter == null)
             {
-                interpreter = new Interpreter { UserId = user.Id };
-                ViewBag.HasProfile = false;
+                TempData["InfoMessage"] = "Vui lòng hoàn thiện hồ sơ phiên dịch viên của bạn.";
+                return RedirectToAction(nameof(CreateProfile));
             }
-            else
-            {
-                ViewBag.HasProfile = true;
-                var applications = await _context.JobApplications
-                    .Where(a => a.InterpreterId == interpreter.InterpreterId)
-                    .Include(a => a.JobPosting)
-                        .ThenInclude(jp => jp.Recruiter)
-                    .OrderByDescending(a => a.ApplicationDate)
-                    .Select(a => new {
-                        JobApplicationId = a.JobApplicationId,
-                        StatusText = a.Status.ToString(),
-                        JobTitle = a.JobPosting.Title,
-                        RecruiterName = a.JobPosting.Recruiter.RecruiterName,
-                        ApplicationDate = a.ApplicationDate,
-                        CVFilePath = a.CVFilePath,
-                        HasFeedback = a.Status != ApplicationStatus.Pending
-                    })
-                    .ToListAsync();
-                
-                ViewBag.JobApplications = applications;
 
-                var activeJobs = await _context.JobPostings
+            // --- Phần còn lại giữ nguyên ---
+            ViewBag.HasProfile = true; // Đã có profile
+                                       // Lấy Job Applications
+            var applications = await _context.JobApplications
+                .Where(a => a.InterpreterId == interpreter.InterpreterId)
+                .Include(a => a.JobPosting)
+                    .ThenInclude(jp => jp.Recruiter)
+                .OrderByDescending(a => a.ApplicationDate)
+                .Select(a => new { // Chọn các trường cần thiết
+                    JobApplicationId = a.JobApplicationId,
+                    StatusText = GetAppStatusDisplayNameStatic(a.Status), // Sử dụng hàm static helper nếu có
+                    JobTitle = a.JobPosting.Title,
+                    RecruiterName = a.JobPosting.Recruiter.RecruiterName,
+                    ApplicationDate = a.ApplicationDate,
+                    CVFilePath = a.CVFilePath,
+                    HasFeedback = a.Status != ApplicationStatus.Pending
+                })
+                .ToListAsync();
+            ViewBag.JobApplications = applications;
+
+            // Lấy Recommended Jobs
+            var activeJobs = await _context.JobPostings
                 .Include(j => j.Recruiter)
                 .Where(jp => jp.Status == JobStatus.Active && jp.ExpiryDate >= DateTime.Now)
                 .OrderByDescending(jp => jp.PostedDate)
                 .ToListAsync();
 
-                var recommendedJobs = activeJobs;
-                ViewBag.RecommendedJobs = recommendedJobs;
+            var recommendedJobs = activeJobs
+                 .OrderByDescending(j => j.WorkLocation.Contains(interpreter.WorkLocation)) // Ưu tiên vị trí
+                 .ThenByDescending(j => j.PostedDate)
+                 .Take(5) // Lấy 5 job gợi ý
+                 .ToList();
+            ViewBag.RecommendedJobs = recommendedJobs;
 
-            }
 
-
-
-            // Tính toán số lượng view profile
-            ViewBag.WeeklyViews = 0;
-            ViewBag.MonthlyViews = 0;
-            ViewBag.YearlyViews = 0;
-
+            // Tính toán số lượng view profile (Placeholder)
+            ViewBag.WeeklyViews = 15; ViewBag.MonthlyViews = 62; ViewBag.YearlyViews = 310;
             // Tính toán mức độ hoàn thiện hồ sơ
             ViewBag.ProfileCompletionPercentage = CalculateProfileCompletionPercentage(interpreter);
 
+            ViewData["UserRole"] = "Interpreter";
+            ViewData["ShowBottomNav"] = true;
             return View("ProfileMobile", interpreter);
+        }
+
+        // Hàm static helper để lấy display name (có thể đặt ở class khác)
+        public static string GetAppStatusDisplayNameStatic(ApplicationStatus status)
+        {
+            var field = status.GetType().GetField(status.ToString());
+            var displayAttribute = field?.GetCustomAttribute<DisplayAttribute>();
+            return displayAttribute?.Name ?? status.ToString();
         }
 
         // Helper method to calculate profile completion percentage
@@ -179,187 +190,303 @@ namespace ZhaoYi_Test2.Controllers
             return (int)((double)completedFields / totalFields * 100);
         }
 
-        // Xử lý yêu cầu POST để lưu hoặc cập nhật hồ sơ
+        // POST: Interpreters/Profile (Chỉ để UPDATE)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Profile(Interpreter interpreter, IFormFile? avatarFile, bool removeAvatar = false)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            if (user == null || user.Role != 1)
             {
-                return RedirectToAction("Login", "Account", new { area = "Identity" });
+                return RedirectToAction("Index", "Home");
             }
 
-            // In ra thông tin để debug
-            System.Diagnostics.Debug.WriteLine($"Received data: Name={interpreter.InterpreterName}, DOB={interpreter.DateOfBirth}");
-            System.Diagnostics.Debug.WriteLine($"Remove Avatar: {removeAvatar}");
+            // --- Lấy hồ sơ Interpreter hiện có ---
+            var existingInterpreter = await _context.Interpreters
+                .Include(i => i.Educations) // Include nếu cần kiểm tra gì đó liên quan
+                .Include(i => i.WorkExperiences)
+                .Include(i => i.Projects)
+                .FirstOrDefaultAsync(m => m.UserId == user.Id);
 
-            if (avatarFile != null)
+            // Nếu không tìm thấy hồ sơ để cập nhật
+            if (existingInterpreter == null)
             {
-                System.Diagnostics.Debug.WriteLine($"Avatar file received: {avatarFile.FileName}, Size: {avatarFile.Length} bytes");
+                TempData["ErrorMessage"] = "Không tìm thấy hồ sơ để cập nhật.";
+                return RedirectToAction(nameof(CreateProfile)); // Chuyển về trang tạo
             }
 
-            // Xóa lỗi validation cho trường User nếu có
-            if (ModelState.ContainsKey("User"))
+            // --- Gán lại ID và UserId từ bản ghi hiện có ---
+            interpreter.InterpreterId = existingInterpreter.InterpreterId;
+            interpreter.UserId = existingInterpreter.UserId;
+
+            // --- Xử lý Avatar (tương tự Recruiter) ---
+            string currentAvatarPath = existingInterpreter.AvatarPath;
+            string uniqueFileName = null;
+            try
             {
-                ModelState.Remove("User");
+                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "avatars");
+                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+                if (removeAvatar && !string.IsNullOrEmpty(currentAvatarPath))
+                {
+                    var oldFilePath = Path.Combine(uploadsFolder, currentAvatarPath);
+                    if (System.IO.File.Exists(oldFilePath)) System.IO.File.Delete(oldFilePath);
+                    interpreter.AvatarPath = null;
+                    currentAvatarPath = null;
+                }
+                else if (avatarFile != null && avatarFile.Length > 0)
+                {
+                    // Check size/type
+                    if (avatarFile.Length > 2 * 1024 * 1024) { ModelState.AddModelError("avatarFile", "Ảnh quá lớn (> 2MB)."); }
+                    else
+                    {
+                        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                        var fileExtension = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
+                        if (!allowedExtensions.Contains(fileExtension)) { ModelState.AddModelError("avatarFile", "Chỉ chấp nhận file ảnh."); }
+                        else
+                        {
+                            uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
+                            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                            using (var fs = new FileStream(filePath, FileMode.Create)) { await avatarFile.CopyToAsync(fs); }
+                            interpreter.AvatarPath = uniqueFileName;
+                            // Delete old if different
+                            if (!string.IsNullOrEmpty(currentAvatarPath) && currentAvatarPath != uniqueFileName)
+                            {
+                                var oldFilePath = Path.Combine(uploadsFolder, currentAvatarPath);
+                                if (System.IO.File.Exists(oldFilePath)) { try { System.IO.File.Delete(oldFilePath); } catch { } }
+                            }
+                            currentAvatarPath = uniqueFileName;
+                        }
+                    }
+                }
+                else if (!removeAvatar)
+                {
+                    interpreter.AvatarPath = currentAvatarPath; // Keep old
+                }
+
+                // Nếu có lỗi avatar, phải return view với đầy đủ ViewBag
+                if (!ModelState.IsValid)
+                {
+                    // Load lại ViewBag cần thiết cho ProfileMobile
+                    ViewBag.HasProfile = true;
+                    ViewBag.JobApplications = await _context.JobApplications.Where(a => a.InterpreterId == existingInterpreter.InterpreterId).Include(a => a.JobPosting.Recruiter).Select(a => new { /*...*/ }).ToListAsync();
+                    ViewBag.RecommendedJobs = await _context.JobPostings.Include(j => j.Recruiter).Where(jp => jp.Status == JobStatus.Active && jp.ExpiryDate >= DateTime.Now).OrderByDescending(jp => jp.PostedDate).Take(5).ToListAsync();
+                    ViewBag.WeeklyViews = 15; ViewBag.MonthlyViews = 62; ViewBag.YearlyViews = 310;
+                    ViewBag.ProfileCompletionPercentage = CalculateProfileCompletionPercentage(interpreter); // Tính với model lỗi
+                    ViewData["UserRole"] = "Interpreter"; ViewData["ShowBottomNav"] = true;
+                    return View("ProfileMobile", interpreter); // Truyền model lỗi
+                }
+
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("avatarFile", "Lỗi xử lý ảnh.");
+                System.Diagnostics.Debug.WriteLine($"Avatar processing error on update: {ex.Message}");
+                // Load lại ViewBag và return view lỗi (như trên)
+                ViewBag.HasProfile = true; ViewBag.JobApplications = await _context.JobApplications.Where(a => a.InterpreterId == existingInterpreter.InterpreterId).Include(a => a.JobPosting.Recruiter).Select(a => new { /*...*/ }).ToListAsync(); ViewBag.RecommendedJobs = await _context.JobPostings.Include(j => j.Recruiter).Where(jp => jp.Status == JobStatus.Active && jp.ExpiryDate >= DateTime.Now).OrderByDescending(jp => jp.PostedDate).Take(5).ToListAsync(); ViewBag.WeeklyViews = 15; ViewBag.MonthlyViews = 62; ViewBag.YearlyViews = 310; ViewBag.ProfileCompletionPercentage = CalculateProfileCompletionPercentage(interpreter); ViewData["UserRole"] = "Interpreter"; ViewData["ShowBottomNav"] = true;
+                return View("ProfileMobile", interpreter);
             }
 
-            // Xóa lỗi validation cho trường avatarFile nếu có
-            if (ModelState.ContainsKey("avatarFile"))
+
+            // --- Kiểm tra ModelState cho các trường khác ---
+            ModelState.Remove("User");
+            ModelState.Remove("Educations");
+            ModelState.Remove("WorkExperiences");
+            ModelState.Remove("Projects");
+            if (avatarFile == null || avatarFile.Length == 0)
             {
                 ModelState.Remove("avatarFile");
             }
 
-            if (!ModelState.IsValid)
+
+            if (ModelState.IsValid)
             {
-                foreach (var modelState in ModelState.Values)
+                try
                 {
-                    foreach (var error in modelState.Errors)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"ModelState Error: {error.ErrorMessage}");
-                    }
-                }
-
-                ViewBag.HasProfile = await _context.Interpreters.AnyAsync(i => i.UserId == user.Id);
-                return View(interpreter);
-            }
-
-            try
-            {
-                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "avatars");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                // Xử lý trường hợp xóa ảnh đại diện
-                if (removeAvatar && !string.IsNullOrEmpty(interpreter.AvatarPath))
-                {
-                    var oldFilePath = Path.Combine(uploadsFolder, interpreter.AvatarPath);
-                    if (System.IO.File.Exists(oldFilePath))
-                    {
-                        try
-                        {
-                            System.IO.File.Delete(oldFilePath);
-                            System.Diagnostics.Debug.WriteLine("Deleted avatar file: " + oldFilePath);
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"Error deleting avatar: {ex.Message}");
-                        }
-                    }
-                    interpreter.AvatarPath = null; // Đặt lại đường dẫn ảnh
-                }
-                // Xử lý upload ảnh đại diện
-                else if (avatarFile != null && avatarFile.Length > 0)
-                {
-                    // Kiểm tra kích thước file (tối đa 2MB)
-                    if (avatarFile.Length > 2 * 1024 * 1024)
-                    {
-                        ModelState.AddModelError("", "Kích thước file quá lớn (tối đa 2MB).");
-                        ViewBag.HasProfile = await _context.Interpreters.AnyAsync(i => i.UserId == user.Id);
-                        return View(interpreter);
-                    }
-
-                    // Kiểm tra loại file (chỉ cho phép ảnh)
-                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                    var fileExtension = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
-                    if (!allowedExtensions.Contains(fileExtension))
-                    {
-                        ModelState.AddModelError("", "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif).");
-                        ViewBag.HasProfile = await _context.Interpreters.AnyAsync(i => i.UserId == user.Id);
-                        return View(interpreter);
-                    }
-
-                    // Tạo tên file mới để tránh trùng lặp
-                    var uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    // Lưu file ảnh
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await avatarFile.CopyToAsync(fileStream);
-                    }
-
-                    // Xóa ảnh cũ nếu có
-                    if (!string.IsNullOrEmpty(interpreter.AvatarPath) && interpreter.AvatarPath != uniqueFileName)
-                    {
-                        var oldFilePath = Path.Combine(uploadsFolder, interpreter.AvatarPath);
-                        if (System.IO.File.Exists(oldFilePath))
-                        {
-                            try
-                            {
-                                System.IO.File.Delete(oldFilePath);
-                            }
-                            catch (Exception ex)
-                            {
-                                // Log lỗi nhưng không dừng quá trình
-                                System.Diagnostics.Debug.WriteLine($"Error deleting old avatar: {ex.Message}");
-                            }
-                        }
-                    }
-
-                    // Cập nhật đường dẫn ảnh
-                    interpreter.AvatarPath = uniqueFileName;
-                }
-
-                // Kiểm tra xem đang cập nhật hay tạo mới
-                var existingInterpreter = await _context.Interpreters
-                    .Include(i => i.Educations)
-                    .Include(i => i.WorkExperiences)
-                    .Include(i => i.Projects)
-                    .FirstOrDefaultAsync(m => m.UserId == user.Id);
-
-                if (existingInterpreter == null)
-                {
-                    // Tạo mới hồ sơ
-                    interpreter.UserId = user.Id;
-
-                    System.Diagnostics.Debug.WriteLine($"Creating new interpreter: {interpreter.InterpreterName} for user {user.Id}");
-
-                    _context.Interpreters.Add(interpreter);
-                    await _context.SaveChangesAsync();
-
-                    TempData["StatusMessage"] = "Hồ sơ phiên dịch viên đã được tạo thành công.";
-                    System.Diagnostics.Debug.WriteLine("Profile created successfully");
-                }
-                else
-                {
-                    // Cập nhật hồ sơ hiện có
+                    // --- Cập nhật các trường của existingInterpreter ---
                     existingInterpreter.InterpreterName = interpreter.InterpreterName;
                     existingInterpreter.DateOfBirth = interpreter.DateOfBirth;
                     existingInterpreter.Gender = interpreter.Gender;
                     existingInterpreter.WorkLocation = interpreter.WorkLocation;
                     existingInterpreter.DetailedAddress = interpreter.DetailedAddress;
                     existingInterpreter.YearsOfExperience = interpreter.YearsOfExperience;
-                    existingInterpreter.Skills = interpreter.Skills;
+                    existingInterpreter.Field = interpreter.Field;
+                    existingInterpreter.Skills = interpreter.Skills; // Cập nhật skills
+                    existingInterpreter.AvatarPath = interpreter.AvatarPath; // Cập nhật avatar đã xử lý
 
-                    // Cập nhật AvatarPath nếu có upload ảnh mới hoặc xóa ảnh
-                    if (avatarFile != null && avatarFile.Length > 0 || removeAvatar)
-                    {
-                        existingInterpreter.AvatarPath = interpreter.AvatarPath;
-                    }
-
-                    System.Diagnostics.Debug.WriteLine($"Updating interpreter: {existingInterpreter.InterpreterName}");
 
                     _context.Update(existingInterpreter);
                     await _context.SaveChangesAsync();
 
                     TempData["StatusMessage"] = "Hồ sơ phiên dịch viên đã được cập nhật thành công.";
-                    System.Diagnostics.Debug.WriteLine("Profile updated successfully");
+                    System.Diagnostics.Debug.WriteLine("Interpreter Profile updated successfully");
+                    return RedirectToAction(nameof(Profile)); // Quay về trang Profile
                 }
-
-                return RedirectToAction(nameof(Profile));
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error updating interpreter profile DB: {ex.Message}");
+                    ModelState.AddModelError("", $"Không thể cập nhật hồ sơ: {ex.Message}");
+                }
             }
-            catch (Exception ex)
+            else
             {
-                // Bắt lỗi và hiển thị
-                System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
-                ModelState.AddModelError("", $"Không thể lưu dữ liệu: {ex.Message}");
-                ViewBag.HasProfile = await _context.Interpreters.AnyAsync(i => i.UserId == user.Id);
-                return View(interpreter);
+                // Log lỗi validation
+                foreach (var modelState in ModelState.Values) { foreach (var error in modelState.Errors) { System.Diagnostics.Debug.WriteLine($"ModelState Error on Update: {error.ErrorMessage}"); } }
             }
+
+            // --- Nếu ModelState không hợp lệ hoặc có lỗi DB, quay lại View ProfileMobile ---
+            // Load lại ViewBag cần thiết
+            ViewBag.HasProfile = true;
+            ViewBag.JobApplications = await _context.JobApplications.Where(a => a.InterpreterId == existingInterpreter.InterpreterId).Include(a => a.JobPosting.Recruiter).Select(a => new { /*...*/ }).ToListAsync(); // Lấy lại data cho view
+            ViewBag.RecommendedJobs = await _context.JobPostings.Include(j => j.Recruiter).Where(jp => jp.Status == JobStatus.Active && jp.ExpiryDate >= DateTime.Now).OrderByDescending(jp => jp.PostedDate).Take(5).ToListAsync();
+            ViewBag.WeeklyViews = 15; ViewBag.MonthlyViews = 62; ViewBag.YearlyViews = 310; // Placeholder
+            ViewBag.ProfileCompletionPercentage = CalculateProfileCompletionPercentage(interpreter); // Tính với model lỗi
+
+            ViewData["UserRole"] = "Interpreter";
+            ViewData["ShowBottomNav"] = true;
+            // Truyền lại model 'interpreter' (chứa dữ liệu lỗi từ form)
+            return View("ProfileMobile", interpreter);
+        }
+
+
+        // GET: Interpreters/CreateProfile
+        [HttpGet]
+        public async Task<IActionResult> CreateProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || user.Role != 1) // Chỉ cho Interpreter (Role = 1)
+            {
+                // Không phải Interpreter hoặc chưa đăng nhập
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Kiểm tra xem đã có hồ sơ chưa, nếu có rồi thì chuyển về trang Profile
+            var existingInterpreter = await _context.Interpreters.FirstOrDefaultAsync(i => i.UserId == user.Id);
+            if (existingInterpreter != null)
+            {
+                return RedirectToAction(nameof(Profile)); // Đã có profile, xem profile
+            }
+
+            // Khởi tạo model trống
+            var interpreter = new Interpreter
+            {
+                UserId = user.Id // Gán sẵn UserId
+            };
+
+            ViewData["Title"] = "Hoàn thiện Hồ sơ Phiên dịch viên";
+            ViewData["UserRole"] = "Interpreter";
+            ViewData["ShowBottomNav"] = false; // Không hiển thị nav khi tạo
+
+            return View("CreateProfile", interpreter); // Trả về View CreateProfile.cshtml
+        }
+
+        // POST: Interpreters/CreateProfile
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateProfile(Interpreter interpreter, IFormFile? avatarFile) // Thêm IFormFile? avatarFile (nullable)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || user.Role != 1)
+            {
+                return Unauthorized();
+            }
+            // Gán lại UserId từ user đang đăng nhập
+            interpreter.UserId = user.Id;
+
+            // Kiểm tra lại xem hồ sơ đã tồn tại chưa
+            var existingInterpreterCheck = await _context.Interpreters.FirstOrDefaultAsync(i => i.UserId == user.Id);
+            if (existingInterpreterCheck != null)
+            {
+                ModelState.AddModelError("", "Hồ sơ phiên dịch viên đã tồn tại.");
+                // return RedirectToAction(nameof(Profile));
+            }
+
+            // Xóa validation không cần thiết
+            ModelState.Remove("User");
+            ModelState.Remove("Educations"); // Không tạo các list này ở bước này
+            ModelState.Remove("WorkExperiences");
+            ModelState.Remove("Projects");
+            if (avatarFile == null || avatarFile.Length == 0)
+            {
+                ModelState.Remove("avatarFile"); // Không bắt buộc avatar khi tạo
+                ModelState.Remove("AvatarPath"); // Cũng bỏ qua nếu ko có file
+            }
+
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Xử lý upload Avatar (tương tự Recruiter)
+                    if (avatarFile != null && avatarFile.Length > 0)
+                    {
+                        var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "avatars");
+                        if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+                        // Kiểm tra size/type
+                        if (avatarFile.Length > 2 * 1024 * 1024) { ModelState.AddModelError("avatarFile", "Kích thước file quá lớn (tối đa 2MB)."); }
+                        else
+                        {
+                            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                            var fileExtension = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
+                            if (!allowedExtensions.Contains(fileExtension)) { ModelState.AddModelError("avatarFile", "Chỉ chấp nhận file ảnh."); }
+                            else
+                            {
+                                // Lưu file mới
+                                var uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
+                                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                                using (var fileStream = new FileStream(filePath, FileMode.Create)) { await avatarFile.CopyToAsync(fileStream); }
+                                interpreter.AvatarPath = uniqueFileName; // Gán path mới
+                            }
+                        }
+                        // Nếu có lỗi avatar, quay lại form
+                        if (!ModelState.IsValid)
+                        {
+                            ViewData["Title"] = "Hoàn thiện Hồ sơ Phiên dịch viên"; ViewData["UserRole"] = "Interpreter"; ViewData["ShowBottomNav"] = false;
+                            return View("CreateProfile", interpreter);
+                        }
+                    }
+                    else
+                    {
+                        interpreter.AvatarPath = null; // Không có avatar
+                    }
+
+                    // Khởi tạo các List rỗng để tránh lỗi null reference
+                    interpreter.Educations = new List<Education>();
+                    interpreter.WorkExperiences = new List<WorkExperience>();
+                    interpreter.Projects = new List<Project>();
+
+
+                    _context.Interpreters.Add(interpreter);
+                    await _context.SaveChangesAsync();
+
+                    TempData["StatusMessage"] = "Hồ sơ phiên dịch viên đã được tạo thành công.";
+                    // Sau khi tạo thành công, chuyển đến trang Profile chính để họ có thể thêm Học vấn, Kinh nghiệm...
+                    return RedirectToAction(nameof(Profile));
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error creating interpreter profile: {ex.Message}");
+                    ModelState.AddModelError("", $"Không thể tạo hồ sơ: {ex.Message}");
+                }
+            }
+            else
+            {
+                // Log lỗi validation nếu cần
+                foreach (var modelState in ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"ModelState Error on Create: {error.ErrorMessage}");
+                    }
+                }
+            }
+
+            // Nếu ModelState không hợp lệ hoặc có lỗi, quay lại form CreateProfile
+            ViewData["Title"] = "Hoàn thiện Hồ sơ Phiên dịch viên";
+            ViewData["UserRole"] = "Interpreter";
+            ViewData["ShowBottomNav"] = false;
+            return View("CreateProfile", interpreter);
         }
 
         #region Education Management
