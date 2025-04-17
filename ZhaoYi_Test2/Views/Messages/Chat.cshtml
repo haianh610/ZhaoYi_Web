@@ -1,202 +1,49 @@
-@{
-    ViewData["Title"] = "Chat";
-    Layout = null; 
+// Trong MessagesController.cs
 
-    
-    var contactName = "Họ tên";
-    var contactStatus = "Đang hoạt động";
-    var contactAvatarUrl = "~/images/user.png";
+// GET: /Messages/Chat/{id}
+[HttpGet]
+public async Task<IActionResult>
+    Chat(int id) // Thêm async Task
+    {
+    var user = await _userManager.GetUserAsync(User);
+    if (user == null) return Challenge();
 
-    var chatMessages = new List<dynamic> {
+    // --- TODO: Lấy dữ liệu chat thực tế dựa vào 'id' (ConversationId) ---
+    // Ví dụ: Lấy thông tin người/nhóm đang chat, danh sách tin nhắn...
+    // var conversation = await _context.Conversations
+    //     .Include(c => c.Participants.Where(p => p.UserId != user.Id).Select(p => p.User)) // Lấy người chat cùng
+    //     .Include(c => c.Messages.OrderBy(m => m.Timestamp)) // Lấy tin nhắn
+    //     .FirstOrDefaultAsync(c => c.ConversationId == id && c.Participants.Any(p => p.UserId == user.Id));
+
+    // if (conversation == null) return NotFound();
+
+    // var otherParticipant = conversation.Participants.FirstOrDefault(p => p.UserId != user.Id)?.User;
+    // string contactName = conversation.IsGroup ? conversation.GroupName : otherParticipant?.UserName ?? "Người lạ";
+    // string contactAvatar = conversation.IsGroup ? conversation.GroupAvatar : (Logic lấy avatar của otherParticipant);
+    // string contactStatus = "Đang hoạt động"; // Lấy status thực tế
+
+    // var chatMessages = conversation.Messages.Select(m => new { ... }); // Map sang dynamic hoặc ViewModel
+
+    // --- Tạm thời dùng dữ liệu giả ---
+    ViewBag.ChatId = id;
+    ViewBag.ContactName = "Lê Minh Nghĩa"; // Giả
+    ViewBag.ContactStatus = "Đang hoạt động"; // Giả
+    ViewBag.ContactAvatarUrl = "~/images/user_2.png"; // Giả
+
+    var chatMessages = new List<dynamic>
+        {
         new { Id = 1, Sender = "You", Text = "Xin chào Minh Nghĩa", Timestamp = "09:25 AM", IsOutgoing = true, ShowAvatar = false, AvatarUrl = "", IsFirstInSequence = true, IsLastInSequence = true },
         new { Id = 2, Sender = "Lê Minh Nghĩa", Text = "Xin chào bạn, bạn là ai?", Timestamp = "09:25 AM", IsOutgoing = false, ShowAvatar = true, AvatarUrl = "~/images/user_2.png", IsFirstInSequence = true, IsLastInSequence = true },
         new { Id = 3, Sender = "You", Text = "Tôi muốn apply vào vị trí phiên dịch viên", Timestamp = "09:25 AM", IsOutgoing = true, ShowAvatar = false, AvatarUrl = "", IsFirstInSequence = true, IsLastInSequence = true },
         new { Id = 4, Sender = "Lê Minh Nghĩa", Text = "Bạn gửi mình CV để mình xem nhé", Timestamp = "09:25 AM", IsOutgoing = false, ShowAvatar = true, AvatarUrl = "~/images/user_2.png", IsFirstInSequence = true, IsLastInSequence = false },
         new { Id = 5, Sender = "Lê Minh Nghĩa", Text = "Để mình xem sao", Timestamp = "09:25 AM", IsOutgoing = false, ShowAvatar = false, AvatarUrl = "", IsFirstInSequence = false, IsLastInSequence = true }
-    };
-}
+        };
+        ViewBag.ChatMessages = chatMessages;
+        // --------------------------------
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>@contactName - Chat</title>
-    <link rel="icon" type="image/png" href="~/images/logo.png">
+        ViewData["Title"] = ViewBag.ContactName; // Đặt tiêu đề là tên người chat
+        ViewData["UserRole"] = user.Role == 1 ? "Interpreter" : (user.Role == 2 ? "Recruiter" : "User");
+        ViewData["ShowBottomNav"] = false; // Ẩn nav khi đang chat
 
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    
-    <link rel="stylesheet" href="~/css/chat-screen.css" asp-append-version="true" />
-</head>
-<body>
-    <div class="mobile-screen chat-screen-page">
-        
-        <div class="status-bar white-bg">
-            <span class="time">9:41</span>
-            <div class="indicators dark-icons">
-                <i class="fas fa-signal"></i>
-                <i class="fas fa-wifi"></i>
-                <i class="fas fa-battery-full"></i>
-            </div>
-        </div>
-
-        
-        <header class="chat-header">
-            <a href="@Url.Action("Index", "Messages")" class="header-btn back-btn" aria-label="Back">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <div class="contact-info">
-                <div class="avatar-container yellow-bg">
-                    <img src="@Url.Content(contactAvatarUrl)" alt="@contactName" class="avatar-image">
-                </div>
-                <div class="name-status">
-                    <p class="user-name">@contactName</p>
-                    <p class="user-status">@contactStatus</p>
-                </div>
-            </div>
-            <div class="header-actions">
-                <button class="header-btn" aria-label="Call">
-                    <i class="fas fa-phone"></i>
-                </button>
-                <button class="header-btn" aria-label="Video Call">
-                    <i class="fas fa-video"></i>
-                </button>
-            </div>
-        </header>
-
-        
-        <main class="chat-messages-area">
-            
-            <div class="date-separator">
-                <span>Hôm nay</span>
-            </div>
-
-            @foreach (var msg in chatMessages)
-            {
-                <div class="message-block @(msg.IsOutgoing ? "outgoing" : "incoming")">
-                    @if (!msg.IsOutgoing && msg.ShowAvatar)
-                    {
-                        <div class="message-avatar">
-                            <img src="@Url.Content(msg.AvatarUrl)" alt="@msg.Sender">
-                        </div>
-                    }
-                    else if (!msg.IsOutgoing)
-                    {
-                        <div class="message-avatar-placeholder"></div>
-                    }
-
-                    <div class="message-content-wrapper">
-                        @{
-                            string bubbleClass = "message-bubble";
-                            if (msg.IsOutgoing) bubbleClass += " bubble-outgoing";
-                            else bubbleClass += " bubble-incoming";
-
-                            if (msg.IsFirstInSequence) bubbleClass += " first-in-sequence";
-                            if (msg.IsLastInSequence) bubbleClass += " last-in-sequence";
-                        }
-
-                        <div class="@bubbleClass">
-                            <p class="message-text">@Html.Raw(msg.Text)</p>
-                        </div>
-                        <span class="message-timestamp">@msg.Timestamp</span>
-                    </div>
-                </div>
-            }
-        </main>
-
-        
-        <footer class="chat-input-area">
-            <button class="input-action-btn" aria-label="Attach file">
-                <i class="fas fa-paperclip"></i>
-            </button>
-            <div class="input-field-wrapper">
-                <input type="text" class="message-input" placeholder="Viết tin nhắn">
-                <button class="input-action-btn inside-input" aria-label="Templates">
-                    <i class="fas fa-clipboard-check"></i>
-                </button>
-            </div>
-            <button class="input-action-btn" aria-label="Take picture">
-                <i class="fas fa-camera"></i>
-            </button>
-            <button class="input-action-btn" aria-label="Record voice message">
-                <i class="fas fa-microphone"></i>
-            </button>
-        </footer>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const messageInput = document.querySelector('.message-input');
-            const chatArea = document.querySelector('.chat-messages-area');
-            
-            
-            chatArea.scrollTop = chatArea.scrollHeight;
-            
-            
-            messageInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && messageInput.value.trim() !== '') {
-                    
-                    const messageText = messageInput.value.trim();
-                    const currentTime = new Date().toLocaleTimeString('vi-VN', { 
-                        hour: '2-digit', 
-                        minute: '2-digit',
-                        hour12: true 
-                    });
-
-                    
-                    const messageBlock = document.createElement('div');
-                    messageBlock.className = 'message-block outgoing';
-                    
-                    
-                    const contentWrapper = document.createElement('div');
-                    contentWrapper.className = 'message-content-wrapper';
-                    
-                    
-                    const bubble = document.createElement('div');
-                    bubble.className = 'message-bubble bubble-outgoing first-in-sequence last-in-sequence';
-                    
-                    
-                    const text = document.createElement('p');
-                    text.className = 'message-text';
-                    text.textContent = messageText;
-                    
-                    
-                    const timestamp = document.createElement('span');
-                    timestamp.className = 'message-timestamp';
-                    timestamp.textContent = currentTime;
-                    
-                    
-                    bubble.appendChild(text);
-                    contentWrapper.appendChild(bubble);
-                    contentWrapper.appendChild(timestamp);
-                    messageBlock.appendChild(contentWrapper);
-                    
-                    
-                    messageBlock.style.opacity = '0';
-                    messageBlock.style.transform = 'translateY(20px)';
-                    chatArea.appendChild(messageBlock);
-                    
-                    
-                    setTimeout(() => {
-                        messageBlock.style.transition = 'all 0.3s ease-out';
-                        messageBlock.style.opacity = '1';
-                        messageBlock.style.transform = 'translateY(0)';
-                    }, 10);
-                    
-                    
-                    chatArea.scrollTop = chatArea.scrollHeight;
-                    
-                    
-                    messageInput.value = '';
-                }
-            });
-        });
-    </script>
-</body>
-</html> 
+        return View("Chat"); // Trả về View Chat.cshtml
+        }

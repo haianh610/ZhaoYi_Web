@@ -96,21 +96,54 @@ namespace ZhaoYi_Test2.Controllers
             return View(); // Trả về View Index.cshtml trong thư mục Views/Messages
         }
 
-         // Action cho trang Chat chi tiết (sẽ cần tạo View riêng)
-         // GET: /Messages/Chat/{id}
-         public IActionResult Chat(int id)
-         {
-             // TODO: Lấy thông tin cuộc trò chuyện và tin nhắn theo id
-             ViewData["ChatId"] = id; // Truyền ID vào View
-             ViewData["ShowBottomNav"] = false; // Thường ẩn nav khi chat
-             ViewData["Title"] = "Chat"; // Đặt tiêu đề động sau
+        // Action cho trang Chat chi tiết (sẽ cần tạo View riêng)
+        // GET: /Messages/Chat/{id}
+        // Trong MessagesController.cs
 
-             // return View("Chat"); // Trả về View Chat.cshtml
-             return Content($"Trang chat cho ID: {id} (Chưa tạo View)"); // Placeholder
-         }
+        // GET: /Messages/Chat/{id}
+        [HttpGet]
+        public async Task<IActionResult> Chat(int id) // Thêm async Task
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
 
-        // Action cho tìm kiếm (API endpoint) - Sẽ cần tạo sau
-        // [HttpGet("api/messages/search")]
-        // public async Task<IActionResult> Search(string query, string type = "people") { ... }
+            // --- TODO: Lấy dữ liệu chat thực tế dựa vào 'id' (ConversationId) ---
+            // Ví dụ: Lấy thông tin người/nhóm đang chat, danh sách tin nhắn...
+            // var conversation = await _context.Conversations
+            //     .Include(c => c.Participants.Where(p => p.UserId != user.Id).Select(p => p.User)) // Lấy người chat cùng
+            //     .Include(c => c.Messages.OrderBy(m => m.Timestamp)) // Lấy tin nhắn
+            //     .FirstOrDefaultAsync(c => c.ConversationId == id && c.Participants.Any(p => p.UserId == user.Id));
+
+            // if (conversation == null) return NotFound();
+
+            // var otherParticipant = conversation.Participants.FirstOrDefault(p => p.UserId != user.Id)?.User;
+            // string contactName = conversation.IsGroup ? conversation.GroupName : otherParticipant?.UserName ?? "Người lạ";
+            // string contactAvatar = conversation.IsGroup ? conversation.GroupAvatar : (Logic lấy avatar của otherParticipant);
+            // string contactStatus = "Đang hoạt động"; // Lấy status thực tế
+
+            // var chatMessages = conversation.Messages.Select(m => new { ... }); // Map sang dynamic hoặc ViewModel
+
+            // --- Tạm thời dùng dữ liệu giả ---
+            ViewBag.ChatId = id;
+            ViewBag.ContactName = "Lê Minh Nghĩa"; // Giả
+            ViewBag.ContactStatus = "Đang hoạt động"; // Giả
+            ViewBag.ContactAvatarUrl = "~/images/user_2.png"; // Giả
+
+            var chatMessages = new List<dynamic> {
+        new { Id = 1, Sender = "You", Text = "Xin chào Minh Nghĩa", Timestamp = "09:25 AM", IsOutgoing = true, ShowAvatar = false, AvatarUrl = "", IsFirstInSequence = true, IsLastInSequence = true },
+        new { Id = 2, Sender = "Lê Minh Nghĩa", Text = "Xin chào bạn, bạn là ai?", Timestamp = "09:25 AM", IsOutgoing = false, ShowAvatar = true, AvatarUrl = "~/images/user_2.png", IsFirstInSequence = true, IsLastInSequence = true },
+        new { Id = 3, Sender = "You", Text = "Tôi muốn apply vào vị trí phiên dịch viên", Timestamp = "09:25 AM", IsOutgoing = true, ShowAvatar = false, AvatarUrl = "", IsFirstInSequence = true, IsLastInSequence = true },
+        new { Id = 4, Sender = "Lê Minh Nghĩa", Text = "Bạn gửi mình CV để mình xem nhé", Timestamp = "09:25 AM", IsOutgoing = false, ShowAvatar = true, AvatarUrl = "~/images/user_2.png", IsFirstInSequence = true, IsLastInSequence = false },
+        new { Id = 5, Sender = "Lê Minh Nghĩa", Text = "Để mình xem sao", Timestamp = "09:25 AM", IsOutgoing = false, ShowAvatar = false, AvatarUrl = "", IsFirstInSequence = false, IsLastInSequence = true }
+    };
+            ViewBag.ChatMessages = chatMessages;
+            // --------------------------------
+
+            ViewData["Title"] = ViewBag.ContactName; // Đặt tiêu đề là tên người chat
+            ViewData["UserRole"] = user.Role == 1 ? "Interpreter" : (user.Role == 2 ? "Recruiter" : "User");
+            ViewData["ShowBottomNav"] = false; // Ẩn nav khi đang chat
+
+            return View("Chat"); // Trả về View Chat.cshtml
+        }
     }
 }
