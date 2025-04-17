@@ -96,6 +96,27 @@
             height: 1rem;
             border-width: .2em;
         }
+        /* CSS mới cho hiển thị yêu cầu và mô tả */
+        .job-requirements-content,
+        .job-description-content {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #444;
+            white-space: pre-wrap; /* Giữ định dạng xuống dòng */
+            padding-top: 5px;
+        }
+
+        .urgent-badge {
+            background-color: #FFF9C4; /* Màu vàng nhạt */
+            color: #F57F17; /* Màu cam đậm */
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            border: 1px solid #FFECB3;
+            margin-left: 10px; /* Khoảng cách với title */
+            vertical-align: middle; /* Căn giữa với title */
+        }
     </style>
 }
 
@@ -104,7 +125,7 @@
     <!-- Header -->
     <header class="job-detail-header">
         <a asp-action="Profile" asp-controller="Recruiters" class="back-button"><i class="fas fa-chevron-left"></i></a>
-        <h1 class="header-title" title="@Model.Title">@Model.Title</h1>
+        <h1 class="header-title" title="Chi tiết bài đăng">Chi tiết bài đăng</h1>
         <a asp-action="EditJob" asp-route-id="@Model.JobPostingId" class="edit-button">
             <i class="fas fa-edit"></i> Sửa
         </a>
@@ -112,6 +133,8 @@
 
     <!-- Main Content -->
     <main class="job-detail-content">
+        <h3 title="@Model.Title">@Model.Title</h3>
+
         <div class="detail-card">
             <div class="detail-card-header">
                 <h2 class="detail-card-title">Thông tin chung</h2>
@@ -126,7 +149,7 @@
             <div class="detail-item">
                 <i class="fas fa-dollar-sign icon"></i>
                 <span class="detail-label">Mức lương:</span>
-                <span class="detail-value MinSalary">("N0") VND</span>
+                 <span class="detail-value salary">@Model.MinSalary.ToString("N0") - @Model.MaxSalary.ToString("N0") VND</span>
             </div>
             <div class="detail-item">
                 <i class="fas fa-map-marker-alt icon"></i>
@@ -159,7 +182,9 @@
         </div>
 
         <div class="detail-card">
-            <h2 class="detail-card-title">Yêu cầu công việc</h2>
+            <div class="detail-card-header">
+                <h2 class="detail-card-title">Yêu cầu công việc</h2>
+            </div>
             @* ... (các detail-item) ... *@
             <div class="detail-item">
                 <i class="fas fa-briefcase icon"></i>
@@ -180,6 +205,11 @@
                 <i class="fas fa-graduation-cap icon"></i>
                 <span class="detail-label">Trình độ:</span>
                 <span class="detail-value">@(!string.IsNullOrEmpty(Model.EducationLevel) ? Model.EducationLevel : "Không yêu cầu")</span>
+            </div>
+            <div class="detail-item" style="align-items: flex-start;"> @* Căn lên trên nếu text dài *@
+                 <i class="fas fa-tasks icon"></i>
+                 <span class="detail-label">Yêu cầu khác:</span>
+                 <div class="detail-value job-requirements-content">@Html.Raw(Model.JobRequirements?.Replace("\n", "<br />"))</div>
             </div>
         </div>
 
@@ -328,9 +358,9 @@
                                     <h6>Thông tin liên hệ</h6>
                                     <dl class="row">
                                         <dt class="col-sm-4">Email:</dt>
-                                        <dd class="col-sm-8">@app.Email</dd>
+                                        <dd class="col-sm-8">********</dd>
                                         <dt class="col-sm-4">Điện thoại:</dt>
-                                        <dd class="col-sm-8">@app.PhoneNumber</dd>
+                                        <dd class="col-sm-8">********</dd>
                                         <dt class="col-sm-4">Ngày nộp:</dt>
                                         <dd class="col-sm-8">@app.ApplicationDate.ToString("dd/MM/yyyy HH:mm")</dd>
                                         @* Hiển thị status trong modal *@

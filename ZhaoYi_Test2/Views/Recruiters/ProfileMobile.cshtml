@@ -1,4 +1,6 @@
 @model ZhaoYi_Test2.Models.Recruiter
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
 @using ZhaoYi_Test2.Models
 
 @{
@@ -18,6 +20,16 @@
     // Lấy danh sách bài đăng và ứng tuyển từ ViewBag
     var jobPostings = ViewBag.JobPostings as List<JobPosting> ?? new List<JobPosting>();
     var applications = ViewBag.Applications as List<JobApplication> ?? new List<JobApplication>();
+
+    // Helper function để lấy Display Name của Enum
+    Func<Enum, string> GetEnumDisplayName = (enumValue) =>
+    {
+        if (enumValue == null) return "Chưa cập nhật";
+        var field = enumValue.GetType().GetField(enumValue.ToString());
+        if (field == null) return enumValue.ToString();
+        var displayAttribute = field.GetCustomAttribute<DisplayAttribute>();
+        return displayAttribute?.GetName() ?? enumValue.ToString();
+    };
 }
 
 @section Styles {

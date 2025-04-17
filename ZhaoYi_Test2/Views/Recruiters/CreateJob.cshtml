@@ -1,86 +1,107 @@
 ﻿@model ZhaoYi_Test2.Models.JobPosting
-@using ZhaoYi_Test2.Models 
+@using ZhaoYi_Test2.Models
 
 @{
     ViewData["Title"] = "Tạo mới bài đăng";
-    Layout = "~/Views/Shared/_MobileLayout.cshtml"; // Sử dụng layout mobile
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
     ViewData["UserRole"] = "Recruiter";
-    ViewData["ShowBottomNav"] = false; // Không hiển thị nav dưới khi tạo
+    ViewData["ShowBottomNav"] = false;
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/job-creation.css" asp-append-version="true" />
     <style>
-        /* Đảm bảo layout không thêm padding đáy khi ẩn nav */
-        .mobile-screen {
-            padding-bottom: 0 !important;
+        .mobile-screen { padding-bottom: 0 !important; }
+        .field-validation-error { color: #dc3545; font-size: 0.8rem; display: block; margin-top: 4px; }
+        .input-validation-error { border-color: #dc3545 !important; }
+        .validation-summary-errors ul { list-style: none; padding: 0; margin: 10px 0; }
+        .validation-summary-errors li { color: #dc3545; margin-bottom: 5px; }
+
+        /* CSS cho khoảng lương và tuyển gấp */
+        .salary-range-group {
+            display: flex;
+            gap: 15px; /* Khoảng cách giữa min và max */
+            align-items: flex-start; /* Căn label và input */
+        }
+        .salary-range-group .form-group {
+            flex: 1; /* Chia đều không gian */
+            margin-bottom: 0; /* Bỏ margin bottom mặc định của form-group */
+        }
+         /* Điều chỉnh lại margin bottom cho group lớn hơn */
+        .salary-range-container {
+            margin-bottom: 20px;
         }
 
-
-        /* Hiển thị lỗi validation */
-        .field-validation-error {
-            color: #dc3545; /* Màu đỏ bootstrap mặc định */
-            font-size: 0.8rem;
-            display: block;
-            margin-top: 4px;
+        .urgent-checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+             background-color: #fff3e0; /* Nền vàng nhạt */
+             padding: 10px 15px;
+             border-radius: 8px;
+             border: 1px solid #ffe0b2;
         }
-
-        .input-validation-error {
-            border-color: #dc3545 !important; /* Đổi viền input lỗi */
+        .urgent-checkbox-group input[type="checkbox"] {
+            width: auto; /* Reset width */
+            height: auto;
+            margin-right: 5px;
+            accent-color: #ff8c00; /* Màu cam cho checkbox */
+            transform: scale(1.2); /* Cho checkbox to hơn chút */
         }
-
-        .validation-summary-errors ul {
-            list-style: none;
-            padding: 0;
-            margin: 10px 0;
-        }
-
-        .validation-summary-errors li {
-            color: #dc3545;
-            margin-bottom: 5px;
+        .urgent-checkbox-group label {
+            margin-bottom: 0; /* Bỏ margin của label */
+            font-weight: 600;
+            color: #e65100; /* Màu cam đậm */
         }
     </style>
 }
 
-<div class="job-creation-page">
-
+<div class="mobile-screen job-creation-page">
     <!-- Page Header -->
     <header class="page-header">
         <h1 class="page-title">Tạo mới bài đăng</h1>
-        @* Bỏ Step Indicators *@
     </header>
 
     <!-- Form Area -->
     <div class="form-area">
         <form method="post" asp-action="CreateJob">
-            @* Thêm validation summary *@
             <div asp-validation-summary="ModelOnly" class="text-danger validation-summary-errors"></div>
-            @Html.AntiForgeryToken() @* Thêm AntiForgeryToken *@
+            @Html.AntiForgeryToken()
 
             <div class="form-section">
                 <h2 class="section-title">Thông tin cơ bản</h2>
 
                 <div class="form-group">
-                    <label asp-for="Title" class="form-label"></label> @* asp-for tự lấy DisplayName *@
-                    <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề bài đăng">
+                    <label asp-for="Title" class="form-label"></label>
+                    <input asp-for="Title" class="form-control" placeholder="VD: Tuyển phiên dịch viên tiếng Trung Part-time">
                     <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="Field" class="form-label"></label>
-                    <input asp-for="Field" class="form-control" placeholder="Ví dụ: Giáo dục, Y tế, Công nghệ...">
+                    <input asp-for="Field" class="form-control" placeholder="VD: Giáo dục, Y tế, Công nghệ...">
                     <span asp-validation-for="Field" class="text-danger"></span>
                 </div>
 
-                <div class="form-group">
-                    <label asp-for="MinSalary" class="form-label"></label>
-                    <input asp-for="MinSalary" type="number" min="0" step="any" class="form-control" placeholder="Nhập mức lương">
-                    <span asp-validation-for="MinSalary" class="text-danger"></span>
+                 @* --- Nhóm Lương --- *@
+                <div class="salary-range-container">
+                     <label class="form-label">Khoảng lương (VND)</label>
+                     <div class="salary-range-group">
+                        <div class="form-group">
+                            <input asp-for="MinSalary" type="number" min="0" step="any" class="form-control" placeholder="Từ">
+                            <span asp-validation-for="MinSalary" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                             <input asp-for="MaxSalary" type="number" min="0" step="any" class="form-control" placeholder="Đến">
+                             <span asp-validation-for="MaxSalary" class="text-danger"></span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="WorkLocation" class="form-label"></label>
-                    <input asp-for="WorkLocation" class="form-control" placeholder="Ví dụ: Quận Hoàng Mai, Hà Nội">
+                    <input asp-for="WorkLocation" class="form-control" placeholder="VD: Quận Hoàng Mai, Hà Nội">
                     <span asp-validation-for="WorkLocation" class="text-danger"></span>
                 </div>
 
@@ -88,6 +109,13 @@
                     <label asp-for="ExpiryDate" class="form-label"></label>
                     <input asp-for="ExpiryDate" type="date" class="form-control">
                     <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                </div>
+
+                @* --- Checkbox Tuyển gấp --- *@
+                <div class="form-group urgent-checkbox-group">
+                     <input asp-for="IsUrgent" type="checkbox" class="form-check-input">
+                     <label asp-for="IsUrgent" class="form-check-label"></label>
+                    <span asp-validation-for="IsUrgent" class="text-danger"></span>
                 </div>
             </div>
 
@@ -111,14 +139,21 @@
 
                 <div class="form-group">
                     <label asp-for="HiringCount" class="form-label"></label>
-                    <input asp-for="HiringCount" type="number" min="1" class="form-control" placeholder="Nhập số lượng cần tuyển">
+                    <input asp-for="HiringCount" type="number" min="1" class="form-control" placeholder="Để trống nếu không giới hạn">
                     <span asp-validation-for="HiringCount" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="EducationLevel" class="form-label"></label>
-                    <input asp-for="EducationLevel" class="form-control" placeholder="Ví dụ: Đại học, Cao đẳng, Không yêu cầu...">
+                    <input asp-for="EducationLevel" class="form-control" placeholder="VD: Đại học, Cao đẳng, Không yêu cầu...">
                     <span asp-validation-for="EducationLevel" class="text-danger"></span>
+                </div>
+
+                 @* --- Textarea Yêu cầu --- *@
+                 <div class="form-group">
+                    <label asp-for="JobRequirements" class="form-label"></label>
+                    <textarea asp-for="JobRequirements" class="form-control" rows="5" placeholder="Liệt kê các yêu cầu cụ thể cho ứng viên (VD: Chứng chỉ HSK 5, Thành thạo tin học văn phòng...)"></textarea>
+                    <span asp-validation-for="JobRequirements" class="text-danger"></span>
                 </div>
             </div>
 
@@ -126,14 +161,14 @@
                 <h2 class="section-title">Mô tả công việc</h2>
                 <div class="form-group">
                     <label asp-for="JobDescription" class="form-label"></label>
-                    <textarea asp-for="JobDescription" class="form-control" rows="7" placeholder="Mô tả chi tiết về công việc, yêu cầu, quyền lợi..."></textarea>
+                    <textarea asp-for="JobDescription" class="form-control" rows="7" placeholder="Mô tả chi tiết về công việc, trách nhiệm, quyền lợi..."></textarea>
                     <span asp-validation-for="JobDescription" class="text-danger"></span>
                 </div>
             </div>
 
             <div class="form-navigation">
-                @* Nút quay lại Dashboard của Recruiter *@
-                <a asp-controller="Recruiters" asp-action="Dashboard" class="btn btn-secondary">
+                @* --- Nút quay lại Dashboard hoặc Profile --- *@
+                <a asp-controller="Recruiters" asp-action="Profile" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Quay lại
                 </a>
                 <button type="submit" class="btn btn-primary">
@@ -149,19 +184,41 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        // Script để đặt ngày mặc định cho ExpiryDate là 30 ngày kể từ hôm nay
+        // Script đặt ngày mặc định giữ nguyên
         document.addEventListener('DOMContentLoaded', function() {
             const expiryDateInput = document.getElementById('ExpiryDate');
-            if (expiryDateInput && !expiryDateInput.value) { // Chỉ đặt nếu chưa có giá trị
+            if (expiryDateInput && !expiryDateInput.value) {
                 const today = new Date();
                 const futureDate = new Date();
                 futureDate.setDate(today.getDate() + 30);
-
                 const year = futureDate.getFullYear();
                 const month = (futureDate.getMonth() + 1).toString().padStart(2, '0');
                 const day = futureDate.getDate().toString().padStart(2, '0');
-
                 expiryDateInput.value = `${year}-${month}-${day}`;
+            }
+
+            // Logic để đảm bảo MaxSalary >= MinSalary (nếu cần)
+            const minSalaryInput = document.getElementById('MinSalary');
+            const maxSalaryInput = document.getElementById('MaxSalary');
+
+            if (minSalaryInput && maxSalaryInput) {
+                minSalaryInput.addEventListener('change', function() {
+                    const minVal = parseFloat(this.value);
+                    const maxVal = parseFloat(maxSalaryInput.value);
+                    if (!isNaN(minVal) && !isNaN(maxVal) && minVal > maxVal) {
+                        maxSalaryInput.value = minVal; // Tự động đặt max = min nếu min > max
+                    }
+                     if (!isNaN(minVal)) {
+                        maxSalaryInput.min = minVal; // Đặt min cho max input
+                    }
+                });
+                 maxSalaryInput.addEventListener('change', function() {
+                    const minVal = parseFloat(minSalaryInput.value);
+                    const maxVal = parseFloat(this.value);
+                     if (!isNaN(minVal) && !isNaN(maxVal) && maxVal < minVal) {
+                        this.value = minVal; // Không cho phép max < min
+                    }
+                });
             }
         });
     </script>

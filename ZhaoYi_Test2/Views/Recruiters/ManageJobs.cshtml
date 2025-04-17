@@ -1,0 +1,281 @@
+@model IEnumerable<ZhaoYi_Test2.Models.JobPosting>
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+
+@{
+    ViewData["Title"] = "Quản lý bài đăng";
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+    ViewData["UserRole"] = "Recruiter";
+    ViewData["ShowBottomNav"] = true;
+
+    Func<Enum, string> GetEnumDisplayName = (enumValue) =>
+    {
+        if (enumValue == null) return "Không yêu cầu";
+        var field = enumValue.GetType().GetField(enumValue.ToString());
+        if (field == null) return enumValue.ToString();
+        var displayAttribute = field.GetCustomAttribute<DisplayAttribute>();
+        return displayAttribute?.GetName() ?? enumValue.ToString();
+    };
+}
+
+<div class="manage-jobs-page">
+    <header class="page-header">
+        <h1 class="page-title">Quản lý bài đăng</h1>
+        <a asp-action="CreateJob" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Đăng tin mới
+        </a>
+    </header>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="jobs-filter-section">
+        <div class="form-group">
+            <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm bài đăng...">
+        </div>
+        <div class="filter-buttons">
+            <button class="btn btn-outline-primary" data-filter="all">Tất cả</button>
+            <button class="btn btn-outline-primary" data-filter="active">Đang tuyển</button>
+            <button class="btn btn-outline-primary" data-filter="inprogress">Đang thực hiện</button>
+            <button class="btn btn-outline-primary" data-filter="completed">Hoàn thành</button>
+            <button class="btn btn-outline-primary" data-filter="cancelled">Đã hủy</button>
+        </div>
+    </div>
+
+    <div class="jobs-list">
+        @if (Model.Any())
+        {
+            foreach (var job in Model)
+            {
+                var statusClass = job.Status.ToString().ToLower();
+                var statusText = GetEnumDisplayName(job.Status);
+                var isExpired = job.ExpiryDate < DateTime.Now;
+                @* var hasApplications = job.Applications?.Any() ?? false; *@
+
+                <div class="job-card" data-status="@statusClass">
+                    <div class="job-card-header">
+                        <a asp-action="JobDetails" asp-route-id="@job.JobPostingId" class="job-title">@job.Title</a>
+                        <span class="job-status-badge @statusClass">@statusText</span>
+                    </div>
+
+                    <div class="job-card-body">
+                        <div class="job-info">
+                            @if (!string.IsNullOrEmpty(job.Field))
+                            {
+                                <span class="job-field"><i class="fas fa-tag"></i> @job.Field</span>
+                            }
+                            <span class="job-salary">
+                                <i class="fas fa-dollar-sign"></i> 
+                                @job.MinSalary.ToString("N0") - @job.MaxSalary.ToString("N0") VND
+                            </span>
+                            <span class="job-location"><i class="fas fa-map-marker-alt"></i> @job.WorkLocation</span>
+                        </div>
+
+                        <div class="job-requirements">
+                            @if (job.RequiredExperience.HasValue)
+                            {
+                                <span class="requirement">
+                                    <i class="fas fa-briefcase"></i> @GetEnumDisplayName(job.RequiredExperience)
+                                </span>
+                            }
+                            @if (!string.IsNullOrEmpty(job.EducationLevel))
+                            {
+                                <span class="requirement">
+                                    <i class="fas fa-graduation-cap"></i> @job.EducationLevel
+                                </span>
+                            }
+                            @if (job.HiringCount.HasValue)
+                            {
+                                <span class="requirement">
+                                    <i class="fas fa-users"></i> Cần @job.HiringCount người
+                                </span>
+                            }
+                        </div>
+
+                        <div class="job-meta">
+                            <span class="post-date">
+                                <i class="far fa-calendar-alt"></i> 
+                                Đăng ngày: @job.PostedDate.ToString("dd/MM/yyyy")
+                            </span>
+                            <span class="expiry-date @(isExpired ? "text-danger" : "")">
+                                <i class="far fa-calendar-times"></i>
+                                @(isExpired ? "Đã hết hạn" : $"Còn {(job.ExpiryDate - DateTime.Now).Days} ngày")
+                            </span>
+                            <span class="view-count">
+                                <i class="far fa-eye"></i> @job.ViewCount lượt xem
+                            </span>
+                        </div>
+
+                        @if (job.IsUrgent)
+                        {
+                            <span class="urgent-badge">
+                                <i class="fas fa-exclamation-circle"></i> Tuyển gấp
+                            </span>
+                        }
+                    </div>
+
+                    <div class="job-card-footer">
+                        @* <div class="job-metrics"> *@
+                        @*     @if (hasApplications) *@
+                        @*     { *@
+                        @*         <span class="applications-count"> *@
+                        @*             <i class="fas fa-file-alt"></i> @job.Applications.Count ứng viên *@
+                        @*         </span> *@
+                        @*     } *@
+                        @*     @if (job.UpdatedDate.HasValue) *@
+                        @*     { *@
+                        @*         <span class="last-updated"> *@
+                        @*             <i class="fas fa-clock"></i> Cập nhật: @job.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm") *@
+                        @*         </span> *@
+                        @*     } *@
+                        @* </div> *@
+                        <div class="job-actions">
+                            <a asp-action="JobDetails" asp-route-id="@job.JobPostingId" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-info-circle"></i> Chi tiết
+                            </a>
+                            <a asp-action="EditJob" asp-route-id="@job.JobPostingId" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit"></i> Sửa
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    onclick="confirmDeleteJob(@job.JobPostingId, '@job.Title')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-file-alt empty-icon"></i>
+                <p>Bạn chưa có bài đăng nào.</p>
+                <a asp-action="CreateJob" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Đăng tin tuyển dụng
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal xác nhận xóa -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận xóa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa bài đăng "<span id="deleteJobTitle"></span>" không?</p>
+                <p class="text-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Hành động này không thể hoàn tác và sẽ xóa tất cả đơn ứng tuyển liên quan.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form id="deleteForm" asp-action="DeleteJob" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="deleteJobId" name="id" value="" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Xác nhận xóa
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Xử lý tìm kiếm
+        const searchInput = document.getElementById('searchInput');
+        const jobCards = document.querySelectorAll('.job-card');
+        let activeFilter = 'all';
+
+        searchInput.addEventListener('input', filterJobs);
+
+        function filterJobs() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            jobCards.forEach(card => {
+                const title = card.querySelector('.job-title').textContent.toLowerCase();
+                const status = card.dataset.status;
+                const field = card.querySelector('.job-field')?.textContent.toLowerCase() || '';
+                const location = card.querySelector('.job-location')?.textContent.toLowerCase() || '';
+                
+                const matchesSearch = title.includes(searchTerm) || 
+                                    field.includes(searchTerm) || 
+                                    location.includes(searchTerm);
+                                    
+                const matchesFilter = activeFilter === 'all' || status === activeFilter;
+                
+                card.style.display = matchesSearch && matchesFilter ? 'block' : 'none';
+            });
+        }
+
+        // Xử lý filter buttons
+        document.querySelectorAll('.filter-buttons button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.filter-buttons button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                button.classList.add('active');
+                
+                activeFilter = button.dataset.filter;
+                filterJobs();
+            });
+        });
+
+        // Auto-hide alerts sau 5 giây
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 5000);
+        });
+
+        // Xử lý xóa bài đăng
+        function confirmDeleteJob(jobId, jobTitle) {
+            document.getElementById('deleteJobId').value = jobId;
+            document.getElementById('deleteJobTitle').textContent = jobTitle;
+            const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            modal.show();
+        }
+
+        // Xử lý form xóa
+        document.getElementById('deleteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const jobId = document.getElementById('deleteJobId').value;
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': form.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: `id=${jobId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirectUrl;
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra khi xóa bài đăng.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi xóa bài đăng.');
+            });
+        });
+    </script>
+}
