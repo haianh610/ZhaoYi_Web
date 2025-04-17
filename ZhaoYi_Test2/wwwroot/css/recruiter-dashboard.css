@@ -1,8 +1,6 @@
 /* ~/css/recruiter-dashboard.css */
 
-/* --- Inherit or Copy Base & Reused Styles --- */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { height: 100%; font-family: 'FZ Poppins'; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; }
+
 
 /* Hide scrollbar but keep scroll functionality */
 /* For Webkit browsers (Chrome, Safari) */

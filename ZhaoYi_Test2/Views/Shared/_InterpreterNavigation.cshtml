@@ -12,8 +12,10 @@
         <img src="~/icon/userProfile.svg" alt="Profile" class="nav-icon" />
         <span class="nav-label">Hồ sơ</span>
     </a>
-    <a href="javascript:void(0);" class="nav-item @(controllerName == "Messages" ? "active" : "")">
-        <img src="~/icon/curved-messagecircle.svg" alt="Messages" class="nav-icon" />
+    @* Tin nhắn *@
+    <a asp-controller="Messages" asp-action="Index" class="nav-item @(controllerName == "Messages" ? "active" : "")">
+        @* Icon Message giống Interpreter *@
+        <img src="~/icon/curved-messagecircle.svg" alt="Tin nhắn" class="nav-icon" />
         <span class="nav-label">Tin nhắn</span>
     </a>
     <a asp-controller="Settings" asp-action="Index" class="nav-item @(controllerName == "Settings" ? "active" : "")">

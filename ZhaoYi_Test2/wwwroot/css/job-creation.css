@@ -7,7 +7,6 @@ html {
 .job-creation-page {
     height: 100vh;
     max-height: 100vh;
-    width: 375px;
     max-width: 100%;
     margin: 0 auto;
     overflow-y: auto;

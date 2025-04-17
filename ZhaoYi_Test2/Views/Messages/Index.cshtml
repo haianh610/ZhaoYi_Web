@@ -1,0 +1,287 @@
+@using System.Linq;
+
+@{
+    ViewData["Title"] = "Tin nhắn";
+    Layout = "~/Views/Shared/_MobileLayout.cshtml"; // Sử dụng layout chung
+    ViewData["UserRole"] = ViewData["UserRole"]; // Lấy từ Controller
+    ViewData["ShowBottomNav"] = true; // Hiển thị nav
+
+    var currentDate = DateTime.Now.ToString("dd/MM/yyyy");
+
+    // Lấy dữ liệu giả từ ViewBag (sẽ thay bằng Model sau)
+    var messages = ViewBag.Messages as List<dynamic> ?? new List<dynamic>();
+    var stories = ViewBag.Stories as List<dynamic> ?? new List<dynamic>();
+    var peopleSearchResults = ViewBag.PeopleSearchResults as List<dynamic> ?? new List<dynamic>();
+    var groupSearchResults = ViewBag.GroupSearchResults as List<dynamic> ?? new List<dynamic>();
+    var currentUserAvatarUrl = ViewBag.CurrentUserAvatarUrl as string ?? "~/images/user.png";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/message-screen.css" asp-append-version="true" />
+     @* Link CSS cho bottom nav nếu cần *@
+     <link rel="stylesheet" href="~/css/shared-nav.css" asp-append-version="true" />
+     <style>
+         /* Đảm bảo layout có đủ chỗ cho bottom nav */
+        .mobile-screen { padding-bottom: 65px; /* Hoặc chiều cao thực tế của nav */ }
+     </style>
+}
+
+<div class="message-screen-page">
+    @* Status Bar bị loại bỏ theo yêu cầu *@
+
+    <header class="app-header">
+        <div class="header-icon search-icon" id="search-trigger">
+            <i class="fas fa-search"></i>
+        </div>
+        <div class="header-content">
+            <h1>@ViewData["Title"]</h1>
+            <div class="current-date">@currentDate</div>
+        </div>
+        <div class="header-icon profile-icon">
+             @* Liên kết đến trang Profile tương ứng *@
+            <a asp-controller="@(ViewData["UserRole"] == "Interpreter" ? "Interpreters" : "Recruiters")" asp-action="Profile">
+                <img src="@Url.Content(currentUserAvatarUrl)" alt="Profile">
+            </a>
+        </div>
+    </header>
+
+    <section class="stories-section">
+        @foreach (var story in stories)
+        {
+            if (story.IsAdd)
+            {
+                <div class="story-item add-story">
+                    <div class="story-image-container">
+                        <img src="@Url.Content(story.AvatarUrl)" alt="Add Status">
+                        <span class="add-story-icon">+</span>
+                    </div>
+                    <p class="story-name">@story.Name</p>
+                </div>
+            }
+            else
+            {
+                <div class="story-item">
+                    <div class="story-image-container @story.BgClass">
+                        <img src="@Url.Content(story.AvatarUrl)" alt="User Story">
+                    </div>
+                    <p class="story-name">@story.Name</p>
+                </div>
+            }
+        }
+    </section>
+
+    <main class="message-area">
+        @*<div class="drag-indicator"></div>*@ @* Bỏ drag indicator nếu không cần *@
+
+        @if (messages != null && messages.Any())
+        {
+            foreach (var msg in messages)
+            {
+                <a asp-action="Chat" asp-controller="Messages" asp-route-id="@msg.Id" class="message-preview @(msg.IsGroup ? "group-chat" : "")">
+                    <div class="message-avatar">
+                        @if (msg.IsGroup && msg.GroupAvatarUrls != null && msg.GroupAvatarUrls.Count > 0)
+                        {
+                            int maxAvatars = 3;
+                            int avatarIndex = 1;
+                            @foreach (var groupAvatarUrl in msg.GroupAvatarUrls)
+                            {
+                                if (avatarIndex <= maxAvatars)
+                                {
+                                    <img src="@Url.Content(groupAvatarUrl)" alt="Group Avatar @avatarIndex" class="group-avatar avatar@(avatarIndex)">
+                                    avatarIndex++;
+                                } else { break; }
+                            }
+                        }
+                        else if (!msg.IsGroup && !string.IsNullOrEmpty(msg.AvatarUrl))
+                        {
+                            <img src="@Url.Content(msg.AvatarUrl)" alt="Avatar">
+                        }
+                        else { <div class="avatar-placeholder">?</div> }
+                    </div>
+                    <div class="message-content">
+                        <p class="sender-name">@msg.Sender</p>
+                        <p class="message-snippet">@Html.Raw(msg.Snippet)</p>
+                    </div>
+                    <div class="message-meta">
+                        <span class="timestamp">@msg.Timestamp</span>
+                        @if (msg.UnreadCount > 0)
+                        { <span class="unread-badge">@msg.UnreadCount</span> }
+                    </div>
+                </a>
+            }
+        }
+        else
+        { <p class="empty-message-list">Không có tin nhắn nào.</p> }
+    </main>
+
+    @* --- Search Popup (Giữ nguyên HTML và JS) --- *@
+    <div class="search-popup" id="search-popup">
+        <div class="search-header">
+             <div class="search-filter">
+                 @* TODO: Thêm logic JS để chuyển filter active *@
+                 <span class="filter-item active" data-filter="people">
+                     <span class="filter-circle"></span> People
+                 </span>
+                 <span class="filter-divider">|</span>
+                  <span class="filter-item" data-filter="groups">
+                     <span class="filter-circle" style="background-color: #4CAF50;"></span> Group
+                 </span>
+            </div>
+            <button class="close-search" id="close-search"><i class="fas fa-times"></i></button>
+        </div>
+         <div class="search-input-container">
+             <input type="text" class="search-input" placeholder="Tìm kiếm người hoặc nhóm..." autofocus>
+             <button class="clear-search" style="display:none;"><i class="fas fa-times-circle"></i></button>
+         </div>
+        <div class="search-results">
+            @* Kết quả tìm kiếm sẽ được load bằng JS hoặc render từ server sau *@
+            <div class="result-section" id="search-results-people">
+                 <h3 class="section-title">Mọi người</h3>
+                 <div class="result-list">
+                      @* Render kết quả giả *@
+                      @foreach (var person in peopleSearchResults) {
+                            <div class="result-item">
+                                <div class="result-avatar"><img src="@Url.Content(person.AvatarUrl)" alt="@person.Name"></div>
+                                <div class="result-info">
+                                    <p class="result-name">@person.Name</p>
+                                    <p class="result-status">@person.Status</p>
+                                </div>
+                            </div>
+                      }
+                 </div>
+            </div>
+             <div class="result-section" id="search-results-groups" style="display:none;">
+                <h3 class="section-title">Group Chat</h3>
+                 <div class="result-list">
+                     @foreach (var group in groupSearchResults) {
+                           <div class="result-item">
+                               <div class="result-avatar"><img src="@Url.Content(group.AvatarUrl)" alt="@group.Name"></div>
+                               <div class="result-info">
+                                   <p class="result-name">@group.Name</p>
+                                   <p class="result-participants">@group.ParticipantCount participants</p>
+                               </div>
+                           </div>
+                     }
+                 </div>
+            </div>
+             <div id="no-search-results" style="text-align: center; color: #888; padding: 20px; display: none;">Không tìm thấy kết quả.</div>
+        </div>
+    </div>
+
+    @* FAB Button (Tùy chọn) *@
+    @* <button class="fab"><i class="fas fa-plus"></i></button> *@
+
+    @* Bottom Navigation sẽ được render bởi Layout *@
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchTrigger = document.getElementById('search-trigger');
+            const searchPopup = document.getElementById('search-popup');
+            const closeSearch = document.getElementById('close-search');
+            const searchInput = searchPopup.querySelector('.search-input');
+            const clearSearchBtn = searchPopup.querySelector('.clear-search');
+            const filterItems = searchPopup.querySelectorAll('.filter-item');
+            const peopleResults = document.getElementById('search-results-people');
+            const groupResults = document.getElementById('search-results-groups');
+            const noResultsMsg = document.getElementById('no-search-results');
+            let currentFilter = 'people'; // Default filter
+
+            if (searchTrigger) {
+                 searchTrigger.addEventListener('click', function() {
+                    if (searchPopup) searchPopup.classList.add('active');
+                    if (searchInput) searchInput.focus();
+                    // document.body.style.overflow = 'hidden'; // Ngăn cuộn body
+                 });
+            }
+
+            if (closeSearch) {
+                closeSearch.addEventListener('click', function() {
+                    if (searchPopup) searchPopup.classList.remove('active');
+                    // document.body.style.overflow = '';
+                });
+            }
+
+             if (searchPopup) {
+                 searchPopup.addEventListener('click', function(e) {
+                    // Đóng nếu click ra ngoài vùng content của popup
+                     if (e.target === searchPopup) {
+                        searchPopup.classList.remove('active');
+                        // document.body.style.overflow = '';
+                     }
+                 });
+             }
+
+             // Clear search input
+             if (clearSearchBtn && searchInput) {
+                 clearSearchBtn.addEventListener('click', function() {
+                     searchInput.value = '';
+                     clearSearchBtn.style.display = 'none';
+                     searchInput.focus();
+                     // TODO: Clear search results or perform empty search
+                     performSearch('');
+                 });
+
+                 searchInput.addEventListener('input', function() {
+                     if (this.value) {
+                         clearSearchBtn.style.display = 'block';
+                         performSearch(this.value); // Perform search on input
+                     } else {
+                         clearSearchBtn.style.display = 'none';
+                         // TODO: Clear search results or show recent
+                         performSearch('');
+                     }
+                 });
+             }
+
+            // Filter switching logic
+             if (filterItems.length > 0) {
+                 filterItems.forEach(item => {
+                     item.addEventListener('click', function() {
+                         filterItems.forEach(f => f.classList.remove('active'));
+                         this.classList.add('active');
+                         currentFilter = this.dataset.filter;
+                         console.log("Selected Filter:", currentFilter);
+                         // Hiển thị/ẩn kết quả dựa trên filter
+                         if(currentFilter === 'people') {
+                             if(peopleResults) peopleResults.style.display = 'block';
+                             if(groupResults) groupResults.style.display = 'none';
+                         } else if (currentFilter === 'groups') {
+                              if(peopleResults) peopleResults.style.display = 'none';
+                             if(groupResults) groupResults.style.display = 'block';
+                         }
+                         performSearch(searchInput.value); // Re-run search with new filter
+                     });
+                 });
+             }
+
+             // --- Placeholder Search Function ---
+             // TODO: Replace with actual AJAX call to a search API endpoint
+             function performSearch(query) {
+                 console.log(`Searching for "${query}" in filter "${currentFilter}"`);
+                 const hasPeopleResults = peopleSearchResults.length > 0; // Check if mock data has results
+                 const hasGroupResults = groupSearchResults.length > 0;
+
+                 // Simulate showing/hiding results based on query and filter
+                 // In a real app, you'd fetch data and update the .result-list innerHTML
+                 if (query.length > 0) { // Only show results if query is not empty
+                     if (currentFilter === 'people') {
+                         if(peopleResults) peopleResults.style.display = hasPeopleResults ? 'block' : 'none';
+                         if(groupResults) groupResults.style.display = 'none';
+                         if(noResultsMsg) noResultsMsg.style.display = hasPeopleResults ? 'none' : 'block';
+                     } else if (currentFilter === 'groups') {
+                         if(peopleResults) peopleResults.style.display = 'none';
+                         if(groupResults) groupResults.style.display = hasGroupResults ? 'block' : 'none';
+                         if(noResultsMsg) noResultsMsg.style.display = hasGroupResults ? 'none' : 'block';
+                     }
+                 } else { // Hide all results if query is empty
+                     if(peopleResults) peopleResults.style.display = 'none';
+                     if(groupResults) groupResults.style.display = 'none';
+                     if(noResultsMsg) noResultsMsg.style.display = 'none';
+                 }
+             }
+
+        });
+    </script>
+}

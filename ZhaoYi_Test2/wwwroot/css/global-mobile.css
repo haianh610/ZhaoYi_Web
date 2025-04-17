@@ -108,7 +108,7 @@ body {
 }
 
 .mobile-screen {
-    max-width: 400px;
+    width: 400px;
     max-height: 100vh;
     height: 100vh; /* Hoặc giữ nếu bạn muốn cố định */
     border: 1px solid #ccc;

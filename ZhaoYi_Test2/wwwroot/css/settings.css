@@ -2,20 +2,9 @@
 
 /* --- Inherit or Copy Base & Reused Styles --- */
 /* (mobile-screen, status-bar, fab, bottom-nav, nav-item - Ensure these exist) */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
-html, body {
-    height: 100%;
-    font-family: 'FZ Poppins';
-    background-color: #f8f9fa;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+
+
 
 /* Hide scrollbar but keep scroll functionality */
 /* For Webkit browsers (Chrome, Safari) */
@@ -35,39 +24,7 @@ html, body {
 
 
 
-.status-bar { /* Copied - Orange background */
-    padding: 15px 20px 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #ff4343;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 500;
-    flex-shrink: 0;
-    z-index: 10;
-    position: relative;
-}
 
-    .status-bar .time {
-        font-weight: 600;
-    }
-
-    .status-bar .indicators {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        filter: brightness(0) invert(1);
-    }
-
-        .status-bar .indicators svg path {
-            fill: #fff !important;
-        }
-
-        .status-bar .indicators svg rect {
-            stroke: #fff !important;
-            fill: #fff !important;
-        }
 
 /* --- Settings Page Header --- */
 .settings-header {
@@ -231,25 +188,3 @@ html, body {
         font-size: 15px; /* Adjust icon size */
     }
 
-
-/* --- FAB and Bottom Nav (Reuse from previous CSS) --- */
-.fab {
-    position: absolute;
-    bottom: 80px;
-    right: 20px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: linear-gradient(to right, #ff8c00, #ffae42);
-    color: white;
-    font-size: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
-    border: none;
-    cursor: pointer;
-    z-index: 100;
-}
-
-/* Bottom Navigation styles moved to shared-nav.css */
