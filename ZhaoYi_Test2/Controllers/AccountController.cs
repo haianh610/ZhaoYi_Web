@@ -40,6 +40,12 @@ namespace ZhaoYi_Test2.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
+                    var user = await _userManager.FindByEmailAsync(model.Email);
+                    if (user.Role == 0)
+                    {
+                        return RedirectToAction("ChooseRole", "Role");
+                    }
+
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                     {
                         return Redirect(returnUrl);

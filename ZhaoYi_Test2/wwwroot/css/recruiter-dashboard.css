@@ -20,29 +20,6 @@ html, body { height: 100%; font-family: 'FZ Poppins'; background-color: #f8f9fa;
     -ms-overflow-style: none;
 }
 
-.mobile-screen {
-    width: 400px; height: 100vh; border: 1px solid #ccc; border-radius: 10px;
-    overflow: hidden; position: relative; background-color: #f4f6f8;
-    display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.status-bar { /* Copied from previous */
-    padding: 15px 20px 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #F15A29;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 500;
-    flex-shrink: 0;
-    z-index: 10;
-    position: relative;
-}
-.status-bar .time { font-weight: 600; }
-.status-bar .indicators { display: flex; align-items: center; gap: 5px; filter: brightness(0) invert(1); }
-.status-bar .indicators svg path { fill: #fff !important; }
-.status-bar .indicators svg rect { stroke: #fff !important; fill: #fff !important; }
 
 .top-header { /* Copied from previous */
     background: linear-gradient(to bottom, #F15A29 0%, #FFB459);
@@ -244,6 +221,7 @@ html, body { height: 100%; font-family: 'FZ Poppins'; background-color: #f8f9fa;
     background: linear-gradient(135deg, #ff8c00, #ffae42); border-radius: 50%; border: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); color: #fff; font-size: 24px; display: flex;
     justify-content: center; align-items: center; cursor: pointer; z-index: 100;
+    text-decoration: none;
 }
 .fab:hover { background: linear-gradient(135deg, #e67e00, #f39c12); }
 
@@ -266,37 +244,42 @@ html, body { height: 100%; font-family: 'FZ Poppins'; background-color: #f8f9fa;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
 }
 
 .modal-overlay.active {
-    opacity: 1;
-    visibility: visible;
+    display: flex;
 }
 
 .modal-content {
-    width: 90%;
-    max-width: 360px;
-    background-color: white;
+    background-color: #fff;
     border-radius: 12px;
+    width: 90%;
+    max-width: 340px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    transform: translateY(20px);
-    transition: transform 0.3s;
-    max-height: 85vh;
     display: flex;
     flex-direction: column;
+    padding: 0;
 }
 
 .modal-overlay.active .modal-content {
-    transform: translateY(0);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .modal-header {
@@ -379,142 +362,110 @@ html, body { height: 100%; font-family: 'FZ Poppins'; background-color: #f8f9fa;
 }
 
 .modal-footer {
-    padding: 16px 20px;
-    border-top: 1px solid #EEEEEE;
-    text-align: center;
+    padding: 20px;
+    border-top: 1px solid #eee;
 }
 
 .btn-confirm {
-    background-color: #1C2659;
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #ff8c00, #ff4500);
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 600;
-    width: 100%;
+    font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background 0.3s ease;
 }
 
 .btn-confirm:hover {
-    background-color: #151D46;
+    background: linear-gradient(135deg, #ff7b00, #ff3d00);
 }
 
 /* --- Urgent Interpreter Search Modal (Recruiter Version) Styles --- */
 .modal-header-banner {
-    background-color: #1C2659;
-    color: white;
-    padding: 16px 20px;
+    background: #fff;
+    color: #333;
+    padding: 1rem;
     text-align: center;
-    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    font-size: 16px;
+    font-weight: bold;
+    border-bottom: 1px solid #eee;
 }
 
 .modal-header-banner i {
-    color: #FFDE69;
+    color: #ff8c00;
 }
 
 .modal-section-title {
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 600;
-    color: #1C2659;
-    margin-bottom: 12px;
+    color: #333;
+    margin-bottom: 10px;
 }
 
 .location-box {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 16px;
-    border: 1px solid #E0E0E0;
+    background-color: #f7f8ff;
+    border: 1px solid #e8ebff;
+    padding: 12px;
     border-radius: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
 }
 
 .location-icon-bg {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background-color: #F5F5F5;
-    border-radius: 50%;
+    background-color: #e8ebff;
+    border-radius: 8px;
+    padding: 8px;
+    display: inline-flex;
 }
 
 .location-icon-bg i {
-    color: #1C2659;
+    color: #ff8c00;
+    font-size: 1rem;
 }
 
 .location-text {
-    font-size: 14px;
+    font-size: 0.9rem;
     color: #333;
 }
 
 .filter-link {
-    display: block;
-    color: #1C2659;
+    color: #ff8c00;
     text-decoration: none;
-    font-size: 14px;
-    margin-bottom: 24px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 5px;
+    font-size: 0.9rem;
+    margin: 10px 0 20px;
 }
 
 .filter-link i {
-    font-size: 12px;
+    font-size: 0.8rem;
 }
 
-/* --- Account Tier Section --- */
-.account-tier-section {
-    background-color: #F7F9FC;
-    border-radius: 8px;
-    padding: 16px;
-    margin-top: 20px;
+.cost-info, .balance-info {
+    font-size: 0.9rem;
+    color: #333;
+    margin: 5px 0;
 }
 
-.account-tier-info {
-    font-size: 14px;
-    color: #4D4D4D;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.highlight-points {
+    color: #ff8c00;
+    font-weight: bold;
 }
 
-.tier-label {
-    background-color: #FFDE69;
-    color: #1C2659;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 12px;
-}
-
-.pricing-link {
-    display: block;
-    color: #1C2659;
+.buy-more-link {
+    color: #ff8c00;
     text-decoration: none;
-    font-size: 13px;
-    margin-bottom: 12px;
-    text-decoration: underline;
-}
-
-.upgrade-prompt {
-    background-color: #E6F2FF;
-    color: #0066CC;
-    padding: 12px;
-    border-radius: 6px;
+    font-size: 0.9rem;
     display: block;
-    text-decoration: none;
-    font-size: 13px;
-    text-align: center;
-    font-weight: 500;
+    margin-top: 5px;
 }
 
 /* Filter Modal Styles */
@@ -1000,4 +951,108 @@ html, body { height: 100%; font-family: 'FZ Poppins'; background-color: #f8f9fa;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-} 
+}
+
+/* Thêm style cho account tier section */
+.account-tier-section {
+    margin-top: 20px;
+    padding: 15px;
+    background: #fff8f1;
+    border-radius: 10px;
+    border: 1px solid #ffe4cc;
+}
+
+.account-tier-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.tier-label {
+    color: #ff8c00;
+    font-weight: bold;
+    padding: 3px 8px;
+    background: #fff;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.pricing-link {
+    color: #ff8c00;
+    text-decoration: none;
+    font-size: 0.9em;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.upgrade-prompt {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    background: linear-gradient(135deg, #ff8c00, #ff4500);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+.upgrade-prompt:hover {
+    background: linear-gradient(135deg, #ff7b00, #ff3d00);
+}
+
+/* Cập nhật style cho nút đóng */
+.btn-confirm {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #ff8c00, #ff4500);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.btn-confirm:hover {
+    background: linear-gradient(135deg, #ff7b00, #ff3d00);
+}
+
+/* Style cho filter link */
+.filter-link {
+    color: #ff8c00;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9em;
+    margin: 10px 0;
+}
+
+/* CSS cho banner thông báo tính năng đang phát triển */
+.development-banner {
+    background: linear-gradient(135deg, #ff8c00, #ff4500);
+    color: white;
+    padding: 0.8rem;
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.development-banner i {
+    font-size: 1.2rem;
+}
+
+.modal-content .modal-header-banner {
+    background: #fff;
+    border-radius: 0;
+    border-bottom: 1px solid #eee;
+}
