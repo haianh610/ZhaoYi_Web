@@ -298,19 +298,6 @@ else if (!User.Identity.IsAuthenticated)
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Update current time
-            function updateTime() {
-                if (document.getElementById('currentTime')) {
-                    const now = new Date();
-                    const hours = now.getHours().toString().padStart(2, '0');
-                    const minutes = now.getMinutes().toString().padStart(2, '0');
-                    document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
-                }
-            }
-            setInterval(updateTime, 60000); // Update every minute
-            updateTime();
-
             // Bookmark toggle functionality
             const bookmarkBtn = document.querySelector('.bookmark-button');
             if (bookmarkBtn) {

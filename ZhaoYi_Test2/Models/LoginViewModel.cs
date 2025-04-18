@@ -31,6 +31,7 @@ namespace ZhaoYi_Test2.ViewModels
         [RegularExpression("^(?=.*[a-z])(?=.*\\d).+$", ErrorMessage = "Mật khẩu phải chứa ít nhất một chữ thường 'a-z' và một chữ số '0 - 9'.")]
         public string Password { get; set; }
 
+        [Required(ErrorMessage = "Xác nhận mật khẩu không được để trống")]
         [DataType(DataType.Password)]
         [Display(Name = "Xác nhận mật khẩu")]
         [Compare("Password", ErrorMessage = "Mật khẩu và mật khẩu xác nhận không khớp.")]
