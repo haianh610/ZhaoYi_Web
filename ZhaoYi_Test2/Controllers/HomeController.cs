@@ -28,7 +28,7 @@ namespace ZhaoYi_Test2.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Kiểm tra nếu người dùng đã đăng nhập và là phiên dịch viên (Role = 1)
+            // Kiểm tra nếu người dùng đã đăng nhập và có role cụ thể
             if (User.Identity.IsAuthenticated)
             {
                 var user = await _userManager.GetUserAsync(User);
@@ -44,7 +44,7 @@ namespace ZhaoYi_Test2.Controllers
                 }
             }
 
-            // Trả về trang splash screen cho người chưa đăng nhập
+            // Hiển thị trang splash và sau đó sẽ chuyển hướng bằng JavaScript
             return View("Splash");
         }
 

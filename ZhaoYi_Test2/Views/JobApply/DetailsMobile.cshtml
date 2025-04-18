@@ -187,7 +187,7 @@
 else if (!User.Identity.IsAuthenticated)
 {
     <footer class="job-apply-footer">
-        <a asp-area="Identity" asp-page="/Account/Login" class="apply-button login">
+        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="apply-button login">
             Đăng nhập để ứng tuyển
         </a>
     </footer>
@@ -586,6 +586,5 @@ else if (!User.Identity.IsAuthenticated)
             }
             </text>
             }
-        });
     </script>
 }

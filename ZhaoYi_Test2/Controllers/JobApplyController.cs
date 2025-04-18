@@ -11,7 +11,7 @@ using ZhaoYi_Test2.Models;
 
 namespace ZhaoYi_Test2.Controllers
 {
-    [Authorize]
+    // Removed [Authorize] from controller level to allow anonymous access to Details
     public class JobApplyController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -29,17 +29,12 @@ namespace ZhaoYi_Test2.Controllers
         }
 
         // GET: JobApply/Details/5
+        // Allow anonymous access to job details
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
-            }
-
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return RedirectToAction("Login", "Account", new { area = "Identity" });
             }
 
             var jobPosting = await _context.JobPostings
@@ -51,36 +46,49 @@ namespace ZhaoYi_Test2.Controllers
                 return NotFound();
             }
 
-            // T?ng s? l??t xem
+            // Tăng số lượt xem
             jobPosting.ViewCount++;
             await _context.SaveChangesAsync();
 
-            // Ki?m tra xem ng??i dùng ?ã ?ng tuy?n vào v? trí này ch?a
+            // Đặt các giá trị mặc định cho người dùng chưa đăng nhập
             bool hasApplied = false;
-            if (user.Role == 1) // Phiên d?ch viên
+            int userRole = 0;
+            ViewBag.Interpreter = null;
+
+            // Chỉ kiểm tra đăng nhập và ứng tuyển nếu người dùng đã đăng nhập
+            if (User.Identity.IsAuthenticated)
             {
-                // L?y thông tin phiên d?ch viên
-                var interpreter = await _context.Interpreters
-                    .FirstOrDefaultAsync(i => i.UserId == user.Id);
-
-                if (interpreter != null)
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
                 {
-                    // Ki?m tra xem ?ã ?ng tuy?n ch?a
-                    hasApplied = await _context.JobApplications
-                        .AnyAsync(a => a.JobPostingId == id && a.InterpreterId == interpreter.InterpreterId);
+                    userRole = user.Role;
 
-                    ViewBag.Interpreter = interpreter;
+                    if (user.Role == 1) // Phiên dịch viên
+                    {
+                        // Lấy thông tin phiên dịch viên
+                        var interpreter = await _context.Interpreters
+                            .FirstOrDefaultAsync(i => i.UserId == user.Id);
+
+                        if (interpreter != null)
+                        {
+                            // Kiểm tra xem đã ứng tuyển chưa
+                            hasApplied = await _context.JobApplications
+                                .AnyAsync(a => a.JobPostingId == id && a.InterpreterId == interpreter.InterpreterId);
+
+                            ViewBag.Interpreter = interpreter;
+                        }
+                    }
                 }
             }
 
             ViewBag.HasApplied = hasApplied;
-            ViewBag.UserRole = user.Role;
+            ViewBag.UserRole = userRole;
 
-            return View("DetailsMobile",jobPosting);
+            return View("DetailsMobile", jobPosting);
         }
 
         // GET: JobApply/Apply/5
-        [Authorize]
+        [Authorize] // Add Authorize attribute to individual actions that require authentication
         public async Task<IActionResult> Apply(int? id)
         {
             if (id == null)
@@ -323,6 +331,7 @@ namespace ZhaoYi_Test2.Controllers
 
 
         // GET: JobApply/ApplicationDetails/5
+        [Authorize]
         public async Task<IActionResult> ApplicationDetails(int? id)
         {
             if (id == null)
@@ -361,6 +370,7 @@ namespace ZhaoYi_Test2.Controllers
         }
 
         // GET: JobApply/DeleteApplication/5
+        [Authorize]
         public async Task<IActionResult> DeleteApplication(int? id)
         {
             if (id == null)

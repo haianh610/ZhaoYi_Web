@@ -30,8 +30,6 @@
             height: auto;
             margin-bottom: 20px;
         }
-
-
     </style>
 </head>
 <body>
@@ -40,9 +38,9 @@
     </div>
 
     <script>
-        // Tự động chuyển hướng đến trang đăng nhập sau 2 giây
+        // Tự động chuyển hướng đến trang phiên dịch viên sau 1.5 giây
         setTimeout(function() {
-            window.location.href = '/Account/Login';
+            window.location.href = '@Url.Action("Dashboard", "Interpreters")';
         }, 1500);
     </script>
 </body>

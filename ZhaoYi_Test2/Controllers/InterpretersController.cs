@@ -28,18 +28,31 @@ namespace ZhaoYi_Test2.Controllers
         }
 
         // GET: Interpreters/Dashboard
-        [Authorize]
+        // Removed [Authorize] attribute to allow anonymous access
         public async Task<IActionResult> Dashboard()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null || user.Role != 1)
+            // Đặt thông tin mặc định cho người dùng chưa đăng nhập
+            string userId = null;
+            Interpreter interpreter = null;
+            int userRole = 0; // Default role for unauthenticated users
+            
+            // Kiểm tra người dùng đã đăng nhập hay chưa
+            if (User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("Index", "Home");
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
+                {
+                    userId = user.Id;
+                    userRole = user.Role;
+                    
+                    // Chỉ lấy thông tin phiên dịch viên nếu là phiên dịch viên
+                    if (user.Role == 1)
+                    {
+                        interpreter = await _context.Interpreters
+                            .FirstOrDefaultAsync(i => i.UserId == user.Id);
+                    }
+                }
             }
-
-            // Get interpreter profile for this user
-            var interpreter = await _context.Interpreters
-                .FirstOrDefaultAsync(i => i.UserId == user.Id);
 
             // Get active jobs
             var activeJobs = await _context.JobPostings
@@ -72,6 +85,8 @@ namespace ZhaoYi_Test2.Controllers
             ViewBag.RecommendedJobs = recommendedJobs;
             ViewBag.UserLocation = interpreter?.WorkLocation ?? "Hà Nội";
             ViewBag.UserPoints = 4; // Placeholder, replace with actual points system
+            ViewBag.UserRole = userRole; // Pass user role to view
+            ViewBag.IsAuthenticated = User.Identity.IsAuthenticated; // Pass authentication status
 
             // Return MobileDashboard view with job data
             return View("HomeMobile", activeJobs);

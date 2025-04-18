@@ -259,7 +259,7 @@ body {
     overflow-y: visible; /* <<===== THAY ĐỔI CHÍNH */
     scroll-snap-type: x mandatory;
     gap: 12px;
-    margin: 0 0 0 0; /* Giữ nguyên nếu cần */
+    margin: 0 0 0 20px; /* Giữ nguyên nếu cần */
     padding: 0 20px 15px 20px; /* Đảm bảo có padding đáy đủ cho bóng đổ/margin thẻ */
     -webkit-overflow-scrolling: touch;
     position: relative; /* Giữ nguyên */
