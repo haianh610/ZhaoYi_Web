@@ -127,12 +127,17 @@ h4 { font-size: 14px; }
 
 /* --- Job Title --- */
 .job-title-block {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
     padding: 15px;
+    gap: 10px;
     background-color: #fff;
     border-bottom: 1px solid #eee;
 }
 .job-title-block h1 { /* Job Title */
     margin-bottom: 5px;
+    margin-right: 10px;
     font-weight: 700;
     color: #333;
 }
@@ -144,26 +149,49 @@ h4 { font-size: 14px; }
 /* --- Job Highlights --- */
 .job-highlights-block {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column; /* Changed to column for vertical layout */
     background-color: #FFF7EC; /* Soft orange background */
     padding: 15px;
     border-bottom: 1px solid #eee;
-    gap: 12px 15px;
+    gap: 10px; /* Space between items */
 }
 .highlight-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* Changed from center to align-items: flex-start for better alignment with multi-line content */
     font-size: 13px;
     color: #5D4037; /* Dark brown text */
-    width: calc(50% - 8px);
+    width: 100%; /* Take full width */
+    padding: 8px 12px; /* Add some padding */
+    background-color: #fff; /* White background for each item */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Subtle shadow */
 }
-    .highlight-item .icon {
-        margin-right: 8px;
-        color: #F15A29; /* Richer orange icon */
-        font-size: 15px;
-        width: 18px;
-        text-align: center;
-    }
+.highlight-item .icon {
+    margin-right: 10px;
+    color: #F15A29; /* Richer orange icon */
+    font-size: 15px;
+    width: 18px;
+    text-align: center;
+    margin-top: 8px; /* Align with title */
+}
+.highlight-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 3px;
+}
+.highlight-title {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.highlight-value {
+    font-weight: 700; /* Bold text */
+    color: #333;
+    font-size: 14px;
+}
 
 /* --- Detail Sections --- */
 .job-details-sections {
@@ -291,4 +319,15 @@ h4 { font-size: 14px; }
 }
 .apply-button:hover {
     background: linear-gradient(90deg, #E67E22, #FB8C00); /* Darker hover gradient */
-} 
+}
+
+.urgent-badge {
+    background-color: #ff4d4f;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-left: 10px;
+    display: inline-block;
+}

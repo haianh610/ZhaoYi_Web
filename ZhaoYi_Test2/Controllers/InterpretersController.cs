@@ -61,9 +61,9 @@ namespace ZhaoYi_Test2.Controllers
                 .OrderByDescending(jp => jp.PostedDate)
                 .ToListAsync();
 
-            // Identify urgent jobs (expiring in 24 hours)
+            // Identify urgent jobs based on IsUrgent flag instead of expiry time
             var urgentJobs = activeJobs
-                .Where(j => (j.ExpiryDate - DateTime.Now).TotalHours < 24)
+                .Where(j => j.IsUrgent)
                 .ToList();
 
             // Set up recommended jobs based on interpreter profile

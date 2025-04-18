@@ -56,21 +56,22 @@
         }
         else
         {
-            <img src="~/images/logo-zhaoyi.png" alt="Default Company Logo" class="company-logo">
+            <img src="~/images/default-avatar.png" alt="Default Company Logo" class="company-logo">
         }
         <div class="company-details">
             <h2>@(Model.Recruiter?.RecruiterName ?? "Công ty ZhaoYi")</h2>
             <p>@(string.IsNullOrEmpty(Model.Field) ? "Dịch vụ phiên dịch" : Model.Field) • 
                @(Model.HiringCount.HasValue ? $"Cần tuyển {Model.HiringCount} người" : "Không giới hạn số lượng")</p>
         </div>
-        <button class="bookmark-button" aria-label="Lưu công việc">
-            <i class="far fa-bookmark"></i>
-        </button>
     </div>
 
     <!-- Job Title -->
     <div class="job-title-block">
         <h1>@Model.Title</h1>
+        @if (Model.IsUrgent)
+        {
+            <span class="urgent-badge">Tuyển gấp</span>
+        }
         <p class="applicant-count">@Model.ViewCount lượt xem</p>
     </div>
 
@@ -78,23 +79,35 @@
     <div class="job-highlights-block">
         <div class="highlight-item">
             <i class="fas fa-map-marker-alt icon"></i>
-            <span>@Model.WorkLocation</span>
+            <div class="highlight-content">
+                <span class="highlight-title">Địa điểm</span>
+                <span class="highlight-value">@Model.WorkLocation</span>
+            </div>
         </div>
         <div class="highlight-item">
             <i class="fas fa-clock icon"></i>
-            <span>@timeDisplay</span>
+            <div class="highlight-content">
+                <span class="highlight-title">Thời hạn</span>
+                <span class="highlight-value">@timeDisplay</span>
+            </div>
         </div>
         <div class="highlight-item">
             <i class="fas fa-money-bill-wave icon"></i>
-            <span>@Model.MinSalary.ToString("N0") VND</span>
+            <div class="highlight-content">
+                <span class="highlight-title">Mức lương</span>
+                <span class="highlight-value">@Model.MinSalary.ToString("N0") - @Model.MaxSalary.ToString("N0") VND</span>
+            </div>
         </div>
         <div class="highlight-item">
             <i class="fas fa-briefcase icon"></i>
-            <span>
-                @(Model.RequiredExperience.HasValue
-                    ? GetDisplayName(Model.RequiredExperience.Value)
-                    : "Không yêu cầu kinh nghiệm")
-            </span>
+            <div class="highlight-content">
+                <span class="highlight-title">Kinh nghiệm</span>
+                <span class="highlight-value">
+                    @(Model.RequiredExperience.HasValue
+                        ? GetDisplayName(Model.RequiredExperience.Value)
+                        : "Không yêu cầu kinh nghiệm")
+                </span>
+            </div>
         </div>
     </div>
 
@@ -108,7 +121,15 @@
             </div>
         </div>
 
-        <!-- Requirements -->
+        <!-- Job Requirements -->
+        <div class="detail-section">
+            <h3>Yêu cầu công việc</h3>
+            <div>
+                @Html.Raw(Model.JobRequirements.Replace("\n", "<br />"))
+            </div>
+        </div>
+
+        <!-- Candidate Requirements -->
         @if (Model.RequiredExperience.HasValue || !string.IsNullOrEmpty(Model.EducationLevel) || Model.GenderRequirement.HasValue)
         {
             <div class="detail-section">
@@ -126,22 +147,25 @@
                     {
                         <li>Giới tính: @GetDisplayName(Model.GenderRequirement.Value)</li>
                     }
-                    <li>Kỹ năng giao tiếp tốt, có khả năng làm việc dưới áp lực cao</li>
                     <li>Ưu tiên ứng viên có kinh nghiệm trong lĩnh vực @(string.IsNullOrEmpty(Model.Field) ? "phiên dịch" : Model.Field)</li>
                 </ul>
             </div>
         }
 
-        <!-- Benefits -->
+        <!-- Job Status and Info -->
         <div class="detail-section">
-            <h3>Quyền lợi</h3>
+            <h3>Thông tin thêm</h3>
             <ul>
-                <li>Mức lương cạnh tranh: @Model.MinSalary.ToString("N0") VND</li>
-                <li>Thưởng dự án, thưởng hiệu suất làm việc, thưởng lễ Tết</li>
-                <li>Được đóng BHXH, BHYT, BHTN đầy đủ theo quy định</li>
-                <li>Chế độ nghỉ phép 12 ngày/năm</li>
-                <li>Cơ hội đào tạo và phát triển chuyên môn</li>
-                <li>Môi trường làm việc chuyên nghiệp, năng động</li>
+                <li>Ngày đăng: @Model.PostedDate.ToString("dd/MM/yyyy")</li>
+                <li>Ngày hết hạn: @Model.ExpiryDate.ToString("dd/MM/yyyy")</li>
+                @if (Model.HiringCount.HasValue)
+                {
+                    <li>Số lượng cần tuyển: @Model.HiringCount</li>
+                }
+                @if (!string.IsNullOrEmpty(Model.Field))
+                {
+                    <li>Lĩnh vực: @Model.Field</li>
+                }
             </ul>
         </div>
 
