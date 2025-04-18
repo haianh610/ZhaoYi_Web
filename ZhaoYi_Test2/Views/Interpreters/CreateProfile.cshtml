@@ -157,7 +157,7 @@
 
                 <div class="form-group">
                     <label asp-for="DateOfBirth" class="form-label"></label>
-                    <input asp-for="DateOfBirth" type="date" class="form-control">
+                    <input asp-for="DateOfBirth" type="date" class="form-control" id="dateOfBirthField">
                     <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                 </div>
 
@@ -229,6 +229,15 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
+        // Set default date to 2005-01-01 for the DateOfBirth field
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateField = document.getElementById('dateOfBirthField');
+            // Only set default if the field is empty or showing year 0001
+            if (!dateField.value || dateField.value.includes('0001')) {
+                dateField.value = '2005-01-01';
+            }
+        });
+        
         // Hàm kiểm tra và hiển thị ảnh avatar
         function validateAndPreviewAvatar(event) {
             const file = event.target.files[0];
