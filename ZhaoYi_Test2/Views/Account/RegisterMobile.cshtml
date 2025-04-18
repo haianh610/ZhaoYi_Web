@@ -1,15 +1,17 @@
+@using Microsoft.AspNetCore.Identity
 @model ZhaoYi_Test2.ViewModels.RegisterViewModel
 @{
     ViewData["Title"] = "Đăng ký";
     Layout = "~/Views/Shared/_MobileLayout.cshtml";
     ViewData["ShowBottomNav"] = false;
+    // Lấy external logins (cần inject SignInManager)
+    var externalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/register.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/global-mobile.css" asp-append-version="true" />
     <style>
-        /* Styling mở rộng/ghi đè */
         .mobile-screen {
             display: flex;
             flex-direction: column;
@@ -17,16 +19,89 @@
             justify-content: center;
             padding: 20px;
         }
+        /* --- Copy CSS Validation và CSS mới ở Bước 1 vào đây hoặc vào register.css --- */
+        .form-field-container {
+            width: 100%;
+            margin-bottom: 15px;
+        }
 
-        /* Validation thông báo lỗi */
+        .input-group {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            background-color: #fff;
+            padding: 0 15px;
+            margin-bottom: 0;
+            transition: border-color 0.2s ease-in-out;
+        }
+
+            .input-group input.form-control, .input-group input[type="email"], .input-group input[type="password"] {
+                border: none !important;
+                background-color: transparent !important;
+                flex-grow: 1;
+                padding: 14px 5px 14px 10px;
+                box-shadow: none !important;
+                outline: none !important;
+                min-height: 48px;
+                font-size: 15px;
+                color: #333;
+            }
+
+            .input-group input::placeholder {
+                color: #bbb;
+            }
+
+            .input-group i {
+                color: #aaa;
+                margin-right: 12px;
+                width: 18px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+
+            .input-group .icon-right {
+                margin-left: 10px;
+                margin-right: 0;
+                cursor: pointer;
+                color: #aaa;
+                padding: 10px 0;
+            }
+
+        .input-group-error {
+            border-color: #dc3545 !important;
+        }
+
+        .input-validation-error { /* No border */
+        }
+
+        .field-validation-error {
+            color: #dc3545;
+            font-size: 0.8rem;
+            display: block;
+            width: 100%;
+            padding: 5px 5px 0 5px;
+            text-align: right;
+            min-height: 18px;
+            box-sizing: border-box;
+            margin-bottom: 0;
+        }
+
+        .field-validation-valid {
+            display: none;
+        }
+
         .validation-summary-errors {
-            color: #d9534f;
-            background-color: rgba(217, 83, 79, 0.1);
-            padding: 10px;
+            color: #dc3545;
+            background-color: rgba(220, 53, 69, 0.1);
+            padding: 10px 15px;
             border-radius: 8px;
             margin-bottom: 20px;
             width: 100%;
-            font-size: 14px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(220, 53, 69, 0.2);
         }
 
             .validation-summary-errors ul {
@@ -35,18 +110,44 @@
                 margin: 0;
             }
 
-        /* Lỗi riêng cho từng field */
-        .field-validation-error {
-            color: #ff3b30;
+            .validation-summary-errors li {
+                margin-bottom: 5px;
+            }
+
+                .validation-summary-errors li:last-child {
+                    margin-bottom: 0;
+                }
+
+        .terms-policy {
+            margin-top: 10px;
+            margin-bottom: 20px;
             font-size: 13px;
-            display: block;
-            margin-top: 5px;
-            margin-bottom: 10px;
+            color: #555;
+            text-align: left;
+            width: 100%;
         }
 
-        .input-validation-error {
-            border-color: #ff3b30 !important;
-        }
+            .terms-policy input[type="checkbox"] {
+                margin-right: 8px;
+                vertical-align: middle;
+                accent-color: #ff8c00;
+            }
+
+            .terms-policy label {
+                vertical-align: middle;
+                margin-bottom: 0;
+            }
+
+            .terms-policy a {
+                color: #ff8c00;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+                .terms-policy a:hover {
+                    text-decoration: underline;
+                }
+        /* --- End CSS --- */
     </style>
 }
 
@@ -55,69 +156,78 @@
     <div class="title-underline"></div>
     <p class="subtitle">Vui lòng đăng ký tài khoản của bạn để tiếp tục với ứng dụng</p>
 
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div class="validation-summary-errors">
-            <ul>
-                @foreach (var modelState in ViewData.ModelState.Values)
-                {
-                    foreach (var error in modelState.Errors)
-                    {
-                        <li>@error.ErrorMessage</li>
-                    }
-                }
-            </ul>
-        </div>
-    }
+    @* --- THAY ĐỔI VALIDATION SUMMARY --- *@
+    <div asp-validation-summary="ModelOnly" class="text-danger validation-summary-errors"></div>
 
-    <form asp-controller="Account" asp-action="Register" method="post" style="width: 100%;">
+    <form asp-controller="Account" asp-action="Register" method="post" style="width: 100%;" id="registerForm">
+        @* Thêm ID *@
         @Html.AntiForgeryToken()
         <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
 
-        <div class="input-group">
-            <i class="far fa-envelope"></i>
-            <input type="email" asp-for="Email" placeholder="Email của bạn" required>
-            <span asp-validation-for="Email" class="field-validation-error"></span>
+        @* --- Container cho Email --- *@
+        <div class="form-field-container">
+            <div class="input-group">
+                <i class="far fa-envelope"></i>
+                <input type="email" asp-for="Email" placeholder="Email của bạn" class="form-control" data-val="true">
+            </div>
+            <span asp-validation-for="Email" class="text-danger field-validation-error"></span>
         </div>
 
-        <div class="input-group">
-            <i class="fas fa-lock"></i>
-            <input type="password" id="passwordInput" asp-for="Password" placeholder="Mật khẩu của bạn" required>
-            <i class="fas fa-eye-slash icon-right" id="togglePassword"></i>
-            <span asp-validation-for="Password" class="field-validation-error"></span>
+        @* --- Container cho Password --- *@
+        <div class="form-field-container">
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="passwordInput" asp-for="Password" placeholder="Mật khẩu của bạn" class="form-control" data-val="true">
+                <i class="fas fa-eye-slash icon-right" id="togglePassword"></i>
+            </div>
+            <span asp-validation-for="Password" class="text-danger field-validation-error"></span>
         </div>
 
-        <div class="input-group">
-            <i class="fas fa-lock"></i>
-            <input type="password" id="confirmPasswordInput" asp-for="ConfirmPassword" placeholder="Nhập lại mật khẩu" required>
-            <i class="fas fa-eye-slash icon-right" id="toggleConfirmPassword"></i>
-            <span asp-validation-for="ConfirmPassword" class="field-validation-error"></span>
+        @* --- Container cho Confirm Password --- *@
+        <div class="form-field-container">
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="confirmPasswordInput" asp-for="ConfirmPassword" placeholder="Nhập lại mật khẩu" class="form-control" data-val="true">
+                <i class="fas fa-eye-slash icon-right" id="toggleConfirmPassword"></i>
+            </div>
+            <span asp-validation-for="ConfirmPassword" class="text-danger field-validation-error"></span>
         </div>
 
+        @* --- Container cho Terms (không cần nếu đã style margin) --- *@
         <div class="terms-policy">
-            <input type="checkbox" id="agreeTerms" required>
+            <input type="checkbox" id="agreeTerms" name="agreeTerms" value="true" data-val="true" data-val-required="Bạn phải đồng ý với Điều khoản dịch vụ và Chính sách bảo mật."> @* Thêm validation *@
             <label for="agreeTerms">
                 Tôi đồng ý với <a href="#">Điều khoản dịch vụ</a> và <a href="#">Chính sách bảo mật</a> của ZhaoYi
             </label>
+            @* Thêm span để hiển thị lỗi validation cho checkbox *@
+            <span class="field-validation-error text-danger" data-valmsg-for="agreeTerms"></span>
         </div>
+
 
         <button type="submit" class="btn-primary">ĐĂNG KÝ</button>
     </form>
 
-    <div class="separator">HOẶC</div>
-
-    <button class="btn-social google">
-        <img src="~/images/ic_google.png" alt="Google logo" width="18" height="18" />
-        <span>Tiếp tục với Google</span>
-    </button>
-    <button class="btn-social facebook">
-        <i class="fab fa-facebook-f"></i>
-        <span>Tiếp tục với Facebook</span>
-    </button>
-    <button class="btn-social wechat">
-        <i class="fab fa-weixin"></i>
-        <span>Tiếp tục với Wechat</span>
-    </button>
+    @* Phần đăng nhập mạng xã hội (Copy từ Login) *@
+    @if (externalLogins.Count > 0)
+    {
+        <div class="separator">HOẶC</div>
+        <form asp-controller="Account" asp-action="ExternalLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal" style="width: 100%;">
+            @Html.AntiForgeryToken()
+            <div>
+                @foreach (var provider in externalLogins)
+                {
+                    if (provider.Name.ToLower() == "google")
+                    {
+                        <button type="submit" class="btn-social google" name="provider" value="@provider.Name" title="Đăng nhập với tài khoản @provider.DisplayName của bạn">
+                            <img src="~/images/ic_google.png" alt="Google logo" width="18" height="18" />
+                            <span>Tiếp tục với @provider.DisplayName</span>
+                        </button>
+                    }
+                    // ... (các provider khác) ...
+                }
+            </div>
+        </form>
+    }
 
     <p class="login-link">
         Bạn đã có tài khoản? <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
@@ -126,66 +236,97 @@
 
 @section Scripts {
     <script>
-        // Script to toggle password visibility for both password fields
         document.addEventListener('DOMContentLoaded', function() {
-            function setupPasswordToggle(inputId, toggleId) {
-                const togglePassword = document.getElementById(toggleId);
-                const passwordInput = document.getElementById(inputId);
-
-                if (togglePassword && passwordInput) {
-                    togglePassword.addEventListener('click', function () {
-                        // Toggle the type attribute
-                        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                        passwordInput.setAttribute('type', type);
-
-                        // Toggle the icon
-                        this.classList.toggle('fa-eye');
-                        this.classList.toggle('fa-eye-slash');
-                    });
-                }
-            }
-
-            // Setup for the main password field
+            // --- Setup Toggle Password (giữ nguyên) ---
+            function setupPasswordToggle(inputId, toggleId) { /* ... */ }
             setupPasswordToggle('passwordInput', 'togglePassword');
-
-            // Setup for the confirm password field
             setupPasswordToggle('confirmPasswordInput', 'toggleConfirmPassword');
 
-            // Form validation
-            const form = document.querySelector('form');
-            const passwordInput = document.getElementById('passwordInput');
-            const confirmPasswordInput = document.getElementById('confirmPasswordInput');
-            const agreeTerms = document.getElementById('agreeTerms');
+            // --- JAVASCRIPT CẬP NHẬT CLASS LỖI CHO PARENT (Copy từ Login) ---
+             const form = document.getElementById('registerForm'); // Thay ID form
+             if (form) {
+                 const inputsToValidate = form.querySelectorAll('input[data-val="true"], textarea[data-val="true"], select[data-val="true"]'); // Bao gồm cả textarea, select
 
-            form.addEventListener('submit', function(event) {
-                let hasError = false;
+                 function updateInputGroupErrorState(inputElement) {
+                     const container = inputElement.closest('.form-field-container'); // Tìm container cha
+                     const inputGroup = inputElement.closest('.input-group'); // Group chứa input
+                     const validationMessageSpan = form.querySelector(`span[data-valmsg-for="${inputElement.name}"]`);
 
-                // Validate password match
-                if (passwordInput.value !== confirmPasswordInput.value) {
-                    document.querySelector('[asp-validation-for="ConfirmPassword"]').textContent = 'Mật khẩu và mật khẩu xác nhận không khớp.';
-                    hasError = true;
-                }
+                     if (!container || !validationMessageSpan) return; // Cần container và span lỗi
 
-                // Validate terms agreement
-                if (!agreeTerms.checked) {
-                    agreeTerms.nextElementSibling.style.color = '#ff3b30';
-                    hasError = true;
-                }
+                    const isCheckbox = inputElement.type === 'checkbox';
+                     const targetElement = isCheckbox ? container.querySelector('.terms-policy') : inputGroup; // Element để thêm/xóa class lỗi
+                     if (!targetElement) return;
 
-                if (hasError) {
-                    event.preventDefault();
-                }
-            });
+                      const hasError = validationMessageSpan.classList.contains('field-validation-error') &&
+                                      !validationMessageSpan.classList.contains('field-validation-valid');
 
-            // Remove error styling when checking the terms
-            agreeTerms.addEventListener('change', function() {
-                if (this.checked) {
-                    this.nextElementSibling.style.color = '';
-                }
-            });
+                     if (hasError) {
+                         if(inputGroup) inputGroup.classList.add('input-group-error');
+                         // Có thể thêm class lỗi cho cả container nếu muốn
+                         container.classList.add('field-container-error');
+                         // Đảm bảo span lỗi hiển thị
+                         validationMessageSpan.style.display = 'block'; // Hoặc dùng visibility visible
+                     } else {
+                         if(inputGroup) inputGroup.classList.remove('input-group-error');
+                         container.classList.remove('field-container-error');
+                         // Ẩn span lỗi khi hợp lệ
+                         validationMessageSpan.style.display = 'none'; // Hoặc dùng visibility hidden
+                     }
+                 }
+
+                 // 1. Kiểm tra lỗi ban đầu khi trang load
+                 inputsToValidate.forEach(input => {
+                     updateInputGroupErrorState(input);
+                 });
+
+                 // 2. Sử dụng MutationObserver để theo dõi thay đổi class của SPAN lỗi
+                  const observer = new MutationObserver(mutationsList => {
+                     mutationsList.forEach(mutation => {
+                         if (mutation.type === 'attributes' && mutation.attributeName === 'class' && mutation.target.tagName === 'SPAN') {
+                             const inputName = mutation.target.getAttribute('data-valmsg-for');
+                             const inputElement = form.querySelector(`[name="${inputName}"]`);
+                             if (inputElement) { updateInputGroupErrorState(inputElement); }
+                         }
+                     });
+                 });
+
+                 // Bắt đầu observe mỗi SPAN validation message
+                  const validationSpans = form.querySelectorAll('span[data-valmsg-for]');
+                  validationSpans.forEach(span => {
+                     observer.observe(span, { attributes: true });
+                     const inputElement = form.querySelector(`[name="${span.getAttribute('data-valmsg-for')}"]`);
+                     if(inputElement) { updateInputGroupErrorState(inputElement); }
+                  });
+
+                // --- Validation bổ sung cho checkbox Terms ---
+                const agreeTerms = document.getElementById('agreeTerms');
+                const termsLabel = agreeTerms.closest('.terms-policy').querySelector('label');
+                const termsErrorSpan = document.querySelector('[data-valmsg-for="agreeTerms"]');
+
+                 agreeTerms.addEventListener('change', function() {
+                     if (this.checked) {
+                         if(termsLabel) termsLabel.style.color = ''; // Reset màu label
+                         if(termsErrorSpan) termsErrorSpan.textContent = ''; // Xóa text lỗi
+                         if(termsErrorSpan) termsErrorSpan.style.display = 'none';
+                     }
+                 });
+
+                 form.addEventListener('submit', function(event) {
+                     if (!agreeTerms.checked) {
+                          if(termsLabel) termsLabel.style.color = '#dc3545'; // Đổi màu label thành đỏ
+                          if(termsErrorSpan) termsErrorSpan.textContent = agreeTerms.getAttribute('data-val-required'); // Hiển thị lỗi
+                          if(termsErrorSpan) termsErrorSpan.style.display = 'block';
+                         event.preventDefault(); // Ngăn submit nếu chưa check
+                     }
+                 });
+             }
         });
     </script>
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+
+@* Inject SignInManager (Cần cho external logins) *@
+@inject SignInManager<ApplicationUser> SignInManager

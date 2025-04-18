@@ -461,8 +461,8 @@ namespace ZhaoYi_Test2.Controllers
                     await _context.SaveChangesAsync();
 
                     TempData["StatusMessage"] = "Hồ sơ phiên dịch viên đã được tạo thành công.";
-                    // Sau khi tạo thành công, chuyển đến trang Profile chính để họ có thể thêm Học vấn, Kinh nghiệm...
-                    return RedirectToAction(nameof(Profile));
+                    // Sau khi tạo thành công, chuyển đến trang Dashboard chính để họ có thể thêm Học vấn, Kinh nghiệm...
+                    return RedirectToAction(nameof(Dashboard));
                 }
                 catch (Exception ex)
                 {

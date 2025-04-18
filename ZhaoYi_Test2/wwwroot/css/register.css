@@ -1,231 +1,260 @@
-/* Basic Reset & Font */
+﻿/* Basic Reset and Font */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-html, body {
-    height: 100%;
+body {
     font-family: 'FZ Poppins';
-    background-color: #f4f4f4; /* Fallback background */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background-color: #f0f0f0; /* Background outside the phone */
+    display: flex; /* Enable flexbox for centering */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    min-height: 90vh; /* Ensure body takes full viewport height */
+    padding: 20px 0; /* Add some vertical padding for spacing */
 }
 
 /* Mobile Screen Simulation */
 .mobile-screen {
-    width: 400px; /* Typical iPhone width */
-    height: 100vh; /* Typical iPhone X/11 height */
-    border: 1px solid #ccc;
-    border-radius: 10px; /* Reduced border-radius */
-    overflow: hidden;
-    position: relative;
-    background: linear-gradient(180deg, #FFF9F2 0%, #FFFFFF 100%);
+    width: 400px; /* iPhone 8 width */
+    min-height: 90vh;
+    height: auto;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
+    overflow: hidden; /* Hide content that might overflow */
+    position: relative; /* Needed for absolute positioning inside */
+    margin: auto;
 }
 
-/* Status Bar */
+/* Status Bar Styling */
 .status-bar {
-    padding: 15px 20px 10px 20px;
+    height: 44px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: rgba(255, 255, 255, 0.5); /* Slight transparency */
-    font-size: 13px;
+    padding: 0 24px;
+    color: #000;
+    flex-shrink: 0;
+    font-size: 14px;
     font-weight: 500;
-    color: #000; /* Black status bar icons */
+    /* background-color: rgba(255, 255, 255, 0.5); */
+    border-top-left-radius: 40px;
+    border-top-right-radius: 40px;
 }
 
-.status-bar .time {
-    font-weight: 600;
-}
+    .status-bar .time {
+    }
 
-.status-bar .indicators {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
+    .status-bar .indicators {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
 
-.status-bar .indicators svg {
-    display: block; /* Prevent extra space below SVGs */
-}
+        .status-bar .indicators svg {
+            display: block;
+        }
 
-
-/* Content Area */
+/* Content Alignment & Scrolling */
 .content-wrapper {
-    flex-grow: 1;
-    padding: 25px 30px;
+    flex-grow: 1; /* Takes remaining vertical space */
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center items horizontally */
-    overflow-y: auto; /* Allow scrolling if content exceeds height */
+    padding: 15px 30px 25px 30px; /* Top, Sides, Bottom padding */
+    overflow-y: auto; /* Allow scrolling if content overflows */
+    align-items: center; /* Center items like buttons by default */
 }
 
-/* Title */
+/* Login Title */
 .register-title {
-    font-size: 28px;
+    font-size: 2rem; /* Approx 32px */
     font-weight: 700;
     color: #333;
-    margin-bottom: 5px;
-    width: 100%; /* Take full width for left alignment */
-    text-align: left;
+    margin-bottom: 8px;
+    align-self: flex-start; /* Align title to the left */
 }
 
 .title-underline {
     width: 50px;
     height: 4px;
-    background-color: #ff7f00; /* Orange underline */
+    background-color: #ff7a45; /* Orange underline */
     border-radius: 2px;
     margin-bottom: 25px;
-    align-self: flex-start; /* Align underline to the left */
+    align-self: flex-start; /* Align underline with title */
 }
 
 /* Subtitle */
 .subtitle {
-    font-size: 15px;
-    color: #666;
-    margin-bottom: 30px;
+    font-size: 0.95rem; /* Approx 15px */
+    color: #555;
     line-height: 1.5;
-    width: 100%; /* Take full width for left alignment */
+    margin-bottom: 30px;
+    width: 100%; /* Take full width */
     text-align: left;
 }
 
-/* Form & Input Groups */
-form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
+/* Input Group Styling */
 .input-group {
+    position: relative;
     width: 100%;
     display: flex;
     align-items: center;
-    background-color: #fff;
-    border: 1px solid #eee;
-    border-radius: 12px; /* More rounded corners */
-    padding: 12px 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    padding: 0 10px;
+    transition: border-color 0.2s ease-in-out;
+    /* Bỏ margin-bottom ở đây */
 }
 
-.input-group i {
-    color: #aaa;
-    margin-right: 12px;
-    width: 18px; /* Fixed width for icons */
-    text-align: center;
+    .input-group i {
+        color: #aaa; /* Icon color */
+        font-size: 1.1rem;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .input-group input {
+        flex-grow: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 1rem;
+        color: #333;
+    }
+
+        .input-group input::placeholder {
+            color: #bbb;
+        }
+
+    .input-group .icon-right {
+        margin-left: auto; /* Push icon to the right */
+        margin-right: 0; /* Remove right margin for right icon */
+        cursor: pointer;
+    }
+
+
+
+.forgot-password:hover {
+    text-decoration: underline;
 }
 
-.input-group input {
-    flex-grow: 1;
-    border: none;
-    outline: none;
-    font-size: 15px;
-    background-color: transparent;
-    color: #333;
-}
-
-.input-group input::placeholder {
-    color: #bbb;
-}
-
-.input-group .icon-right {
-    margin-left: 10px;
-    margin-right: 0; /* Reset margin */
-    cursor: pointer;
-    color: #aaa;
-}
-
-/* Primary Button */
+/* Primary Button Styling */
 .btn-primary {
     width: 100%;
-    padding: 15px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #fff;
-    background: linear-gradient(90deg, #ff8c00, #ffae42); /* Orange gradient */
+    padding: 16px 20px;
     border: none;
     border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
     cursor: pointer;
-    text-transform: uppercase;
-    margin-top: 15px; /* Space above button */
-    margin-bottom: 30px; /* Space below button */
-    box-shadow: 0 4px 10px rgba(255, 140, 0, 0.3);
-    transition: background 0.3s ease;
-}
-
-.btn-primary:hover {
-     background: linear-gradient(90deg, #e67e00, #f39c12); /* Darker gradient on hover */
-}
-
-
-/* Social Login Separator */
-.social-separator {
-    font-size: 13px;
-    color: #aaa;
-    margin-bottom: 20px;
     text-align: center;
+    background: linear-gradient(to right, #ff9800, #ff7a45); /* Orange gradient */
+    box-shadow: 0 4px 10px rgba(255, 118, 69, 0.3); /* Subtle orange shadow */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-transform: uppercase;
+    margin-bottom: 30px;
 }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(255, 118, 69, 0.4);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 5px rgba(255, 118, 69, 0.3);
+    }
+
+/* Separator ("HOẶC") */
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 30px;
+    color: #aaa;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+    .separator::before,
+    .separator::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #e0e0e0; /* Light grey line */
+    }
+
+    .separator:not(:empty)::before {
+        margin-right: .5em;
+    }
+
+    .separator:not(:empty)::after {
+        margin-left: .5em;
+    }
 
 /* Social Login Buttons */
 .btn-social {
     width: 100%;
-    padding: 12px 15px;
-    margin-bottom: 12px;
-    border-radius: 12px;
-    border: 1px solid #eee;
-    background-color: #fff;
     display: flex;
     align-items: center;
-    justify-content: center; /* Center content inside button */
+    justify-content: center; /* Center icon and text */
+    padding: 14px 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    background-color: #ffffff;
     cursor: pointer;
-    font-size: 15px;
-    color: #555;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+    color: #333;
     font-weight: 500;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: background-color 0.3s ease;
+    transition: background-color 0.2s ease;
 }
 
-.btn-social:hover {
-    background-color: #f9f9f9;
-}
+    .btn-social:hover {
+        background-color: #f9f9f9;
+    }
 
-.btn-social i,
-.btn-social img {
-    margin-right: 10px;
-    font-size: 20px;
-    width: 20px; /* Icon width */
-    text-align: center;
-}
+    .btn-social i,
+    .btn-social img {
+        font-size: 1.4rem; /* Icon size */
+        margin-right: 12px;
+        width: 20px; /* Fixed width for alignment */
+        text-align: center;
+    }
 
-/* Specific Social Button Colors (optional, for icons) */
-/* .btn-social.google i { color: #DB4437; } */ /* Commented out as we're using an image now */
-.btn-social.facebook i { color: #4267B2; }
-.btn-social.wechat i { color: #7BB32E; }
+    /* No need for specific Google color now that we're using an image */
+    /* .btn-social.google i { color: #DB4437; } */
+    .btn-social.facebook i {
+        color: #4267B2;
+    }
 
+    .btn-social.wechat i {
+        color: #7BB32E;
+    }
 
-/* Login Link */
+/* Sign Up Link */
 .login-link {
-    margin-top: 25px;
-    font-size: 14px;
-    color: #666;
+    margin-top: 25px; /* Space above this link */
+    font-size: 0.9rem;
+    color: #555;
     text-align: center;
 }
 
-.login-link a {
-    color: #ff7f00; /* Orange link */
-    text-decoration: none;
-    font-weight: 700;
-}
+    .login-link a {
+        color: #ff7a45; /* Orange link color */
+        font-weight: bold;
+        text-decoration: none;
+    }
 
-.login-link a:hover {
-    text-decoration: underline;
-}
+        .login-link a:hover {
+            text-decoration: underline;
+        }
 
 /* Hide scrollbar but keep scroll functionality */
 /* For Webkit browsers (Chrome, Safari) */
@@ -241,4 +270,145 @@ form {
 /* For IE/Edge */
 * {
     -ms-overflow-style: none;
-} 
+}
+
+/* --- CSS VALIDATION VÀ INPUT GROUP (Copy và điều chỉnh từ Login) --- */
+
+/* Container cho mỗi cặp input và lỗi */
+.form-field-container {
+    width: 100%;
+    margin-bottom: 15px; /* Khoảng cách cố định giữa các field */
+}
+
+.input-group {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    border: 1px solid #eee; /* Sửa lại viền từ login.css */
+    border-radius: 12px;
+    background-color: #fff; /* Sửa lại nền từ login.css */
+    padding: 0 15px; /* Sửa lại padding từ login.css */
+    margin-bottom: 0; /* Bỏ margin bottom để lỗi nằm ngay dưới */
+    transition: border-color 0.2s ease-in-out;
+}
+
+    .input-group input.form-control, /* Thêm class form-control để nhất quán */
+    .input-group input[type="email"],
+    .input-group input[type="password"] {
+        border: none !important;
+        background-color: transparent !important;
+        flex-grow: 1;
+        padding: 14px 5px 14px 10px; /* Điều chỉnh padding input */
+        box-shadow: none !important;
+        outline: none !important;
+        min-height: 48px; /* Đảm bảo chiều cao tối thiểu */
+        font-size: 15px; /* Font size từ register.css */
+        color: #333; /* Màu chữ từ register.css */
+    }
+    /* Kế thừa placeholder style từ register.css nếu cần */
+    .input-group input::placeholder {
+        color: #bbb;
+    }
+
+    .input-group i {
+        color: #aaa;
+        margin-right: 12px; /* Giữ margin từ register.css */
+        width: 18px;
+        text-align: center;
+        flex-shrink: 0; /* Thêm flex-shrink */
+    }
+
+    .input-group .icon-right {
+        margin-left: 10px; /* Giữ margin từ register.css */
+        margin-right: 0;
+        cursor: pointer;
+        color: #aaa;
+        padding: 10px 0; /* Giảm padding dọc của icon toggle */
+    }
+
+/* Input group có lỗi (JS thêm class) */
+.input-group-error {
+    border-color: #dc3545 !important; /* Viền đỏ cho cả group */
+}
+
+/* Input có lỗi (chỉ để JS nhận biết) */
+.input-validation-error {
+    /* No border needed here */
+}
+
+/* Span báo lỗi */
+.field-validation-error {
+    color: #dc3545; /* Dùng màu đỏ chuẩn */
+    font-size: 0.8rem;
+    display: block;
+    width: 100%;
+    padding: 5px 5px 0 5px;
+    text-align: right;
+    min-height: 18px;
+    box-sizing: border-box;
+    margin-bottom: 0;
+    /* visibility: hidden; */ /* Bỏ visibility đi để dùng display: none */
+}
+
+.field-validation-valid {
+    display: none; /* Ẩn hoàn toàn khi hợp lệ */
+}
+
+
+/* Validation summary */
+.validation-summary-errors {
+    color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    width: 100%;
+    font-size: 0.9rem;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+    .validation-summary-errors ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .validation-summary-errors li {
+        margin-bottom: 5px;
+    }
+
+        .validation-summary-errors li:last-child {
+            margin-bottom: 0;
+        }
+
+/* Điều chỉnh lại khoảng cách của terms-policy */
+.terms-policy {
+    margin-top: 10px; /* Thêm margin-top */
+    margin-bottom: 20px;
+    /* Giữ các style khác */
+    font-size: 13px;
+    color: #555;
+    text-align: left;
+    width: 100%;
+}
+
+    .terms-policy input[type="checkbox"] {
+        margin-right: 8px;
+        vertical-align: middle;
+        accent-color: #ff8c00;
+    }
+
+    .terms-policy label {
+        vertical-align: middle;
+    }
+
+    .terms-policy a {
+        color: #ff8c00;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .terms-policy a:hover {
+            text-decoration: underline;
+        }

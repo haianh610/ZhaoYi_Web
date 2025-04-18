@@ -27,7 +27,7 @@ body {
 }
 
 .header-background {
-    background-image: url('../images/background_profile.png'); /* Use existing image */
+    background: linear-gradient(177deg, #F15A29 3.16%, #FFB459 103.62%); /* Use existing image */
     background-size: cover;
     background-position: center;
     height: 150px; /* Adjust height */

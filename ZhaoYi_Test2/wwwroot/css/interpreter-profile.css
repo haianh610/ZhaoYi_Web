@@ -49,7 +49,7 @@ html, body {
 /* --- Profile Header --- */
 .profile-header {
     /* background: linear-gradient(180deg, #2E7DF6 60%, #5DA1F8); */ /* Removed gradient */
-    background-image: url('../images/background_profile.png'); /* Use the image */
+    background: linear-gradient(177deg, #F15A29 3.16%, #FFB459 103.62%); /* Use the image */
     background-size: cover; /* Cover the entire header area */
     background-position: center; /* Center the background image */
     padding: 15px 20px 20px 20px;
@@ -151,8 +151,8 @@ html, body {
 }
 
 .tab-item.active {
-    color: #2E7DF6; /* Active tab color - blue */
-    border-bottom-color: #2E7DF6; /* Active indicator */
+    color: #F15A29; /* Active tab color - blue */
+    border-bottom-color: #F15A29; /* Active indicator */
 }
 
 /* --- Tab Panes --- */
@@ -419,6 +419,14 @@ html, body {
     list-style: none;
     padding: 0;
     margin: 0;
+}
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 10px; /* Space between items */
 }
 
 .detail-item-editable {

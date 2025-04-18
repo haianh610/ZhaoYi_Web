@@ -97,16 +97,16 @@ body {
 
 /* Input Group Styling */
 .input-group {
-    width: 100%;
     position: relative;
-    margin-bottom: 18px;
+    width: 100%;
     display: flex;
     align-items: center;
-    background-color: #ffffff; /* White background for input */
-    border: 1px solid #e0e0e0; /* Light grey border */
-    border-radius: 12px; /* More rounded corners */
-    padding: 0 15px; /* Padding inside the group */
-    height: 55px; /* Fixed height */
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    padding: 0 10px;
+    transition: border-color 0.2s ease-in-out;
+    /* Bỏ margin-bottom ở đây */
 }
 
 .input-group i {
@@ -135,17 +135,7 @@ body {
     cursor: pointer;
 }
 
-/* Forgot Password Link */
-.forgot-password {
-    display: block; /* Make it a block element */
-    width: 100%; /* Take full width */
-    text-align: right; /* Align text to the right */
-    margin-bottom: 25px;
-    margin-top: -5px; /* Slightly reduce space after password */
-    font-size: 0.85rem;
-    color: #555;
-    text-decoration: none;
-}
+
 
 .forgot-password:hover {
     text-decoration: underline;
@@ -274,4 +264,169 @@ body {
 /* For IE/Edge */
 * {
     -ms-overflow-style: none;
-} 
+}
+
+/* Trong login.css hoặc thẻ <style> */
+
+/* Định dạng cho input group cơ bản (giả sử đã có) */
+.input-group {
+    position: relative;
+    margin-bottom: 0; /* Bỏ margin bottom để lỗi nằm ngay dưới */
+    width: 100%;
+    display: flex; /* Đảm bảo input group là flex container */
+    align-items: center; /* Căn giữa icon và input */
+    border: 1px solid #e8e8e8; /* Viền mặc định */
+    border-radius: 8px; /* Bo góc cho group */
+    background-color: #fff; /* Nền mặc định */
+    padding: 0 10px; /* Padding cho icon và khoảng cách */
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Thêm transition */
+}
+
+    /* Bỏ border riêng của input bên trong group */
+    .input-group input.form-control,
+    .input-group input[type="email"],
+    .input-group input[type="password"] {
+        border: none !important;
+        background-color: transparent !important;
+        flex-grow: 1;
+        padding: 14px 5px 14px 10px;
+        box-shadow: none !important;
+        outline: none !important;
+        min-height: 48px; /* Đảm bảo input có chiều cao tối thiểu */
+    }
+
+    /* Icon bên trái */
+    .input-group > i:first-child {
+        color: #aaa;
+        margin-right: 8px;
+    }
+
+    .input-group .icon-right {
+        color: #aaa;
+        cursor: pointer;
+        padding: 10px;
+    }
+
+
+/* --- CSS MỚI CHO INPUT GROUP KHI CÓ LỖI --- */
+.input-group-error {
+    border-color: #dc3545 !important;
+}
+
+/* Input bên trong group lỗi (chỉ để JS xác định, không cần style) */
+.input-validation-error {
+    /* Không cần style border ở đây nữa */
+    /* background-color: transparent !important; */ /* Đảm bảo nền trong suốt */
+}
+
+/* Thông báo lỗi cho từng trường (asp-validation-for) */
+/* Span báo lỗi */
+.field-validation-error {
+    color: #dc3545;
+    font-size: 0.8rem;
+    display: block; /* Quan trọng */
+    width: 100%;
+    padding: 5px 5px 0 5px; /* Padding top/bottom 0, padding trái/phải 5px */
+    text-align: right;
+    /* --- ĐẢM BẢO CHIỀU CAO NGAY CẢ KHI TRỐNG --- */
+    min-height: 18px; /* Chiều cao tối thiểu, điều chỉnh nếu cần */
+    /* Hoặc dùng height cố định: height: 18px; */
+    /* Không đặt visibility nữa, dựa vào nội dung để hiển thị */
+    /* visibility: hidden; */
+    box-sizing: border-box; /* Đảm bảo padding không làm tăng kích thước */
+    /* Bỏ margin-bottom */
+}
+.field-validation-valid {
+    display: none; /* Ẩn hoàn toàn khi hợp lệ */
+    /* Hoặc nếu muốn giữ khoảng trống: */
+    /* color: transparent; user-select: none; */
+}
+
+/* Ghi đè hoặc đảm bảo span validation không bị ảnh hưởng bởi input-group */
+.input-group + .field-validation-error {
+    /* Không cần thêm gì đặc biệt nếu span đã nằm ngoài input-group */
+}
+
+/* Validation summary cho lỗi chung (giữ nguyên) */
+.validation-summary-errors {
+    color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1); /* Nền đỏ nhạt */
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    width: 100%;
+    font-size: 0.9rem; /* Cỡ chữ lớn hơn field error */
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+    .validation-summary-errors ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .validation-summary-errors li {
+        margin-bottom: 5px;
+    }
+
+        .validation-summary-errors li:last-child {
+            margin-bottom: 0;
+        }
+
+/* Trong login.css hoặc thẻ <style> */
+
+/* --- Style cho nhóm Ghi nhớ / Quên mật khẩu --- */
+.login-options-row {
+    display: flex; /* Sử dụng Flexbox */
+    justify-content: space-between; /* Đẩy 2 nhóm con ra 2 bên */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    width: 100%; /* Chiếm hết chiều rộng */
+    margin-top: 25px; /* Tăng margin-top nếu thấy quá sát */
+    margin-bottom: 25px;
+    padding: 0 5px; /* Thêm padding nhỏ nếu cần */
+}
+
+/* Nhóm con cho checkbox Ghi nhớ */
+.remember-me-group {
+    display: flex;
+    align-items: center;
+}
+
+    .remember-me-group input[type="checkbox"] {
+        margin-right: 8px;
+        width: auto; /* Reset width */
+        height: auto;
+        vertical-align: middle; /* Căn giữa checkbox với text */
+        accent-color: #ff8c00; /* Màu cam cho checkbox */
+    }
+
+    .remember-me-group label {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 0; /* Bỏ margin mặc định của label */
+        cursor: pointer; /* Cho biết label cũng có thể click */
+        user-select: none; /* Ngăn chọn text của label */
+    }
+
+/* Link Quên mật khẩu */
+.forgot-password {
+    font-size: 13px;
+    color: #ff8c00; /* Màu cam */
+    text-decoration: none;
+}
+
+    .forgot-password:hover {
+        text-decoration: underline;
+    }
+
+
+/* Hoặc chỉ định cụ thể cho span lỗi password */
+span[data-valmsg-for="Password"] {
+    margin-bottom: 0px; /* Bỏ margin bottom của lỗi password */
+}
+
+/* Container cho mỗi cặp input và lỗi */
+.form-field-container {
+    width: 100%;
+    margin-bottom: 15px; /* Khoảng cách cố định giữa các field */
+}

@@ -25,7 +25,19 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+builder.Services.AddAuthentication()
+    .AddGoogle(googleOptions =>
+    {
+        // Lấy ClientID và ClientSecret từ cấu hình (User Secrets hoặc nguồn khác)
+        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 
+        // Yêu cầu thêm thông tin (profile) nếu cần
+        // googleOptions.Scope.Add("profile");
+
+        // Lưu token để có thể sử dụng sau này nếu cần (ví dụ: gọi Google API)
+        // googleOptions.SaveTokens = true;
+    });
 
 // Trong Program.cs, thêm mã sau nếu chưa có
 builder.Services.AddControllersWithViews();

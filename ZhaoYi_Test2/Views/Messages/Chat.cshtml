@@ -1,49 +1,268 @@
-// Trong MessagesController.cs
+@{
+    // ViewData["Title"] đã được set trong Controller
+    Layout = "~/Views/Shared/_MobileLayout.cshtml";
+    ViewData["UserRole"] = ViewData["UserRole"]; // Lấy từ Controller
+    ViewData["ShowBottomNav"] = false; // Ẩn nav
 
-// GET: /Messages/Chat/{id}
-[HttpGet]
-public async Task<IActionResult>
-    Chat(int id) // Thêm async Task
-    {
-    var user = await _userManager.GetUserAsync(User);
-    if (user == null) return Challenge();
+    // Lấy dữ liệu từ ViewBag
+    var contactName = ViewBag.ContactName as string ?? "Chat";
+    var contactStatus = ViewBag.ContactStatus as string ?? "N/A";
+    var contactAvatarUrl = ViewBag.ContactAvatarUrl as string ?? "~/images/user.png";
+    var chatMessages = ViewBag.ChatMessages as List<dynamic> ?? new List<dynamic>();
+    var chatId = ViewBag.ChatId; // Lấy ChatId nếu cần dùng trong View/JS
+}
 
-    // --- TODO: Lấy dữ liệu chat thực tế dựa vào 'id' (ConversationId) ---
-    // Ví dụ: Lấy thông tin người/nhóm đang chat, danh sách tin nhắn...
-    // var conversation = await _context.Conversations
-    //     .Include(c => c.Participants.Where(p => p.UserId != user.Id).Select(p => p.User)) // Lấy người chat cùng
-    //     .Include(c => c.Messages.OrderBy(m => m.Timestamp)) // Lấy tin nhắn
-    //     .FirstOrDefaultAsync(c => c.ConversationId == id && c.Participants.Any(p => p.UserId == user.Id));
-
-    // if (conversation == null) return NotFound();
-
-    // var otherParticipant = conversation.Participants.FirstOrDefault(p => p.UserId != user.Id)?.User;
-    // string contactName = conversation.IsGroup ? conversation.GroupName : otherParticipant?.UserName ?? "Người lạ";
-    // string contactAvatar = conversation.IsGroup ? conversation.GroupAvatar : (Logic lấy avatar của otherParticipant);
-    // string contactStatus = "Đang hoạt động"; // Lấy status thực tế
-
-    // var chatMessages = conversation.Messages.Select(m => new { ... }); // Map sang dynamic hoặc ViewModel
-
-    // --- Tạm thời dùng dữ liệu giả ---
-    ViewBag.ChatId = id;
-    ViewBag.ContactName = "Lê Minh Nghĩa"; // Giả
-    ViewBag.ContactStatus = "Đang hoạt động"; // Giả
-    ViewBag.ContactAvatarUrl = "~/images/user_2.png"; // Giả
-
-    var chatMessages = new List<dynamic>
-        {
-        new { Id = 1, Sender = "You", Text = "Xin chào Minh Nghĩa", Timestamp = "09:25 AM", IsOutgoing = true, ShowAvatar = false, AvatarUrl = "", IsFirstInSequence = true, IsLastInSequence = true },
-        new { Id = 2, Sender = "Lê Minh Nghĩa", Text = "Xin chào bạn, bạn là ai?", Timestamp = "09:25 AM", IsOutgoing = false, ShowAvatar = true, AvatarUrl = "~/images/user_2.png", IsFirstInSequence = true, IsLastInSequence = true },
-        new { Id = 3, Sender = "You", Text = "Tôi muốn apply vào vị trí phiên dịch viên", Timestamp = "09:25 AM", IsOutgoing = true, ShowAvatar = false, AvatarUrl = "", IsFirstInSequence = true, IsLastInSequence = true },
-        new { Id = 4, Sender = "Lê Minh Nghĩa", Text = "Bạn gửi mình CV để mình xem nhé", Timestamp = "09:25 AM", IsOutgoing = false, ShowAvatar = true, AvatarUrl = "~/images/user_2.png", IsFirstInSequence = true, IsLastInSequence = false },
-        new { Id = 5, Sender = "Lê Minh Nghĩa", Text = "Để mình xem sao", Timestamp = "09:25 AM", IsOutgoing = false, ShowAvatar = false, AvatarUrl = "", IsFirstInSequence = false, IsLastInSequence = true }
-        };
-        ViewBag.ChatMessages = chatMessages;
-        // --------------------------------
-
-        ViewData["Title"] = ViewBag.ContactName; // Đặt tiêu đề là tên người chat
-        ViewData["UserRole"] = user.Role == 1 ? "Interpreter" : (user.Role == 2 ? "Recruiter" : "User");
-        ViewData["ShowBottomNav"] = false; // Ẩn nav khi đang chat
-
-        return View("Chat"); // Trả về View Chat.cshtml
+@section Styles {
+    <link rel="stylesheet" href="~/css/chat-screen.css" asp-append-version="true" />
+    <style>
+        .mobile-screen {
+            padding-bottom: 0 !important;
         }
+        /* Thêm CSS nếu cần */
+    </style>
+}
+
+<div class="mobile-screen chat-screen-page">
+    @* Status Bar loại bỏ *@
+
+    <header class="chat-header">
+        @* Nút back về trang Messages Index *@
+        <a asp-action="Index" asp-controller="Messages" class="header-btn back-btn" aria-label="Back">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div class="contact-info">
+            @* TODO: Cần logic để xác định bgClass nếu muốn đổi màu viền avatar *@
+            <div class="avatar-container yellow-bg">
+                <img src="@Url.Content(contactAvatarUrl)" alt="@contactName" class="avatar-image">
+            </div>
+            <div class="name-status">
+                <p class="user-name">@contactName</p>
+                <p class="user-status">@contactStatus</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="header-btn" aria-label="Call">
+                <i class="fas fa-phone"></i>
+            </button>
+            <button class="header-btn" aria-label="Video Call">
+                <i class="fas fa-video"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="chat-messages-area">
+        <div class="date-separator">
+            <span>Hôm nay</span> @* TODO: Cần logic để hiển thị ngày chính xác *@
+        </div>
+
+        @if (chatMessages.Any())
+        {
+            for (int i = 0; i < chatMessages.Count; i++)
+            {
+                var msg = chatMessages[i];
+                // Xác định isFirst, isLast trong C# hoặc ở đây
+                bool isFirst = (i == 0) || (chatMessages[i - 1].IsOutgoing != msg.IsOutgoing);
+                bool isLast = (i == chatMessages.Count - 1) || (chatMessages[i + 1].IsOutgoing != msg.IsOutgoing);
+                bool showAvatar = !msg.IsOutgoing && isLast; // Chỉ hiện avatar ở tin nhắn cuối cùng của chuỗi đến
+
+                <div class="message-block @(msg.IsOutgoing ? "outgoing" : "incoming")">
+                    @if (!msg.IsOutgoing && showAvatar)
+                    {
+                        <div class="message-avatar">
+                            @* Nên lấy AvatarUrl từ người gửi thực tế thay vì contactAvatarUrl chung *@
+                            <img src="@Url.Content(contactAvatarUrl)" alt="@msg.Sender">
+                        </div>
+                    }
+                    else if (!msg.IsOutgoing)
+                    {
+                        <div class="message-avatar-placeholder"></div>
+                    }
+
+                    <div class="message-content-wrapper">
+                        @{
+                            string bubbleClass = "message-bubble";
+                            if (msg.IsOutgoing) bubbleClass += " bubble-outgoing";
+                            else bubbleClass += " bubble-incoming";
+                            if (isFirst) bubbleClass += " first-in-sequence";
+                            if (isLast) bubbleClass += " last-in-sequence";
+                        }
+                        <div class="@bubbleClass">
+                            <p class="message-text">@Html.Raw(msg.Text)</p>
+                        </div>
+                        <span class="message-timestamp">@msg.Timestamp</span>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div style="text-align: center; color: #888; padding: 30px;">Bắt đầu cuộc trò chuyện!</div>
+        }
+    </main>
+
+    <footer class="chat-input-area">
+        <button class="input-action-btn" aria-label="Attach file">
+            <i class="fas fa-paperclip"></i>
+        </button>
+        <div class="input-field-wrapper">
+            <input type="text" class="message-input" placeholder="Viết tin nhắn..." id="messageInput">
+            <button class="input-action-btn inside-input" aria-label="Templates">
+                <i class="fas fa-clipboard-list"></i> @* Thay icon nếu muốn *@
+            </button>
+        </div>
+        <button class="input-action-btn" aria-label="Take picture">
+            <i class="fas fa-camera"></i>
+        </button>
+        @* Thay nút Mic bằng nút Send *@
+        <button class="input-action-btn send-btn" aria-label="Send message" id="sendMessageBtn" style="color: #007bff; display: none;">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+        <button class="input-action-btn mic-btn" aria-label="Record voice message" id="micBtn">
+            <i class="fas fa-microphone"></i>
+        </button>
+    </footer>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageInput = document.getElementById('messageInput');
+            const chatArea = document.querySelector('.chat-messages-area');
+            const sendMessageBtn = document.getElementById('sendMessageBtn');
+            const micBtn = document.getElementById('micBtn');
+            const chatId = @Json.Serialize(chatId); // Lấy chatId từ ViewBag
+
+            // --- Cuộn xuống cuối khi load trang ---
+            if (chatArea) {
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+
+            // --- Hiển thị/ẩn nút Send/Mic ---
+            if (messageInput && sendMessageBtn && micBtn) {
+                messageInput.addEventListener('input', function() {
+                    if (messageInput.value.trim() !== '') {
+                        sendMessageBtn.style.display = 'flex'; // Hiện nút Send
+                        micBtn.style.display = 'none';     // Ẩn nút Mic
+                    } else {
+                        sendMessageBtn.style.display = 'none'; // Ẩn nút Send
+                        micBtn.style.display = 'flex';    // Hiện nút Mic
+                    }
+                });
+            }
+
+             // --- Hàm gửi tin nhắn (AJAX hoặc SignalR) ---
+             function sendMessage() {
+                 if (!messageInput || messageInput.value.trim() === '') return;
+
+                 const messageText = messageInput.value.trim();
+                 const currentTime = new Date().toLocaleTimeString('vi-VN', {
+                     hour: '2-digit', minute: '2-digit', hour12: false // Định dạng HH:mm
+                 });
+
+                 // --- TODO: Gửi tin nhắn lên server bằng AJAX hoặc SignalR ---
+                 console.log(`Sending message to chat ${chatId}: ${messageText}`);
+                 // Ví dụ AJAX (cần endpoint và token):
+                 /*
+                 fetch('/Messages/SendMessage', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                     },
+                     body: JSON.stringify({ conversationId: chatId, text: messageText })
+                 })
+                 .then(response => response.json())
+                 .then(data => {
+                     if(data.success) {
+                         // Thêm tin nhắn vào UI (có thể chờ phản hồi từ SignalR thay vì tự thêm)
+                         addMessageToUI(messageText, currentTime, true);
+                     } else {
+                         alert("Lỗi gửi tin nhắn: " + data.message);
+                     }
+                 })
+                 .catch(error => {
+                     console.error("Send message error:", error);
+                     alert("Lỗi kết nối khi gửi tin nhắn.");
+                 });
+                 */
+
+                 // --- Tạm thời chỉ thêm vào UI để mô phỏng ---
+                 addMessageToUI(messageText, currentTime, true); // true = outgoing
+
+                 // --- Xóa input và cập nhật nút ---
+                 messageInput.value = '';
+                 sendMessageBtn.style.display = 'none';
+                 micBtn.style.display = 'flex';
+                 messageInput.focus(); // Giữ focus vào input
+             }
+
+            // --- Hàm thêm tin nhắn vào UI ---
+            function addMessageToUI(text, timestamp, isOutgoing) {
+                 const messageBlock = document.createElement('div');
+                 messageBlock.className = `message-block ${isOutgoing ? 'outgoing' : 'incoming'}`;
+
+                 const contentWrapper = document.createElement('div');
+                 contentWrapper.className = 'message-content-wrapper';
+
+                 // TODO: Logic xác định isFirst, isLast phức tạp hơn khi thêm động
+                 const bubble = document.createElement('div');
+                 bubble.className = `message-bubble ${isOutgoing ? 'bubble-outgoing' : 'bubble-incoming'} first-in-sequence last-in-sequence`; // Tạm thời
+
+                 const textElem = document.createElement('p');
+                 textElem.className = 'message-text';
+                 textElem.textContent = text; // An toàn hơn là dùng innerHTML
+
+                 const timestampElem = document.createElement('span');
+                 timestampElem.className = 'message-timestamp';
+                 timestampElem.textContent = timestamp;
+
+                 bubble.appendChild(textElem);
+                 contentWrapper.appendChild(bubble);
+                 contentWrapper.appendChild(timestampElem);
+
+                 // Chỉ thêm placeholder avatar cho tin nhắn đến nếu cần
+                 if (!isOutgoing) {
+                      const placeholder = document.createElement('div');
+                      placeholder.className = 'message-avatar-placeholder';
+                      messageBlock.appendChild(placeholder);
+                 }
+
+                 messageBlock.appendChild(contentWrapper);
+
+                 // Animation
+                 messageBlock.style.opacity = '0';
+                 messageBlock.style.transform = 'translateY(10px)';
+                 if(chatArea) chatArea.appendChild(messageBlock);
+
+                 setTimeout(() => {
+                     messageBlock.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
+                     messageBlock.style.opacity = '1';
+                     messageBlock.style.transform = 'translateY(0)';
+                 }, 10);
+
+                 // Cuộn xuống cuối
+                 if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+             }
+
+
+            // --- Gửi tin nhắn khi nhấn Enter ---
+            if (messageInput) {
+                 messageInput.addEventListener('keypress', function(e) {
+                     if (e.key === 'Enter' && !e.shiftKey) { // Gửi khi nhấn Enter (không nhấn Shift)
+                         e.preventDefault(); // Ngăn xuống dòng mặc định
+                         sendMessage();
+                     }
+                 });
+            }
+
+            // --- Gửi tin nhắn khi nhấn nút Send ---
+             if (sendMessageBtn) {
+                 sendMessageBtn.addEventListener('click', sendMessage);
+             }
+
+             // --- Xử lý các nút khác (Attach, Templates, Camera, Mic) ---
+             // TODO: Thêm sự kiện click và logic cho các nút này nếu cần
+
+        });
+    </script>
+}

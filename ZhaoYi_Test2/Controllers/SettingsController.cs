@@ -97,46 +97,46 @@ namespace ZhaoYi_Test2.Controllers
 
         // Các phương thức xử lý các tính năng cài đặt khác
 
-        // GET: Settings/ChangePassword
-        public IActionResult ChangePassword()
-        {
-            return View();
-        }
+        // // GET: Settings/ChangePassword
+        // public IActionResult ChangePassword()
+        // {
+        //     return View();
+        // }
 
-        // GET: Settings/SecuritySettings
-        public IActionResult SecuritySettings()
-        {
-            return View();
-        }
+        // // GET: Settings/SecuritySettings
+        // public IActionResult SecuritySettings()
+        // {
+        //     return View();
+        // }
 
-        // GET: Settings/MessageSettings
-        public IActionResult MessageSettings()
-        {
-            return View();
-        }
+        // // GET: Settings/MessageSettings
+        // public IActionResult MessageSettings()
+        // {
+        //     return View();
+        // }
 
-        // GET: Settings/About
-        public IActionResult About()
-        {
-            return View();
-        }
+        // // GET: Settings/About
+        // public IActionResult About()
+        // {
+        //     return View();
+        // }
 
-        // GET: Settings/Terms
-        public IActionResult Terms()
-        {
-            return View();
-        }
+        // // GET: Settings/Terms
+        // public IActionResult Terms()
+        // {
+        //     return View();
+        // }
 
-        // GET: Settings/Privacy
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+        // // GET: Settings/Privacy
+        // public IActionResult Privacy()
+        // {
+        //     return View();
+        // }
 
-        // GET: Settings/Help
-        public IActionResult Help()
-        {
-            return View();
-        }
+        // // GET: Settings/Help
+        // public IActionResult Help()
+        // {
+        //     return View();
+        // }
     }
 }

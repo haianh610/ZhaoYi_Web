@@ -495,7 +495,7 @@ namespace ZhaoYi_Test2.Controllers
                     await _context.SaveChangesAsync();
 
                     TempData["StatusMessage"] = "Hồ sơ nhà tuyển dụng đã được tạo thành công.";
-                    return RedirectToAction(nameof(Profile)); // Chuyển đến trang Profile sau khi tạo xong
+                    return RedirectToAction(nameof(Dashboard)); // Chuyển đến trang Dashboard sau khi tạo xong
                 }
                 catch (Exception ex)
                 {

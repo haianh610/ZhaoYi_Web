@@ -34,13 +34,13 @@
     <link rel="stylesheet" href="~/css/interpreter-profile.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/shared-nav.css" asp-append-version="true" />
 	<link href="~/css/profile-modal.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/job-card.css" asp-append-version="true" />
 }
 
 <!-- Profile Header -->
 <div class="profile-header">
     <div class="header-title-bar">
         <span class="page-title">Hồ sơ</span>
-        <button class="options-btn"><i class="fas fa-ellipsis-h"></i></button>
     </div>
     <div class="profile-summary">
         <img src="@profileImageUrl" alt="Profile Picture" class="profile-pic-large">
@@ -149,55 +149,22 @@
         {
             foreach (var job in ViewBag.RecommendedJobs)
             {
-                var companyLogo = !string.IsNullOrEmpty(job.Recruiter.AvatarPath) ?
-                $"/uploads/avatars/{job.Recruiter.AvatarPath}" : "/images/logo.png";
-                var timeLeft = job.ExpiryDate - DateTime.Now;
-                var timeLeftText = timeLeft.TotalHours < 24 ?
-                $"Còn {Math.Max(1, (int)timeLeft.TotalHours)}h" :
-                $"Còn {(int)timeLeft.TotalDays}d";
-
-                <div class="job-suggestion-card" data-id="@job.JobPostingId">
-                    <img src="@companyLogo" alt="Company Logo" class="company-logo">
-                    <div class="job-info">
-                        <h3 class="job-title">@job.Title</h3>
-                        <p class="company-name">@job.Recruiter.RecruiterName</p>
-                        <ul class="job-details-list">
-                            <li class="detail-item">
-                                <i class="fas fa-briefcase"></i>
-                                Lĩnh vực dịch: @(string.IsNullOrEmpty(job.Field) ? "Chung" : job.Field)
-                            </li>
-                            <li class="detail-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                @job.WorkLocation
-                            </li>
-                            <li class="detail-item">
-                                <i class="far fa-clock"></i>
-                                @timeLeftText
-                            </li>
-                        </ul>
-                    </div>
-                    <button class="bookmark-icon" data-job-id="@job.JobPostingId">
-                        <i class="far fa-bookmark"></i>
-                    </button>
-                </div>
+                <partial name="_JobCard" model="job" />
             }
         }
         else
         {
-            <!-- Fallback for when no suggested jobs exist -->
-            <div class="job-suggestion-card">
-                <img src="~/images/logo.png" alt="Company Logo" class="company-logo">
-                <div class="job-info">
-                    <h3 class="job-title">Phiên dịch viên tiếng Trung</h3>
-                    <p class="company-name">Công ty Cổ phần Tập đoàn ZhaoYi</p>
-                    <ul class="job-details-list">
-                        <li class="detail-item"><i class="fas fa-briefcase"></i> Lĩnh vực dịch: Thương mại</li>
-                        <li class="detail-item"><i class="fas fa-map-marker-alt"></i> Hoàng Mai, Hà Nội</li>
-                        <li class="detail-item"><i class="far fa-clock"></i> Còn 5h</li>
-                    </ul>
-                </div>
-                <button class="bookmark-icon"><i class="far fa-bookmark"></i></button>
-            </div>
+            var defaultJob = new ZhaoYi_Test2.Models.JobPosting
+            {
+                Title = "Phiên dịch viên tiếng Trung",
+                Recruiter = new ZhaoYi_Test2.Models.Recruiter { RecruiterName = "Công ty Cổ phần Tập đoàn ZhaoYi" },
+                Field = "Thương mại",
+                WorkLocation = "Hoàng Mai, Hà Nội",
+                ExpiryDate = DateTime.Now.AddHours(5),
+                MinSalary = 10000000,
+                MaxSalary = 15000000
+            };
+            <partial name="_JobCard" model="defaultJob" />
         }
     </div>
 
@@ -763,6 +730,12 @@
             function updateBasicInfoUI(basicInfo) {
                 if (!basicInfo) return;
                 
+                // Cập nhật avatar ở header
+                const profilePic = document.querySelector('.profile-pic-large');
+                if (profilePic) {
+                    profilePic.src = basicInfo.avatarPath ? `/uploads/avatars/${basicInfo.avatarPath}` : '/images/default-avatar.png';
+                }
+                
                 // Cập nhật thông tin header
                 const profileName = document.querySelector('.profile-name');
                 if (profileName) {
@@ -798,20 +771,12 @@
                 }
                 
                 // Cập nhật mức độ hoàn thành hồ sơ nếu có
-                if (basicInfo.profileCompletionPercentage) {
+                if (basicInfo.profileCompletionPercentage !== undefined) {
                     const progressBar = document.querySelector('.progress-bar');
                     if (progressBar) {
                         progressBar.style.width = `${basicInfo.profileCompletionPercentage}%`;
                     }
                 }
-                
-                // Cập nhật avatar ở header
-                const profilePic = document.querySelector('.profile-pic-large');
-                if (profilePic) {
-                    profilePic.src = basicInfo.avatarPath ? `/uploads/avatars/${basicInfo.avatarPath}` : '/images/default-avatar.png';
-                }
-
-                console.log('Đã cập nhật thông tin cơ bản:', basicInfo);
             }
             
             // Function to update education section
@@ -1624,18 +1589,7 @@
                 });
             }
 
-            // Cập nhật updateBasicInfoUI để xử lý cập nhật avatar
-            function updateBasicInfoUI(basicInfo) {
-                if (!basicInfo) return;
 
-                // Cập nhật avatar ở header
-                const profilePic = document.querySelector('.profile-pic-large');
-                if (profilePic) {
-                    profilePic.src = basicInfo.avatarPath ? `/uploads/avatars/${basicInfo.avatarPath}` : '/images/default-avatar.png';
-                }
-
-                // ...existing updateBasicInfoUI code...
-            }
 
             // Thêm event listener cho input avatar trong modal
             const avatarInput = document.getElementById('AvatarInputModal');

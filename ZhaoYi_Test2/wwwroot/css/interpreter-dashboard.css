@@ -27,8 +27,7 @@ body {
 
 /* Mobile Screen Container */
 .mobile-screen {
-    width: 375px;
-    /* height: 812px; */ /* Nên để chiều cao tự động hoặc max-height: 100vh */
+
     max-height: 100vh;
     height: 100vh; /* Hoặc giữ nếu bạn muốn cố định */
     border: 1px solid #ccc;
