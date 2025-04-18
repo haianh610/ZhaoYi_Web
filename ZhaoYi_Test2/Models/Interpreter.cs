@@ -75,6 +75,9 @@ namespace ZhaoYi_Test2.Models
         [Display(Name = "Lĩnh vực")]
         public string? Field { get; set; }
 
+        [Display(Name = "Ẩn hồ sơ")]
+        public bool isHidden { get; set; } = true;
+
         // Trường Học vấn - Có thể có nhiều trường học
         [Display(Name = "Học vấn")]
         public List<Education> Educations { get; set; } = new List<Education>();

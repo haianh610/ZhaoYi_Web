@@ -47,8 +47,10 @@ namespace ZhaoYi_Test2.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Lấy danh sách tất cả phiên dịch viên
-            var interpretersQuery = _context.Interpreters.AsQueryable();
+            // Lấy danh sách tất cả phiên dịch viên không bị ẩn
+            var interpretersQuery = _context.Interpreters
+                                    .Where(i => !i.isHidden)
+                                    .AsQueryable();
 
             // --- Logic lọc (Tương tự trang tìm kiếm của phiên dịch viên) ---
             if (!string.IsNullOrEmpty(searchTerm))
@@ -103,11 +105,11 @@ namespace ZhaoYi_Test2.Controllers
                 .Include(i => i.Educations)        // Include Học vấn
                 .Include(i => i.WorkExperiences) // Include Kinh nghiệm làm việc
                 .Include(i => i.Projects)        // Include Dự án
-                .FirstOrDefaultAsync(m => m.InterpreterId == id);
+                .FirstOrDefaultAsync(m => m.InterpreterId == id && !m.isHidden);
 
             if (interpreter == null)
             {
-                return NotFound();
+                return NotFound("Không tìm thấy phiên dịch viên hoặc hồ sơ này đã bị ẩn.");
             }
 
             // TODO: Lấy trạng thái bookmark thực tế của recruiter này với interpreter này
