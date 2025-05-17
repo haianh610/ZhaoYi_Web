@@ -1,0 +1,10 @@
+bin/
+obj/
+Dockerfile
+.dockerignore
+*.vspscc
+*.user
+*.suo
+.vscode
+.git
+.gitignore

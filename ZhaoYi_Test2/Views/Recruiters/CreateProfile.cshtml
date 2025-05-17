@@ -82,6 +82,10 @@
 
     <!-- Page Header -->
     <header class="page-header">
+        <!-- Back button in header -->
+        <a href="@Url.Action("Dashboard", "Recruiters")" class="header-back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
         <h1 class="page-title">Hoàn thiện Hồ sơ</h1>
     </header>
 
@@ -138,6 +142,10 @@
             </div>
 
             <div class="form-navigation">
+                <!-- Back button in form navigation -->
+                <a href="@Url.Action("Dashboard", "Recruiters")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
                 <button type="submit" class="btn btn-primary">
                     Hoàn thành <i class="fas fa-check"></i>
                 </button>

@@ -14,7 +14,7 @@ namespace ZhaoYi_Test2.ViewModels
         public string Password { get; set; }
 
         [Display(Name = "Ghi nhớ đăng nhập")]
-        public bool RememberMe { get; set; }
+        public bool RememberMe { get; set; } = true; // Set default value to true
     }
 
     public class RegisterViewModel
@@ -38,4 +38,3 @@ namespace ZhaoYi_Test2.ViewModels
         public string ConfirmPassword { get; set; }
     }
 }
- 

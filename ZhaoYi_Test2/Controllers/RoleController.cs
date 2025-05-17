@@ -71,16 +71,15 @@ namespace ZhaoYi_Test2.Controllers
 
                 if (selectedRole == 1) // Interpreter
                 {
-                    TempData["StatusMessage"] = "Bạn đã chọn vai trò Phiên dịch viên. Hãy cập nhật hồ sơ của bạn.";
-                    // Nếu Interpreter chưa có profile, cũng nên redirect đến trang tạo profile Interpreter
-                    // (Logic này cần kiểm tra và thêm vào InterpreterController)
-                    return RedirectToAction("CreateProfile", "Interpreters");
+                    TempData["StatusMessage"] = "Bạn đã chọn vai trò Phiên dịch viên. Bạn có thể cập nhật hồ sơ của bạn từ trang cá nhân.";
+                    // Chuyển đến trang Dashboard của Interpreter thay vì trang tạo profile
+                    return RedirectToAction("Dashboard", "Interpreters");
                 }
                 else // Recruiter (selectedRole == 2)
                 {
-                    TempData["StatusMessage"] = "Bạn đã chọn vai trò Nhà tuyển dụng. Vui lòng hoàn thiện hồ sơ.";
-                    // Chuyển đến trang tạo profile Recruiter
-                    return RedirectToAction("CreateProfile", "Recruiters");
+                    TempData["StatusMessage"] = "Bạn đã chọn vai trò Nhà tuyển dụng. Bạn có thể hoàn thiện hồ sơ từ trang cá nhân.";
+                    // Chuyển đến trang Dashboard của Recruiter thay vì trang tạo profile
+                    return RedirectToAction("Dashboard", "Recruiters");
                 }
             }
 
